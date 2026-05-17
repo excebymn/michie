@@ -1,5 +1,4 @@
-I made this because i dont find a music player that not customizable and beauty enough for my arch
-theres my plan
+I made this because i dont find a music player that not customizable and beauty enough for my arch and theres my plan
 
 
 # Michie — Project Master Summary
