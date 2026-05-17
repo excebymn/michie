@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'player/player_core.dart';
 
 void main() {
   runApp(
@@ -16,7 +17,6 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    // breakpoint
     final compact = width < 800;
     final medium = width < 1200;
 
@@ -27,7 +27,7 @@ class HomePage extends StatelessWidget {
           child: Row(
             children: [
 
-              // KIRI
+              // PANEL KIRI
               if (!compact && !medium) ...[
                 Expanded(
                   child: Column(
@@ -54,15 +54,13 @@ class HomePage extends StatelessWidget {
                 const SizedBox(width: 8),
               ],
 
-              // TENGAH (WAJIB ADA)
-              Expanded(
-                child: panel(
-                  Colors.deepPurple,
-                  "PLAYER CORE",
-                ),
+              // PLAYER CORE (WAJIB ADA)
+              const Expanded(
+                flex: 2,
+                child: PlayerCore(),
               ),
 
-              // KANAN
+              // PANEL KANAN
               if (!compact) ...[
                 const SizedBox(width: 8),
 
@@ -104,7 +102,6 @@ class HomePage extends StatelessWidget {
         color: color,
         borderRadius: BorderRadius.circular(24),
       ),
-
       child: Center(
         child: Text(
           title,
