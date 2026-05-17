@@ -1,21 +1,12 @@
-```dart
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  runApp(
+    const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Grid Base',
-      home: const HomePage(),
-    );
-  }
+      home: HomePage(),
+    ),
+  );
 }
 
 class HomePage extends StatelessWidget {
@@ -25,56 +16,105 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    // HP: 3 atas + 3 bawah
-    // Tablet/Desktop bisa otomatis lebih lega
-    int crossAxis = width < 700 ? 3 : 4;
+    // breakpoint
+    final compact = width < 800;
+    final medium = width < 1200;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Base Layout'),
-      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          itemCount: 6,
-          gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxis,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1,
-          ),
-          itemBuilder: (context, index) {
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                color: Theme.of(context)
-                    .colorScheme
-                    .primaryContainer,
-              ),
-              child: Center(
-                child: Text(
-                  'Block ${index + 1}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              // KIRI
+              if (!compact && !medium) ...[
+                Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: panel(
+                          Colors.black,
+                          "Top Left",
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Expanded(
+                        child: panel(
+                          Colors.amber,
+                          "Bottom Left",
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+
+                const SizedBox(width: 8),
+              ],
+
+              // TENGAH (WAJIB ADA)
+              Expanded(
+                child: panel(
+                  Colors.deepPurple,
+                  "PLAYER CORE",
+                ),
               ),
-            );
-          },
+
+              // KANAN
+              if (!compact) ...[
+                const SizedBox(width: 8),
+
+                Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: panel(
+                          Colors.grey,
+                          "Top Right",
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Expanded(
+                        child: panel(
+                          Colors.purple,
+                          "Bottom Right",
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget panel(
+    Color color,
+    String title,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(24),
+      ),
+
+      child: Center(
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
 }
-```
-
-Struktur awalnya udah enak buat nanti ditambah:
-
-* sidebar
-* ganti style (Material/iOS/Fluent)
-* animasi
-* kartu musik / menu
-* tema custom
