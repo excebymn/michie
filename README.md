@@ -1,15 +1,14 @@
-````md
 <div align="center">
 
-<img src="./assets/logo.png" alt="Michie Logo" width="140"/>
+<img src="./assets/logo.svg" alt="Michie Logo" width="140"/>
 
 # Michie
 
 ### *The music player that you wanna marry.*
 
-A modern offline music player built with Rust, Tauri, React, and Tailwind CSS.
+A modern offline desktop music player built with Rust, Tauri, React, and TypeScript.
 
-**Status:** Early Development
+**Status:** Early development
 
 </div>
 
@@ -19,9 +18,7 @@ A modern offline music player built with Rust, Tauri, React, and Tailwind CSS.
 
 Michie is a lightweight desktop music player focused on delivering a clean, fast, and enjoyable offline listening experience.
 
-Instead of becoming another feature-heavy media player, Michie aims to provide a modern interface, excellent performance, and an experience that feels simple and intuitive.
-
-At the moment, Michie only supports basic offline music playback. More features will be added as the project continues to evolve.
+The project is designed to feel simple and intuitive while still offering useful music-library features such as browsing, playlists, queue management, and playback controls.
 
 ---
 
@@ -30,56 +27,13 @@ At the moment, Michie only supports basic offline music playback. More features 
 Current features include:
 
 - Offline music playback
-- Local music library support
-- Lightweight desktop application
-- Cross-platform architecture powered by Tauri
-- Modern user interface built with React and Tailwind CSS
-
----
-
-## Vision
-
-Michie is not just another music player.
-
-The long-term vision is to become a **fully customizable widget-based music player**, allowing users to personalize their own interface instead of adapting to a fixed layout.
-
-Different parts of the application will eventually become modular widgets that users can rearrange, enable, disable, or replace according to their own workflow and preferences.
-
-The philosophy behind Michie is simple:
-
-> Music players shouldn't force you to adapt to them. They should adapt to you.
-
-Some ideas currently being explored include:
-
-- Modular widget-based interface
-- Rearrangeable layouts
-- Optional interface components
-- Personalized music experience
-- Extensive UI customization
-
-These ideas are part of the project's long-term direction and are **not available yet**.
-
-Michie is still in the early stages of development.
-
-Stay tuned.
-
----
-
-## Roadmap
-
-- [x] Offline music playback
-- [ ] Music library improvements
-- [ ] Playlist management
-- [x] Better metadata handling
-- [x] Search improvements
-- [ ] Lyrics support
-- [ ] Audio visualizer
-- [x] Theme customization
-- [ ] Widget-based interface
-- [ ] Drag-and-drop widget customization
-- [ ] Additional customization options
-
-The roadmap may change as the project grows.
+- Local library browsing by songs, albums, artists, and genres
+- Playlists and queue management
+- Play, pause, next, previous, repeat, shuffle, and seek controls
+- History tracking for recently played songs
+- Theme customization
+- Lyrics lookup support
+- Backup and restore support for settings and library data
 
 ---
 
@@ -87,49 +41,49 @@ The roadmap may change as the project grows.
 
 | Technology | Purpose |
 |------------|---------|
-| Rust | Backend |
-| Tauri | Desktop Framework |
-| React | Frontend |
-| Tailwind CSS | Styling |
-| Vite | Build Tool |
+| Rust | Backend and audio playback logic |
+| Tauri | Desktop app framework |
+| React | Frontend UI |
+| TypeScript | Application logic |
+| Vite | Build tooling |
+| SQLite | Local data storage |
 
 ---
 
 ## Getting Started
 
-### Clone the repository
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/michie.git
-
+git clone <repository-url>
 cd michie
-````
+```
 
-### Install dependencies
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### Install Rust
+### 3. Install Rust
 
-If Rust is not installed on your system, install it from:
+If Rust is not installed yet, install it from:
 
 https://www.rust-lang.org/tools/install
 
-### Install Tauri prerequisites
+### 4. Install Tauri prerequisites
 
 Follow the official Tauri setup guide for your operating system:
 
 https://v2.tauri.app/start/prerequisites/
 
-### Start the development server
+### 5. Run the app in development mode
 
 ```bash
 npm run tauri dev
 ```
 
-### Build the application
+### 6. Build the app
 
 ```bash
 npm run tauri build
@@ -137,39 +91,33 @@ npm run tauri build
 
 ---
 
-## Releases
+## Project Notes
 
-Michie does not currently provide official releases.
-
-If you'd like to try the application, clone the repository and run it locally using the instructions above.
+This project is still in early development. The main focus is to keep the experience polished while expanding the music-library and playback features over time.
 
 ---
 
 ## Screenshots
 
-Coming soon.
+Screenshots will be added soon.
 
 ---
 
 ## Contributing
 
-Contributions, suggestions, bug reports, and feature requests are always welcome.
-
-Feel free to fork the repository and open a pull request if you'd like to contribute.
+Contributions, bug reports, and feature suggestions are welcome. Feel free to fork the repository and open a pull request.
 
 ---
 
 ## License
 
-This project does not currently include an open-source license.
-
-Until a license is added, all rights are reserved by the author.
+No open-source license has been added yet. Until a license is introduced, all rights are reserved by the project author.
 
 ---
 
 <div align="center">
 
-Made with Rust, Tauri, React, and Tailwind CSS.
+Made with Rust, Tauri, React, and TypeScript.
 
 **Michie**
 *The music player that you wanna marry.*
