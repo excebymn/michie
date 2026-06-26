@@ -1,3 +1,4 @@
+````md
 <div align="center">
 
 <img src="./assets/logo.svg" alt="Michie Logo" width="140"/>
@@ -37,6 +38,68 @@ Current features include:
 
 ---
 
+## Vision
+
+Michie is more than just an offline music player.
+
+The long-term goal is to build a **widget-based music player**, allowing users to customize the interface according to their own preferences and workflow.
+
+Instead of forcing everyone to use the same layout, Michie will eventually let users compose their own experience by enabling, disabling, rearranging, or replacing different interface components.
+
+The philosophy behind Michie is simple:
+
+> Music players shouldn't force you to adapt to them. They should adapt to you.
+
+Some concepts currently planned include:
+
+- Modular widget-based interface
+- Rearrangeable layouts
+- Optional widgets
+- Highly customizable user experience
+- Flexible dashboard for music browsing and playback
+
+These features are still being designed and are **not available yet**.
+
+Michie is currently in its early development stage, and many exciting ideas are planned for future releases.
+
+Stay tuned.
+
+---
+
+## Roadmap
+
+### Current Stage
+
+- [x] Offline music playback
+- [x] Local music library
+- [x] Playlist management
+- [x] Queue management
+- [x] Lyrics support
+- [x] Theme customization
+- [x] Backup and restore
+
+### In Progress
+
+- [ ] Performance improvements
+- [ ] UI refinements
+- [ ] Better metadata handling
+- [ ] Search improvements
+- [ ] Album artwork enhancements
+
+### Planned
+
+- [ ] Widget-based interface
+- [ ] Drag-and-drop widget customization
+- [ ] Multiple layout presets
+- [ ] Plugin/extension system
+- [ ] Audio visualizer
+- [ ] Advanced library management
+- [ ] More customization options
+
+The roadmap may change as the project evolves.
+
+---
+
 ## Tech Stack
 
 | Technology | Purpose |
@@ -55,7 +118,7 @@ Current features include:
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/excebymn/michie.git
 cd michie
 ```
 
@@ -93,7 +156,13 @@ npm run tauri build
 
 ## Project Notes
 
-This project is still in early development. The main focus is to keep the experience polished while expanding the music-library and playback features over time.
+Michie is still under active development.
+
+There are currently **no official releases** available.
+
+If you'd like to try the application, clone the repository and run it locally using the instructions above.
+
+Development is ongoing, and new features will continue to be added over time.
 
 ---
 
@@ -105,13 +174,17 @@ Screenshots will be added soon.
 
 ## Contributing
 
-Contributions, bug reports, and feature suggestions are welcome. Feel free to fork the repository and open a pull request.
+Contributions, bug reports, and feature suggestions are welcome.
+
+Feel free to fork the repository and open a pull request.
 
 ---
 
 ## License
 
-No open-source license has been added yet. Until a license is introduced, all rights are reserved by the project author.
+No open-source license has been added yet.
+
+Until a license is introduced, all rights are reserved by the project author.
 
 ---
 
@@ -120,7 +193,8 @@ No open-source license has been added yet. Until a license is introduced, all ri
 Made with Rust, Tauri, React, and TypeScript.
 
 **Michie**
+
 *The music player that you wanna marry.*
 
 </div>
-```
+````
