@@ -1,7 +1,7 @@
 {
-  "name": "michie",
+  "name": "michie_player",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.3.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,25 +10,27 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-dialog": "^2.7.1",
-    "@tauri-apps/plugin-fs": "^2.5.1",
-    "@tauri-apps/plugin-opener": "^2",
-    "@tauri-apps/plugin-sql": "^2.4.0",
-    "colorthief": "^3.3.1",
-    "howler": "^2.2.4",
-    "immer": "^11.1.8",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@tauri-apps/api": "2.9.1",
+    "@tauri-apps/plugin-dialog": "2.6.0",
+    "@tauri-apps/plugin-global-shortcut": "^2.3.1",
+    "@tauri-apps/plugin-log": "^2.8.0",
+    "@tauri-apps/plugin-opener": "^2.5.3",
+    "@tauri-apps/plugin-sql": "2.3.1",
+    "@tauri-apps/plugin-store": "2.4.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zustand": "^5.0.14"
+    "react-router-dom": "^7.9.4",
+    "react-router-hash-link": "^2.4.3",
+    "react-virtuoso": "^4.17.0",
+    "simplebar-react": "^3.3.2",
+    "tauri-plugin-cache-api": "^0.1.5"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.11.2",
-    "@types/colorthief": "^2.6.1",
-    "@types/howler": "^2.2.13",
-    "@types/node": "^26.0.0",
+    "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@types/react-router-hash-link": "^2.4.9",
     "@vitejs/plugin-react": "^4.6.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"

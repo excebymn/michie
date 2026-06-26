@@ -1,46 +1,46 @@
 [package]
-name = "michie"
-version = "0.1.0"
-description = "Offline Music Library Player (Tauri + React)"
-authors = ["you"]
+name = "michie_player"
+version = "0.3.7"
+description = "A beautiful and colorful music player for Windows"
+authors = ["VulshokBersrker"]
 edition = "2021"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [lib]
-name = "michie_lib"
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "michie_player_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
-# =========================
-# BUILD DEPENDENCIES
-# =========================
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
-# =========================
-# ALL DEPENDENCIES (DIGABUNG JADI SATU)
-# =========================
 [dependencies]
-# Tauri Core
-tauri = { version = "2", features = [] }
-
-# Tauri Plugins
-tauri-plugin-sql    = { version = "2", features = ["sqlite"] }
-tauri-plugin-dialog = "2"
-tauri-plugin-fs     = "2"
-tauri-plugin-shell  = "2"
+tauri = { version = "2.9.2", features = ["protocol-asset"] }
 tauri-plugin-opener = "2"
-
-# Music / Metadata
-lofty = "0.21"
-notify = "6"
-image = "0.25"
-walkdir = "2"                    # ← UNTUK SCAN FOLDER REKURSIF
-chrono = { version = "0.4", features = ["serde"] }  # ← UNTUK TIMESTAMP
-
-# Async Runtime
-tokio = { version = "1", features = ["full"] }
-
-# Utils
-uuid = { version = "1", features = ["v4"] }
-anyhow = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+chrono = "0.4.42"
+sqlx = { version = "0.8.6", features = ["sqlite"] }
+dirs = "6.0.0"
+tokio = "1.48.0"
+rodio = {version="0.21.1", features = [ "symphonia-all"] }
+serde_with = "3.15.1"
+tauri-plugin-sql = { version = "2.3.1", features = ["sqlite"] }
+zip = "7.0.0"
+lofty = "0.22.4"
+m3u8-rs = "6.0.0"
+jwalk = "0.8.1"
+flume = "0.12.0"
+threadpool = "1.8.1"
+reqwest = { version = "0.13.1", features = ["json"] }
+tauri-plugin-prevent-default = "4.0.3"
+tauri-plugin-dialog = "2"
+tauri-plugin-log = "2"
+fern = { version = "0.7.1", features = ["colored", "date-based"] } 
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-single-instance = "2"

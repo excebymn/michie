@@ -1,45 +1,207 @@
-import { useEffect } from 'react'
-import { useAudioEngine } from './hooks/useAudioEngine'
-import { useDynamicTheme } from './hooks/useDynamicTheme'
-import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
-import { useLibraryStore } from './store/useLibraryStore'
-import { getTracks } from './lib/tauri-bridge'
-import './App.css'
+import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { error } from '@tauri-apps/plugin-log';
+import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
 
-//import LibraryView from './components/library/LibraryView'
-//import NowPlayingPanel from './components/now-playing/NowPlayingPanel'
-//import PlayerBar from './components/player/PlayerBar'
-//import QueuePanel from './components/queue/QueuePanel'
+import "./App.css";
 
-export default function App() {
-  const audioEngine = useAudioEngine()
-  const { setTracks } = useLibraryStore()
+// Custom Components
+import { AlbumDetails, AllArtistResults, AllGenreResults, SongsFull } from "./globalValues";
+import CustomWindowsBar from "./components/fileSystem/customWindowsBar";
+import MusicControls from "./components/musicControls";
+import RightSideBar from "./components/rightSideBar";
+import Popup from "./components/popups";
 
-  useDynamicTheme()
-  useKeyboardShortcuts(audioEngine)
+// Pages
+import PlaylistOverviewPage from "./pages/details/playlistDetails";
+import ArtistOverviewPage from "./pages/details/artistDetails";
+import LRCLIBSearchResults from "./pages/lyrics/LRCLIBSearch";
+import AlbumOverviewPage from "./pages/details/albumDetails";
+import GenreOverviewPage from "./pages/details/genreDetails";
+import SongLyricSearch from'./pages/lyrics/lyricSearch';
+import QueueOverviewPage from "./pages/queue";
+import PlayHistoryPage from "./pages/history";
+import PlaylistPage from "./pages/playlist";
+import ArtistsPage from "./pages/artists";
+import GenresPage from "./pages/genres";
+import Settings from "./pages/settings";
+import AlbumPage from "./pages/albums";
+import SongPage from "./pages/songs";
+import Home from "./pages/home";
+
+
+
+function App() {
+
+  const [songList, setSongList] = useState<any[]>([]);
+  const [albumList, setAlbumList] = useState<AlbumDetails[]>([]);
+  const [artistList, setArtistList] = useState<AllArtistResults[]>([]);
+  const [genreList, setGenreList] = useState<AllGenreResults[]>([]);
+
+  const [newVersionAvailable, setNewVersionAvailable] = useState<boolean>(false);
 
   useEffect(() => {
-    getTracks().then(setTracks).catch(console.error)
-  }, [])
+    getTheme();
+    getValues();    
+    checkForDeleted();
+    checkVersion();
+  }, []);
 
-  return (
-    <div className="app-layout">
-      <aside className="sidebar-nav surface-1">
-        {/* Navigation: Library, Playlists, Settings */}
-      </aside>
+  // Listeners
+  useEffect(() => {
+    const unlisten_scan_finished = listen("scan-finished", () => { getValues(); });
+    const unlisten_restore_finished = listen("ending-restore", () => { getTheme(); getValues(); });
+    const unlisten_reset_finished = listen("ending-reset", () => { getTheme(); getValues(); });
+    const unlisten_reload_albums = listen("remove-song", () => { getValues(); });
 
-      <main className="main-content">
-        <LibraryView audioEngine={audioEngine} />
-      </main>
+    
+    return () => {
+      unlisten_scan_finished.then(f => f()),
+      unlisten_reload_albums.then(f => f()),
+      unlisten_reset_finished.then(f => f()),
+      unlisten_restore_finished.then(f => f());
+    }
+  }, []);
 
-      <aside className="now-playing surface">
-        <NowPlayingPanel />
-        <QueuePanel />
-      </aside>
+  async function getTheme() {
+    try {
+      const res: string | null = await invoke("get_settings");
+      if(res === null) {
+        const selectedTheme = localStorage.getItem('theme');
+        if(selectedTheme) {
+          document.querySelector("body")?.setAttribute("data-theme", selectedTheme);
+        }
+        else {
+          document.querySelector("body")?.setAttribute("data-theme", "red");
+        }        
+      }
+      else {
+        document.querySelector("body")?.setAttribute("data-theme", res);
+      }
+    }
+    catch(e) {
+      error("Main (Error) - Error Getting Settings");
+      console.error("Error getting settings", e)
+    }
+  }
 
-      <footer className="player-bar surface-2">
-        <PlayerBar audioEngine={audioEngine} />
-      </footer>
+  async function getValues() {
+    try {
+      getSongs();
+      getAlbums();
+      getArtists();
+      getGenres();
+    }
+    catch(e) {
+      error("Main (Error) - Failed to get Data");
+      console.log(`Failed to get data: ${e}`);
+    }
+  }
+
+  async function getSongs() {
+    try {
+      const song_list: SongsFull[] = await invoke<SongsFull[]>('get_all_songs');
+      setSongList(song_list);
+    }
+    catch(err) {
+      error("Main (Error) - Failed to get Songs");
+      console.log(`Failed to scan folder: ${err}`);
+    }
+  }
+
+  async function checkForDeleted() {
+    try {
+      await invoke("scan_for_deleted");
+    }
+    catch(e) {
+      error("Main (Error) - Error while Checking for Deleted Songs");
+      console.log(e);
+    }
+  }
+
+  async function checkVersion() {
+    try {
+      const res: boolean = await invoke("check_for_new_version");
+      if(res) {
+        setNewVersionAvailable(true);
+      }
+      else {
+        setNewVersionAvailable(false);
+      }
+    }
+    catch(e) {
+      error("Main (Error) - Error Checking for new Version");
+      console.log(e);
+    }
+  }
+
+  // get all data for the media player's main pages
+  async function getAlbums() {
+    try {
+      const list = await invoke<AlbumDetails[]>('get_all_albums');
+      setAlbumList(list);  
+    }
+    catch(err) {
+      error("Main (Error) - Error Getting Albums");
+      console.log(`Failed to get album data: ${err}`);
+    }
+  }
+
+  // get all data for the media player's main pages
+  async function getArtists() {
+    try {
+      const list = await invoke<AllArtistResults[]>('get_all_artists');
+      setArtistList(list);
+    }
+    catch(err) {
+      error("Main (Error) - Error Getting Artists");
+      console.log(`Failed to scan folder: ${err}`);
+    }
+  }
+
+  // get all data for the media player's main pages
+  async function getGenres() {
+    try {
+      const list = await invoke<AllGenreResults[]>('get_all_genres');
+      setGenreList(list);        
+    }
+    catch(err) {
+      error("Main (Error) - Error Getting Genres");
+      console.log(`Failed to get genre data: ${err}`);
+    }
+  }
+
+  return(
+    <div>
+      <BrowserRouter>
+        <CustomWindowsBar />
+        <RightSideBar />
+        <MusicControls />
+        <div className="content">
+          {newVersionAvailable && <Popup isToggled={newVersionAvailable} popupType={0}/>}
+          <Routes>
+            <Route path="/" element={ <Home /> }/>
+            <Route path="/songs" element={ <SongPage songs={songList} /> }/>
+            <Route path="/albums" element={ <AlbumPage albums={albumList} /> }/>
+            <Route path="/artists" element={ <ArtistsPage artists={artistList} /> }/>
+            <Route path="/genres" element={ <GenresPage genres={genreList} /> }/>
+            <Route path="/queue" element={ <QueueOverviewPage /> }/>
+            <Route path="/history" element={ <PlayHistoryPage /> }/>
+            <Route path="/playlists" element={ <PlaylistPage /> }/>
+            <Route path="/settings" element={ <Settings /> }/>
+            <Route path="/albums/overview" element={ <AlbumOverviewPage />} />
+            <Route path="/artists/overview" element={ <ArtistOverviewPage />} />
+            <Route path="/genres/overview" element={ <GenreOverviewPage />} />
+            <Route path="/playlists/overview" element={ <PlaylistOverviewPage />} />
+            {/* Lyric Routes */}
+            <Route path="/lyrics/song-search" element={ <SongLyricSearch songs={songList} />} />
+            <Route path="/lyrics/lrclib-results" element={ <LRCLIBSearchResults />} />
+          </Routes>
+        </div>
+      </BrowserRouter>      
     </div>
-  )
+  );
 }
+
+export default App;

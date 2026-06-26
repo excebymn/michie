@@ -1,0 +1,494 @@
+import { useEffect, useRef, useState } from "react";
+import { invoke } from '@tauri-apps/api/core';
+import { Virtuoso } from 'react-virtuoso';
+import SimpleBar from 'simplebar-react';
+
+import { alphabeticallyOrdered, ContextMenu, PlaylistList, playSelection, savePosition, Songs, SongsFull } from "../globalValues";
+import CustomContextMenu from "../components/customContextMenu";
+import SongDetailsModal from "../components/songDetails";
+
+// Images
+import QueueIcon from '../images/rectangle-list-regular-full.svg';
+import PlayIcon from '../images/play-icon-outline.svg';
+import AddIcon from '../images/plus-solid-full.svg';
+import SearchIcon from '../images/search_icon.svg';
+import CloseIcon from '../images/x.svg';
+
+type Props = {
+    songs: SongsFull[]
+}
+
+export default function SongPage({songs}: Props) {
+
+    const [scrollParent, setScrollParent] = useState<any>(null);
+    const virtuoso = useRef<any>(null);
+
+    // const [loading, setLoading] = useState(false);
+    const [songList] = useState<SongsFull[]>(songs);
+    const [searchValue, setSearchValue] = useState<string>("");
+
+    const [filteredSongs, setFilteredSongs] = useState<SongsFull[]>(songs);
+    const [songSections, setSongSections] = useState<number[]>([]);
+
+    // Playlist Values
+    const [newPlaylistName, setNewPlaylistName] = useState<string>("");
+    const [displayAddToMenu, setDisplayAddToMenu] = useState<boolean>(false);
+    const [playlistList, setPlaylistList] = useState<PlaylistList[]>([]);
+    
+    const [songSelection, setSongSelection] = useState<Songs[]>([]);
+
+    const[contextMenu, setContextMenu] = useState<ContextMenu>({ isToggled: false, isBeingAdded: false, context_type: "song", album: "", artist: "", index: 0, posX: 0, posY: 0, side: 0 });
+    const isContextMenuOpen = useRef<any>(null);
+    const [displaySongDetails, setDisplaySongDetails] = useState<boolean>(false);
+    const [displaySong, setDisplaySong] = useState<string>("");
+
+    
+    useEffect(() => {
+        function setupSongs() {
+            
+            let tempSectionArray: number[] = [];
+            const maxSection = alphabeticallyOrdered.indexOf( Math.max.apply(Math, songList.map((o: SongsFull) => { return o.song_section})) );
+
+            for(let i = 0; i < maxSection + 1; i++) {
+                const results = songs.filter(obj => obj.song_section === alphabeticallyOrdered[i] ).length;
+                tempSectionArray[i] = results;
+            }
+            setSongSections(tempSectionArray); 
+        }
+        setupSongs();
+    }, []);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            if(!contextMenu.isToggled && !isContextMenuOpen.current?.contains(e.target)) {
+                resetContextMenu();
+            }
+        }
+        document.addEventListener('mousedown', handler);
+        
+        return () => {
+            document.removeEventListener('mousedown', handler);
+        }
+    }, []);
+
+    function updateSearchResults(value: string) {
+        setSearchValue(value);
+
+        const temp_section = songList.filter((entry) => {
+            if(entry.name !== undefined && entry.album !== undefined && entry.album_artist !== undefined) {
+                return (entry.name.normalize('NFD').toLowerCase().replace(/[\u0300-\u036f]/g, '').includes(value.toLowerCase())
+                || entry.album.normalize('NFD').toLowerCase().replace(/[\u0300-\u036f]/g, '').includes(value.toLowerCase())
+                || entry.album_artist.normalize('NFD').toLowerCase().replace(/[\u0300-\u036f]/g, '').includes(value.toLowerCase())
+            )
+            }
+            else {
+                return entry;
+            }
+        });
+
+        let tempSectionArray: number[] = [];
+            const maxSection = alphabeticallyOrdered.length;
+
+            for(let i = 0; i < maxSection; i++) {
+                const results = temp_section.filter(obj => obj.song_section === alphabeticallyOrdered[i] ).length;
+                tempSectionArray[i] = results;
+            }
+            setSongSections(tempSectionArray);
+        
+        // console.log(temp_section);
+        setFilteredSongs(temp_section);
+    }
+
+    async function playSong(index: number) {
+        try {
+            // Load the music to be played and saved
+            await invoke('play_song', { song: filteredSongs[index] });
+            savePosition(0);
+        }
+        catch(e) {
+            console.log(e);
+        }
+        finally {
+            localStorage.setItem("shuffle-mode", JSON.stringify(false) );
+            await invoke("set_shuffle_mode", { mode: false });
+        }
+    }
+
+    // ------------ Start of Selection Bar Functions ------------
+
+    useEffect(() => {
+        const fetchData = async() => {
+            const list: PlaylistList[] | undefined = await getAllPlaylists();
+            if(list !== undefined) {
+                setPlaylistList(list);
+            }
+        }
+        fetchData();        
+    }, []);
+
+    async function addToQueue() {
+        setDisplayAddToMenu(false);
+        resetContextMenu();
+        console.log("queue add")
+        try {
+            let songList: Songs[] = [];
+            for(let i = 0; i < songSelection.length; i++) {
+                const temp: Songs = await invoke<Songs>('get_song', {song_path: songSelection[i].path});
+                songList.push(temp);
+            }
+            clearSelection();
+            await invoke('add_to_queue', {songs: songList});
+            await invoke('player_add_to_queue', {queue: songList});
+        }
+        catch(e) {
+            console.log(e);
+        }
+    }
+    
+    async function addSelectedToPlaylist(id: number) {
+        setDisplayAddToMenu(false);
+        resetContextMenu();
+        try {
+            await invoke('add_to_playlist', {songs: songSelection, playlist_id: id});
+        }
+        catch(e) {
+            console.log(e);
+        }
+        finally {
+            
+            clearSelection();
+        }
+    }
+
+    async function addToPlaylist(id: number, song: Songs) {
+        setDisplayAddToMenu(false);
+        resetContextMenu();
+        try {
+            const arr: Songs[] = [song];            
+            await invoke('add_to_playlist', {songs: arr, playlist_id: id});
+        }
+        catch(e) {
+            console.log(e);
+        }
+        finally {            
+            clearSelection();
+        }        
+    }
+
+    async function createPlaylist(name: string) {
+        resetContextMenu();
+        setDisplayAddToMenu(false);
+        try {
+            await invoke('create_playlist', {name: name, songs: songSelection, songs_to_add: true});
+            await invoke('new_playlist_added');
+        }
+        catch(e) {
+            console.log(e);
+        }
+        finally {            
+            clearSelection();
+        }        
+    }
+
+    async function getAllPlaylists() {
+        try {
+            const playlists: PlaylistList[] = await invoke('get_all_playlists');
+            if(playlists.length !== 0) {
+                return playlists;
+            }
+            else {
+                return [];
+            }            
+        }
+        catch(e) {
+            console.log(e);
+        }
+    }
+    
+    function editSelection(song: Songs, isBeingAdded: boolean) {
+        resetContextMenu();
+        // If we are adding to the array of selected songs
+        if(isBeingAdded === true) {
+            // Append to the array
+            setSongSelection([...songSelection, song]);
+        }
+        // If we are removing a song from the array
+        else {
+            // Find the location of the song in the array with filter and only return the other songs
+            setSongSelection(songSelection.filter(item => item.path !== song.path));;
+        }
+    }
+
+    function clearSelection() {
+        setSongSelection([]);
+        setDisplayAddToMenu(false);
+    }
+
+    // ------------ End of Selection Bar Functions ------------
+
+    // Context Menu Functions
+
+    function handleContextMenu(e: any, album: string, artist: string, index: number, isBeingAdded: boolean) {
+        if(e.pageX < window.innerWidth / 2) {
+            if(e.pageY < window.innerHeight / 2) {
+                setContextMenu({ isToggled: true, isBeingAdded: isBeingAdded, context_type: "playlistsong", album: album, artist: artist, index: index, posX: e.pageX, posY: e.pageY, side: 0});
+            }
+            else {
+                setContextMenu({ isToggled: true, isBeingAdded: isBeingAdded, context_type: "playlistsong", album: album, artist: artist, index: index, posX: e.pageX, posY: e.pageY - 180, side: 0});
+            }
+        }
+        else {
+            if(e.pageY < window.innerHeight / 2) {
+                setContextMenu({ isToggled: true, isBeingAdded: isBeingAdded, context_type: "playlistsong", album: album, artist: artist, index: index, posX: e.pageX - 150, posY: e.pageY, side: 1});
+            }
+            else {
+                setContextMenu({ isToggled: true, isBeingAdded: isBeingAdded, context_type: "playlistsong", album: album, artist: artist, index: index, posX: e.pageX - 150, posY: e.pageY - 180, side: 1});
+            }
+        }
+    }
+
+    function resetContextMenu() {
+        setContextMenu({ isToggled: false, isBeingAdded: false, context_type: "playlistsong", album: "", artist: "", index: 0, posX: 0, posY: 0, side: 0});
+    }
+
+    function updateSongDetailsDisplay(bool: boolean, path: string) {
+        setDisplaySongDetails(bool);
+        setDisplaySong(path)
+        resetContextMenu();
+    }
+
+
+    return(
+        <>  
+            <div className="section-list">
+                {songList.length !== 0 && alphabeticallyOrdered.map((section, i) => {
+                    let totalIndex = 0;
+                    for(let j = 0; j < i; j++) { totalIndex += songSections[j]; }
+                    if(songSections[i] !== 0 && songSections[i] !== undefined) {
+                        // console.log(songSections[i] + " - " + alphabeticallyOrdered[i] + "-" + section);
+                        return(
+                            <div
+                                id={`main-${section}-${totalIndex}`} key={`main-${section}-${totalIndex}`} className="section-key"
+                                onClick={() => {
+                                    virtuoso.current.scrollToIndex({ index: totalIndex });
+                                    return false;
+                                }}
+                            >
+                                <span>
+                                    {section === 0 && "&"}
+                                    {section === 1 && "#"}
+                                    {section > 1 && section < 300 && section !== 0 && String.fromCharCode(section)}
+                                    {section === 300 && "..."}
+                                </span>
+                            </div>                                
+                        ); 
+                    }                          
+                })}
+            </div>
+
+            <SimpleBar forceVisible="y" autoHide={false} ref={setScrollParent} className="songs-main">
+                <div className="song-page-list">
+                    <div className="search-filters d-flex justify-content-end vertical-centered"> 
+                        <span className="search-bar">
+                            <img src={SearchIcon} className="bi search-icon icon-size"/>
+                            <input
+                                type="text" placeholder="Search Songs" id="search_songs"
+                                autoComplete="off"
+                                value={searchValue}
+                                onChange={(e) => updateSearchResults(e.target.value)}
+                            />
+                        </span>
+                    </div>
+
+                    {/* Song Selection Bar */}
+                    <div className={`selection-popup-container grid-20 header-font ${songSelection.length >= 1 ? "open" : "closed"}`}>
+                        <div className="section-8" style={{marginLeft: '15px'}}>{songSelection.length} item{songSelection.length > 1 && <>s</>} selected</div>
+                        <div className="section-5 position-relative">
+                            <button className="d-flex align-items-center" onClick={() => {playSelection(songSelection); clearSelection(); }}>
+                                <img src={PlayIcon} />
+                                &nbsp;Play
+                            </button>
+                        </div>
+                        <div className="section-6 position-relative">
+                            <button className="d-flex align-items-center" onClick={() => setDisplayAddToMenu(!displayAddToMenu)}>
+                                <img src={AddIcon} />
+                                &nbsp;Add
+                            </button>
+
+                            {displayAddToMenu && songSelection.length >= 1 &&
+                                <div className="playlist-list-container header-font" style={{transform: playlistList.length === 0 ? "translate(-43%, 19.5%)" : "translate(-43%, 8%)"}}>
+                                    <div className="item d-flex align-items-center" onClick={addToQueue}>
+                                        <img src={QueueIcon} className="icon-size"/> &nbsp;Queue
+                                    </div>
+                                    <hr/>
+                                    <span className="playlist-input-container d-flex justify-content-center align-items-center">
+                                        <input
+                                            id="new_playlist_input" type="text" autoComplete="off" placeholder="New Playlist"
+                                            className="new-playlist" value={newPlaylistName}
+                                            onChange={(e) => setNewPlaylistName(e.target.value)}
+                                        />
+                                        <span><button onClick={() => {createPlaylist(newPlaylistName)}}>Create</button></span>
+                                    </span>
+                                    
+                                    <SimpleBar forceVisible="y" autoHide={false} clickOnTrack={false} className="add-playlist-container"
+                                        style={{height: playlistList.length === 0 ? "0px" : "" }}
+                                    >
+                                        {playlistList?.map((playlist) => {
+                                            return(
+                                                <div className="item" key={playlist.name} onClick={() => addSelectedToPlaylist(playlist.id)}>
+                                                    {playlist.name}
+                                                </div>
+                                            );                                                                                      
+                                        })}
+                                    </SimpleBar>
+                                </div>
+                            }
+                        </div>
+
+                        <span className="vertical-centered section-1" onClick={clearSelection}> <img src={CloseIcon} /></span>
+                    </div>                    
+                    {/* End of Song Selection Bar */}
+
+                    {displaySongDetails && <SongDetailsModal song_path={displaySong} bool={displaySongDetails} updateSongDetailsDisplay={updateSongDetailsDisplay} />}
+
+
+                    <div className="song-list">
+                        <Virtuoso 
+                            ref={virtuoso}
+                            totalCount={filteredSongs.length}
+                            increaseViewportBy={{ top: 210, bottom: 10 }}
+                            itemContent={(index) => {
+                                let totalIndex = 0;
+                                for(let j = 0; j < songSections.length; j++) {                                        
+                                    if(totalIndex === index) {
+                                        return(
+                                            <>
+                                                <div className="grid-20 position-relative" key={index} id={`${index}`}>
+                                                    <span className="section-20 header-font header-color" key={j}>
+                                                        {filteredSongs[index].song_section === 0 && <h1 className="font-6">&</h1>}
+                                                        {filteredSongs[index].song_section === 1 && <h1 className="font-6">#</h1>}
+                                                        {filteredSongs[index].song_section > 1 && filteredSongs[index].song_section < 300 && <h1 className="font-p6">{String.fromCharCode(filteredSongs[index].song_section)}</h1>}
+                                                        {filteredSongs[index].song_section === 300 && <h1 className="font-6">...</h1>}
+                                                    </span>
+                                                    <span className="section-1"></span>
+                                                    <span className="section-6 details">Name</span>
+                                                    <span className="section-4 details">Album</span>
+                                                    <span className="section-4 details">Album Artist</span>
+                                                    <span className="section-2 details">Release</span>
+                                                    <span className="section-2 details">Genre</span>
+                                                    <span className="section-1 details">Length</span>
+                                                </div>
+                                                <hr />
+                                                <div className="flex items-center justify-between">
+                                                    <div className="song-link"
+                                                        onContextMenu={(e) => {
+                                                            e.preventDefault();
+                                                            handleContextMenu(e, filteredSongs[index].album, filteredSongs[index].album_artist, index, songSelection.filter(x => {
+                                                                return x.path === filteredSongs[index].path
+                                                            }).length > 0);
+                                                        }}
+                                                    >
+                                                        <div className={`grid-20 song-row`}>
+                                                            <span className="section-1 vertical-centered play ">
+                                                                <span className="form-control">
+                                                                    <input
+                                                                        type="checkbox" id={`select-${index}`} name={`select-${index}`}
+                                                                        onClick={(e) => editSelection(filteredSongs[index], e.currentTarget.checked,)}
+                                                                        onChange={() => {}} 
+                                                                        checked={songSelection.filter(x => {
+                                                                            return x.path === filteredSongs[index].path
+                                                                        }).length > 0}
+                                                                    />
+                                                                </span>
+                                                                <img src={PlayIcon} onClick={() => {playSong(index)}}/>
+                                                            </span>
+                                                            
+                                                            <span className="section-6 vertical-centered font-0 name line-clamp-1">{filteredSongs[index].name}</span>
+                                                            <span className="section-4 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].album}</span>
+                                                            <span className="section-4 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].album_artist}</span>
+                                                            <span className="section-2 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].release}</span>
+                                                            <span className="section-2 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].genre}</span>
+                                                            <span className="section-1 header-font vertical-centered duration">{new Date(filteredSongs[index].duration * 1000).toISOString().slice(14, 19)}</span>
+                                                        </div>
+                                                        <hr />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        );
+                                    }
+                                    totalIndex += songSections[j];
+                                }
+                                return(
+                                    <div className="flex items-center justify-between">
+                                        <div className="song-link"
+                                            onContextMenu={(e) => {
+                                                e.preventDefault();
+                                                handleContextMenu(e, filteredSongs[index].album, filteredSongs[index].album_artist, index, songSelection.filter(x => {
+                                                    return x.path === filteredSongs[index].path
+                                                }).length > 0);
+                                            }}
+                                        >
+                                            <div className={`grid-20 song-row`}>                                            
+                                                <span className="section-1 vertical-centered play ">
+                                                    <span className="form-control">
+                                                        <input
+                                                            type="checkbox" id={`select-${index}`} name={`select-${index}`}
+                                                            onClick={(e) => editSelection(filteredSongs[index], e.currentTarget.checked)}
+                                                            onChange={() => {}} 
+                                                            checked={songSelection.filter(x => {
+                                                                return x.path === filteredSongs[index].path
+                                                            }).length > 0}
+                                                        />
+                                                    </span>
+                                                    <img src={PlayIcon} onClick={() => {playSong(index)}}/>
+                                                </span>
+                                                
+                                                <span className="section-6 vertical-centered font-0 name line-clamp-1">{filteredSongs[index].name}</span>
+                                                <span className="section-4 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].album}</span>
+                                                <span className="section-4 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].album_artist}</span>
+                                                <span className="section-2 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].release}</span>
+                                                <span className="section-2 vertical-centered font-0 artist line-clamp-1">{filteredSongs[index].genre}</span>
+                                                <span className="section-1 header-font vertical-centered duration">{new Date(filteredSongs[index].duration * 1000).toISOString().slice(14, 19)}</span>
+                                            </div>
+                                            <hr />
+                                        </div>
+                                    </div>
+                                );                                
+                            }}
+                            customScrollParent={scrollParent ? scrollParent.contentWrapperEl : undefined}
+                        />
+                    </div>
+
+                    {searchValue.length > 0 && filteredSongs.length === 0 &&
+                        <div>
+                            No Results
+                        </div>
+                    }
+                    <div className="empty-space"/>
+
+                    <CustomContextMenu
+                        isToggled={contextMenu.isToggled}
+                        context_type={contextMenu.context_type}
+                        song={filteredSongs[contextMenu.index]}
+                        album={contextMenu.album}
+                        artist={contextMenu.artist}
+                        index={contextMenu.index}
+                        play={playSong}
+                        editSelection={editSelection}
+                        isBeingAdded={contextMenu.isBeingAdded}
+                        posX={contextMenu.posX}
+                        posY={contextMenu.posY}
+                        side={contextMenu.side}
+                        name={""}
+                        playlistList={playlistList}
+                        createPlaylist={createPlaylist}
+                        addToPlaylist={addToPlaylist}
+                        addToQueue={addToQueue}
+                        updateSongDetailsDisplay={updateSongDetailsDisplay}
+                        ref={isContextMenuOpen}                
+                    />
+                </div>            
+            </SimpleBar>
+        </>
+    );
+}
