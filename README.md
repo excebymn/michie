@@ -1,4 +1,3 @@
-````md
 <div align="center">
 
 <img src="./assets/logo.svg" alt="Michie Logo" width="140"/>
@@ -197,4 +196,3 @@ Made with Rust, Tauri, React, and TypeScript.
 *The music player that you wanna marry.*
 
 </div>
-````
