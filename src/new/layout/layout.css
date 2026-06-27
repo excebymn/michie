@@ -1,0 +1,116 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.layout {
+    width: 100%;
+    height: 100vh;
+
+    padding: 14px;
+    gap: 14px;
+
+    display: grid;
+
+    /* 3 kolom sama besar */
+    grid-template-columns:
+        minmax(320px, 1fr)
+        minmax(320px, 1fr)
+        minmax(320px, 1fr);
+
+    background: #000;
+
+    transition: grid-template-columns .35s ease;
+}
+
+.column {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 14px;
+
+    min-width: 0;
+
+    overflow: hidden;
+
+    transition:
+        opacity .35s ease,
+        transform .35s ease;
+}
+
+.main-player {
+    background: #181818;
+
+    border-radius: 14px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.widget-slot {
+    background: #2a2a2a;
+
+    border-radius: 14px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: #999;
+    font-size: 18px;
+
+    user-select: none;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+/* Hilangkan kolom kanan */
+
+@media (max-width: 1200px) {
+
+    .layout {
+        grid-template-columns:
+            minmax(320px, 1fr)
+            minmax(320px, 1fr)
+            0fr;
+    }
+
+    .right-column {
+        opacity: 0;
+        transform: translateX(24px);
+        pointer-events: none;
+    }
+
+}
+
+/* Hilangkan kolom kiri */
+
+@media (max-width: 850px) {
+
+    .layout {
+        grid-template-columns:
+            0fr
+            1fr
+            0fr;
+    }
+
+    .left-column {
+        opacity: 0;
+        transform: translateX(-24px);
+        pointer-events: none;
+    }
+
+}

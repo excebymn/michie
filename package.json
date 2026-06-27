@@ -24,7 +24,8 @@
     "react-router-hash-link": "^2.4.3",
     "react-virtuoso": "^4.17.0",
     "simplebar-react": "^3.3.2",
-    "tauri-plugin-cache-api": "^0.1.5"
+    "tauri-plugin-cache-api": "^0.1.5",
+    "zustand": "^4.5.7"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
