@@ -1,6 +1,6 @@
 [package]
-name = "michie_player"
-version = "0.3.7"
+name = "michie"
+version = "0.1.0-alpha.1"
 description = "A beautiful and colorful music player for Windows"
 authors = ["VulshokBersrker"]
 edition = "2021"

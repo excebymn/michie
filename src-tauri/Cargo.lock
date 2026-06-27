@@ -2728,8 +2728,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "michie_player"
-version = "0.3.7"
+name = "michie"
+version = "0.1.0-alpha.1"
 dependencies = [
  "chrono",
  "dirs",
