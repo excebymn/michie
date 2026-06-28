@@ -383,7 +383,7 @@ export function MusicPlayerWidget() {
         await updateSongDetails(dir_path);
       });
 
-      const ul5 = await playerService.onShuffleMode((e) => {
+      const ul5 = await playerService.onShuffleMode(() => {
         // handled by store already via setShuffleModeState
       });
 
