@@ -37,10 +37,11 @@ impl MusicPlayer {
     pub fn stop_song(&self) {
         self.sink.stop();
     }
-    // Get current spot in the song
-    pub fn get_song_pos(&self) {
-        self.sink.get_pos();
+    // Get current playback position in seconds
+    pub fn get_song_pos(&self) -> u64 {
+        self.sink.get_pos().as_secs()
     }
+    
     // Change the time of the song
     pub fn seek(&self, position: u64) {
         // println!("position: {:?}", time::Duration::from_secs(position));
@@ -147,8 +148,14 @@ impl MusicPlayer {
         return self.queue.len();
     }
     
-    pub fn get_current_position(&self) -> usize {
+    // Returns the queue index of the current song
+    pub fn get_current_index(&self) -> usize {
         return self.position;
+    }
+    
+    // Returns the actual playback position in seconds
+    pub fn get_current_position(&self) -> u64 {
+        return self.sink.get_pos().as_secs();
     }
     
     pub fn update_current_index(&mut self, pos: usize) -> Result<(), String> {

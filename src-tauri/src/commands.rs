@@ -136,9 +136,15 @@ pub fn player_get_current_song(state: State<AppState, '_>) -> Result<SongTable, 
 }
 
 #[tauri::command]
-pub fn player_get_current_position(state: State<AppState, '_>) -> Result<usize, String> {
+pub fn player_get_current_position(state: State<AppState, '_>) -> Result<u64, String> {
     let current_position = state.player.lock().unwrap().get_current_position();    
     Ok(current_position)
+}
+
+#[tauri::command]
+pub fn player_get_current_index(state: State<AppState, '_>) -> Result<usize, String> {
+    let current_index = state.player.lock().unwrap().get_current_index();    
+    Ok(current_index)
 }
 
 
