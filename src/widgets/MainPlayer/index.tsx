@@ -16,9 +16,9 @@ import { playerService } from "../../services/playerService";
 import { AlbumArt } from "./AlbumArt";
 import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
-import { VolumeControl } from "./VolumeControl";
 import { SourcePicker } from "./SourcePicker";
-import { IconFolder } from "./Icons";
+import MichieLogo from "../../images/logo.svg";
+import "../../styles/glass.css"
 
 export function MusicPlayer() {
   const {
@@ -65,7 +65,9 @@ export function MusicPlayer() {
       // shuffle mode berubah dari backend (sudah dihandle store via setShuffleModeState)
       const ul5 = await playerService.onShuffleMode(() => {});
 
-      unlisteners.current = [ul1, ul2, ul3, ul4, ul5].filter(Boolean) as Array<() => void>;
+      unlisteners.current = [ul1, ul2, ul3, ul4, ul5].filter(Boolean) as Array<
+        () => void
+      >;
     };
 
     setup();
@@ -83,61 +85,107 @@ export function MusicPlayer() {
 
   return (
     <>
-      <div className="mpw-root">
+      <div className="mpw-root glass">
+        <div className="mpw-header">
+          <div className="mpw-brand">
+            <img src={MichieLogo} alt="Michie logo" className="mpw-brand-logo" />
+            <span className="mpw-brand-name">Michie</span>
+          </div>
+
+          <button
+            className="mpw-btn-menu"
+            onClick={() => setShowSource(true)}
+            title="More"
+            aria-label="More options"
+          >
+            ⋮
+          </button>
+        </div>
+
         <AlbumArt />
         <ProgressSlider duration={duration} />
         <PlayerControls />
-
-        <div className="mpw-bottom-row">
-          <VolumeControl />
-          <button
-            className="mpw-btn-source"
-            onClick={() => setShowSource(true)}
-            title="Choose source"
-          >
-            <IconFolder />
-            <span>Source</span>
-          </button>
-        </div>
       </div>
 
       {showSource && <SourcePicker onClose={() => setShowSource(false)} />}
 
       <style>{`
-        .mpw-root {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding: 16px;
-          width: 100%;
-          box-sizing: border-box;
-          color: inherit;
-        }
-        .mpw-bottom-row {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .mpw-btn-source {
-          margin-left: auto;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          background: color-mix(in srgb, currentColor 10%, transparent);
-          border: none;
-          padding: 4px 10px;
-          border-radius: 20px;
-          cursor: pointer;
-          color: inherit;
-          font-size: 0.75rem;
-          opacity: 0.7;
-          transition: opacity 0.15s, background 0.15s;
-          white-space: nowrap;
-        }
-        .mpw-btn-source:hover {
-          opacity: 1;
-          background: color-mix(in srgb, currentColor 18%, transparent);
-        }
+.mpw-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  color: inherit;
+}
+
+.mpw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mpw-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.mpw-brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 20px;
+  height: 20px;
+
+  font-size: 16px;
+  line-height: 1;
+}
+
+.mpw-brand-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.mpw-btn-menu {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+
+  cursor: pointer;
+  color: inherit;
+
+  font-size: 18px;
+  line-height: 1;
+
+  opacity: 0.65;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.mpw-btn-menu:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.mpw-btn-menu:active {
+  transform: scale(0.95);
+}
       `}</style>
     </>
   );

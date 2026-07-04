@@ -1,0 +1,111 @@
+.glass {
+  position: relative;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.09);
+
+  backdrop-filter: blur(18px) saturate(200%);
+  -webkit-backdrop-filter: blur(18px) saturate(200%);
+
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 2rem;
+
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.16),
+    inset 0 2px 10px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(255, 255, 255, 0.32),
+      transparent 45%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.18),
+      transparent 40%
+    );
+
+  opacity: 0.95;
+}
+
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.42),
+    inset 0 -1px rgba(255, 255, 255, 0.10),
+    inset 1px 0 rgba(255, 255, 255, 0.10),
+    inset -1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* =========================================
+   Glass Circle
+   ========================================= */
+
+.glass-circle {
+  position: relative;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.09);
+
+  backdrop-filter: blur(18px) saturate(200%);
+  -webkit-backdrop-filter: blur(18px) saturate(200%);
+
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.16),
+    inset 0 2px 10px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.glass-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(255, 255, 255, 0.32),
+      transparent 45%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.18),
+      transparent 40%
+    );
+
+  opacity: 0.95;
+}
+
+.glass-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.42),
+    inset 0 -1px rgba(255, 255, 255, 0.10),
+    inset 1px 0 rgba(255, 255, 255, 0.10),
+    inset -1px 0 rgba(255, 255, 255, 0.06);
+}

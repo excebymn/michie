@@ -5,14 +5,15 @@
 
 import { useCallback } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
-import {
-  IconPlay,
-  IconPause,
-  IconPrev,
-  IconNext,
-  IconShuffle,
-  IconRepeat,
-} from "./Icons";
+import IconPlay from "../../images/play-solid-full.svg"
+import IconPause from "../../images/pause-solid-full.svg"
+import IconShuffle from "../../images/shuffle-solid-full.svg"
+import IconPrev from "../../images/previous-full.svg"
+import IconNext from "../../images/next-full.svg"
+import IconRepeat from "../../images/repeat-solid-full.svg"
+import "../../styles/glass.css";
+
+
 
 export function PlayerControls() {
   const {
@@ -48,7 +49,7 @@ export function PlayerControls() {
           title="Shuffle"
           aria-label="Shuffle"
         >
-          <IconShuffle />
+          <img src={IconShuffle} alt="Shuffle" />
         </button>
 
         {/* previous */}
@@ -59,18 +60,18 @@ export function PlayerControls() {
           title="Previous"
           aria-label="Previous"
         >
-          <IconPrev />
+          <img src={IconPrev} alt="Previous" />
         </button>
 
         {/* play / pause */}
         <button
-          className="mpw-btn-play"
+          className="mpw-btn-play glass-circle"
           onClick={handlePlayPause}
           disabled={!isLoaded}
           title={isPlaying ? "Pause" : "Play"}
           aria-label={isPlaying ? "Pause" : "Play"}
         >
-          {isPlaying ? <IconPause /> : <IconPlay />}
+          <img src={isPlaying ? IconPause : IconPlay} alt={isPlaying ? "Pause" : "Play"} />
         </button>
 
         {/* next */}
@@ -81,7 +82,7 @@ export function PlayerControls() {
           title="Next"
           aria-label="Next"
         >
-          <IconNext />
+          <img src={IconNext} alt="Next" />
         </button>
 
         {/* repeat */}
@@ -91,7 +92,7 @@ export function PlayerControls() {
           title={["No repeat", "Repeat all", "Repeat one"][repeatMode]}
           aria-label="Repeat"
         >
-          <IconRepeat />
+          <img src={IconRepeat} alt="Repeat" />
           {repeatMode === 2 && <span className="mpw-repeat-badge">1</span>}
         </button>
       </div>
@@ -101,58 +102,86 @@ export function PlayerControls() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
+          gap: 14px;
         }
+
         .mpw-btn-icon {
           position: relative;
           background: none;
           border: none;
-          padding: 6px;
+          padding: 10px;
           cursor: pointer;
           color: inherit;
           opacity: 0.55;
-          border-radius: 6px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: opacity 0.15s, background 0.15s;
         }
+
+        .mpw-btn-icon img {
+          width: 24px;
+          height: 24px;
+          display: block;
+        }
+
         .mpw-btn-icon:hover {
           opacity: 1;
           background: color-mix(in srgb, currentColor 10%, transparent);
         }
-        .mpw-btn-icon.active { opacity: 1; }
-        .mpw-btn-icon:disabled { opacity: 0.2; cursor: default; }
+
+        .mpw-btn-icon.active {
+          opacity: 1;
+        }
+
+        .mpw-btn-icon:disabled {
+          opacity: 0.2;
+          cursor: default;
+        }
 
         .mpw-repeat-badge {
           position: absolute;
-          top: 1px;
-          right: 1px;
-          font-size: 9px;
+          top: 3px;
+          right: 3px;
+          font-size: 10px;
           font-weight: 700;
           line-height: 1;
         }
 
         .mpw-btn-play {
-          background: currentColor;
           border: none;
-          width: 44px;
-          height: 44px;
+          width: 60px;
+          height: 60px;
           border-radius: 50%;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: transform 0.1s, opacity 0.15s;
+          transition: transform 0.12s, opacity 0.15s;
           color: inherit;
+          flex-shrink: 0;
         }
-        .mpw-btn-play svg {
-          color: canvas;
-          filter: invert(1) grayscale(1) contrast(9);
+
+        .mpw-btn-play img {
+          width: 30px;
+          height: 30px;
+          filter: brightness(0) invert(1);
         }
-        .mpw-btn-play:hover { transform: scale(1.06); }
-        .mpw-btn-play:active { transform: scale(0.96); }
-        .mpw-btn-play:disabled { opacity: 0.3; cursor: default; transform: none; }
+
+        .mpw-btn-play:hover {
+          transform: scale(1.06);
+        }
+
+        .mpw-btn-play:active {
+          transform: scale(0.95);
+        }
+
+        .mpw-btn-play:disabled {
+          opacity: 0.3;
+          cursor: default;
+          transform: none;
+        }
       `}</style>
     </>
   );

@@ -5,8 +5,9 @@ import "./App.css";
 
 import { appService, playerService } from "./services";
 import { useAppStore, usePlayerStore } from "./stores";
+import bg from "./images/test.jpg";
 
-import MainLayout from "./new/layout";
+import MainLayout from "./layout";
 
 function App() {
   const loadInitialData = useAppStore((state) => state.loadInitialData);
@@ -18,7 +19,9 @@ function App() {
   const loadPlayerState = usePlayerStore((state) => state.loadPlayerState);
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
   const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
-  const setShuffleModeState = usePlayerStore((state) => state.setShuffleModeState);
+  const setShuffleModeState = usePlayerStore(
+    (state) => state.setShuffleModeState,
+  );
 
   useEffect(() => {
     loadInitialData();
@@ -29,37 +32,49 @@ function App() {
     const cleanups: Array<() => void> = [];
 
     const bindEvents = async () => {
-      cleanups.push(await appService.onScanFinished(async () => {
-        await refreshLibrary();
-        setScanning(false);
-        setScanProgress(0, 0);
-      }));
+      cleanups.push(
+        await appService.onScanFinished(async () => {
+          await refreshLibrary();
+          setScanning(false);
+          setScanProgress(0, 0);
+        }),
+      );
 
-      cleanups.push(await appService.onScanStarted(() => {
-        setScanning(true);
-        setScanProgress(0, 0);
-      }));
+      cleanups.push(
+        await appService.onScanStarted(() => {
+          setScanning(true);
+          setScanProgress(0, 0);
+        }),
+      );
 
-      cleanups.push(await appService.onScanProgress((event) => {
-        setScanProgress(event.payload.current, event.payload.length);
-      }));
+      cleanups.push(
+        await appService.onScanProgress((event) => {
+          setScanProgress(event.payload.current, event.payload.length);
+        }),
+      );
 
       cleanups.push(await appService.onRestoreFinished(loadInitialData));
       cleanups.push(await appService.onResetFinished(loadInitialData));
 
       cleanups.push(await appService.onPlaylistCreated(refreshPlaylists));
 
-      cleanups.push(await playerService.onCurrentSong((event) => {
-        setCurrentSong(event.payload.q);
-      }));
+      cleanups.push(
+        await playerService.onCurrentSong((event) => {
+          setCurrentSong(event.payload.q);
+        }),
+      );
 
-      cleanups.push(await playerService.onControlsPlayPause((event) => {
-        setIsPlaying(event.payload);
-      }));
+      cleanups.push(
+        await playerService.onControlsPlayPause((event) => {
+          setIsPlaying(event.payload);
+        }),
+      );
 
-      cleanups.push(await playerService.onShuffleMode((event) => {
-        setShuffleModeState(event.payload);
-      }));
+      cleanups.push(
+        await playerService.onShuffleMode((event) => {
+          setShuffleModeState(event.payload);
+        }),
+      );
     };
 
     bindEvents();
@@ -69,7 +84,16 @@ function App() {
 
   return (
     <BrowserRouter>
-      <MainLayout />
+      <div
+        className="container"
+        style={{
+          backgroundImage: `url(${bg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <MainLayout />
+      </div>
     </BrowserRouter>
   );
 }
