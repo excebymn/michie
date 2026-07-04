@@ -10,7 +10,10 @@ export const playerService = {
   setVolume: async (volume: number) => await invoke<void>("player_set_volume", { volume }),
   setRepeatMode: async (mode: number) => await invoke<void>("player_set_repeat_mode", { mode }),
   setShuffleMode: async (shuffled: boolean) => await invoke<void>("set_shuffle_mode", { mode: shuffled }),
-  seek: async (pos: number) => await invoke<void>("player_set_seek", { pos }),
+  seek: async (pos: number) => {
+    const normalizedPos = Number.isFinite(pos) ? Math.max(0, Math.round(pos)) : 0;
+    await invoke<void>("player_set_seek", { pos: normalizedPos });
+  },
   getCurrentSong: async () => await invoke<Songs>("player_get_current_song"),
   getCurrentPosition: async () => await invoke<number>("player_get_current_position"),
   getQueue: async (shuffled: boolean) => await invoke<Songs[]>("get_queue", { shuffled }),
