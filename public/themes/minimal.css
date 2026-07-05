@@ -1,0 +1,11 @@
+.michie-box {
+  background: var(--michie-surface);
+  border: 1px solid var(--michie-border);
+  border-radius: 6px;
+}
+
+.michie-circle {
+  background: var(--michie-surface);
+  border: 1px solid var(--michie-border);
+  border-radius: 50%;
+}

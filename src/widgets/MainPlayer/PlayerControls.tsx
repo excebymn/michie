@@ -11,7 +11,6 @@ import IconShuffle from "../../images/shuffle-solid-full.svg"
 import IconPrev from "../../images/previous-full.svg"
 import IconNext from "../../images/next-full.svg"
 import IconRepeat from "../../images/repeat-solid-full.svg"
-import "../../styles/glass.css";
 
 
 
@@ -65,7 +64,7 @@ export function PlayerControls() {
 
         {/* play / pause */}
         <button
-          className="mpw-btn-play glass-circle"
+          className="mpw-btn-play michie-circle"
           onClick={handlePlayPause}
           disabled={!isLoaded}
           title={isPlaying ? "Pause" : "Play"}

@@ -7,6 +7,12 @@ import { appService, playerService } from "./services";
 import { useAppStore, usePlayerStore } from "./stores";
 
 import MainLayout from "./layout";
+import { useAppearanceStore } from './stores/appearanceStore';
+import { initColorSync } from './engines/colorSync';
+
+
+
+
 
 function App() {
   const loadInitialData = useAppStore((state) => state.loadInitialData);
@@ -21,6 +27,12 @@ function App() {
   const setShuffleModeState = usePlayerStore(
     (state) => state.setShuffleModeState,
   );
+  
+  useEffect(() => {
+    useAppearanceStore.getState().init(); // apply theme/mode/motion/transparency tersimpan
+    initColorSync();                       // mulai dengarkan perubahan lagu
+    // ...loadInitialData(), loadPlayerState(), bind event Tauri lain seperti biasa
+  }, []);
 
   useEffect(() => {
     loadInitialData();

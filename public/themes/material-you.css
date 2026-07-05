@@ -1,0 +1,13 @@
+.michie-box {
+  background: var(--michie-surface);
+  border: none;
+  border-radius: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.michie-circle {
+  background: var(--michie-surface);
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

@@ -10,12 +10,11 @@ export const AddFolderButton: React.FC<AddFolderButtonProps> = ({ onClick, disab
     <button
       onClick={onClick}
       disabled={disabled}
-      className="glass"
+      className="michie-box"
       style={{
         padding: '14px 18px',
-        borderRadius: 14,
         border: 'none',
-        color: '#fff',
+        color: 'var(--michie-on-surface)',
         fontWeight: 500,
         fontSize: '0.95rem',
         cursor: disabled ? 'not-allowed' : 'pointer',

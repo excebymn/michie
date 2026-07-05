@@ -252,9 +252,9 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
         onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}
       >
-        <div ref={playedRef} className="mpw-track-played glass" />
-        <div ref={unplayedRef} className="mpw-track-unplayed glass" />
-        <div ref={thumbRef} className="mpw-thumb glass" />
+        <div ref={playedRef} className="mpw-track-played michie-box" />
+        <div ref={unplayedRef} className="mpw-track-unplayed michie-box" />
+        <div ref={thumbRef} className="mpw-thumb michie-box" />
       </div>
 
       <span className="mpw-time mpw-time-right">{formatTime(duration)}</span>
