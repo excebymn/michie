@@ -1,19 +1,35 @@
+/* ==========================================================================
+   MATERIAL YOU SYSTEM VARIABLES (Dynamic Color Adaptation)
+   ========================================================================== */
+:root {
+  /* Warna penampung dinamis (diambil dari warna dominan wallpaper) */
+  --md-sys-color-primary-container: rgba(232, 222, 248, 0.12); 
+  /* Warna bayangan dinamis agar menyatu dengan tema gelap/terang */
+  --md-sys-color-shadow: rgba(28, 27, 31, 0.16);              
+}
+
+/* ==========================================================================
+   1. Glass Card / Panel
+   ========================================================================== */
 .glass {
   position: relative;
   overflow: hidden;
 
-  background: rgba(255, 255, 255, 0.09);
+  /* Material You: Menggunakan warna kontainer dinamis */
+  background: var(--md-sys-color-primary-container);
 
-  backdrop-filter: blur(18px) saturate(200%);
-  -webkit-backdrop-filter: blur(18px) saturate(200%);
+  /* Liquid Glass: Pembiasan buram tebal & peningkatan saturasi warna latar */
+  backdrop-filter: blur(20px) saturate(210%);
+  -webkit-backdrop-filter: blur(20px) saturate(210%);
 
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 2rem;
 
+  /* Perpaduan bayangan dinamis Android & kilau dalam iOS */
   box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.16),
-    inset 0 2px 10px rgba(255, 255, 255, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 12px 32px var(--md-sys-color-shadow),
+    inset 0 3px 12px rgba(255, 255, 255, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.40);
 }
 
 .glass::before {
@@ -23,16 +39,17 @@
   pointer-events: none;
   border-radius: inherit;
 
+  /* Sudut gradasi disesuaikan agar pantulan cahaya terlihat lebih cembung layaknya cairan */
   background:
     radial-gradient(
-      circle at top left,
-      rgba(255, 255, 255, 0.32),
-      transparent 45%
+      circle at 25% 15%,
+      rgba(255, 255, 255, 0.38),
+      transparent 50%
     ),
     linear-gradient(
-      150deg,
-      rgba(255, 255, 255, 0.18),
-      transparent 40%
+      135deg,
+      rgba(255, 255, 255, 0.22),
+      transparent 45%
     );
 
   opacity: 0.95;
@@ -45,33 +62,36 @@
   pointer-events: none;
   border-radius: inherit;
 
+  /* Menegaskan ketebalan bibir kaca (rim lighting) */
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.42),
-    inset 0 -1px rgba(255, 255, 255, 0.10),
-    inset 1px 0 rgba(255, 255, 255, 0.10),
-    inset -1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 1.5px rgba(255, 255, 255, 0.45),
+    inset 0 -1px rgba(255, 255, 255, 0.12),
+    inset 1px 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* =========================================
-   Glass Circle
-   ========================================= */
-
+/* ==========================================================================
+   2. Glass Circle (FAB / Avatar / Toggle)
+   ========================================================================== */
 .glass-circle {
   position: relative;
   overflow: hidden;
 
-  background: rgba(255, 255, 255, 0.09);
+  /* Material You: Menggunakan warna kontainer dinamis */
+  background: var(--md-sys-color-primary-container);
 
-  backdrop-filter: blur(18px) saturate(200%);
-  -webkit-backdrop-filter: blur(18px) saturate(200%);
+  /* Liquid Glass: Pembiasan buram tebal & peningkatan saturasi warna latar */
+  backdrop-filter: blur(20px) saturate(210%);
+  -webkit-backdrop-filter: blur(20px) saturate(210%);
 
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
 
+  /* Perpaduan bayangan dinamis Android & kilau dalam iOS */
   box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.16),
-    inset 0 2px 10px rgba(255, 255, 255, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 12px 32px var(--md-sys-color-shadow),
+    inset 0 3px 12px rgba(255, 255, 255, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.40);
 }
 
 .glass-circle::before {
@@ -81,16 +101,17 @@
   pointer-events: none;
   border-radius: inherit;
 
+  /* Sudut gradasi disesuaikan agar pantulan cahaya terlihat lebih cembung layaknya cairan */
   background:
     radial-gradient(
-      circle at top left,
-      rgba(255, 255, 255, 0.32),
-      transparent 45%
+      circle at 25% 15%,
+      rgba(255, 255, 255, 0.38),
+      transparent 50%
     ),
     linear-gradient(
-      150deg,
-      rgba(255, 255, 255, 0.18),
-      transparent 40%
+      135deg,
+      rgba(255, 255, 255, 0.22),
+      transparent 45%
     );
 
   opacity: 0.95;
@@ -103,9 +124,10 @@
   pointer-events: none;
   border-radius: inherit;
 
+  /* Menegaskan ketebalan bibir kaca (rim lighting) */
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.42),
-    inset 0 -1px rgba(255, 255, 255, 0.10),
-    inset 1px 0 rgba(255, 255, 255, 0.10),
-    inset -1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 1.5px rgba(255, 255, 255, 0.45),
+    inset 0 -1px rgba(255, 255, 255, 0.12),
+    inset 1px 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 rgba(255, 255, 255, 0.08);
 }

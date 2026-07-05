@@ -8,7 +8,7 @@
 //
 // Dependensi store  : playerStore (loadPlayerState, setCurrentSong, setIsPlaying, stop, updateSongDetails)
 // Dependensi service: playerService (onCurrentSong, onControlsPlayPause, onQueueCleared, onUpdateSong, onShuffleMode)
-// Sub-komponen      : AlbumArt, ProgressSlider, PlayerControls, VolumeControl, SourcePicker
+// Sub-komponen      : AlbumArt, ProgressSlider, PlayerControls, VolumeControl, SettingsCenter
 
 import { useEffect, useRef, useState } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
@@ -16,9 +16,9 @@ import { playerService } from "../../services/playerService";
 import { AlbumArt } from "./AlbumArt";
 import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
-import { SourcePicker } from "./SourcePicker";
+import { SettingsCenter } from "../SettingsCenter";
 import MichieLogo from "../../images/logo.svg";
-import "../../styles/glass.css"
+import "../../styles/glass.css";
 
 export function MusicPlayer() {
   const {
@@ -29,40 +29,43 @@ export function MusicPlayer() {
     updateSongDetails,
   } = usePlayerStore();
 
-  // durasi disimpan di sini karena datang dari event backend, bukan dari store
+  const currentSong = usePlayerStore((s) => s.currentSong);
+
+  // Durasi disimpan lokal karena datang dari event backend, bukan dari store
   const [duration, setDuration] = useState(0);
-  const [showSource, setShowSource] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const unlisteners = useRef<Array<() => void>>([]);
 
+  // Setup Tauri event listeners
   useEffect(() => {
     loadPlayerState();
 
     const setup = async () => {
-      // lagu berganti → update store dan durasi
+      // Lagu berganti → update store dan durasi
       const ul1 = await playerService.onCurrentSong((e) => {
         const song = (e.payload as { q: any }).q;
         setCurrentSong(song);
         setDuration(song?.duration ?? 0);
       });
 
-      // backend kirim sinyal play/pause (misalnya dari media key OS)
+      // Backend kirim sinyal play/pause (misalnya dari media key OS)
       const ul2 = await playerService.onControlsPlayPause((e) => {
         setIsPlaying(e.payload as unknown as boolean);
       });
 
-      // queue dikosongkan → reset player
+      // Queue dikosongkan → reset player
       const ul3 = await playerService.onQueueCleared(() => {
         stop();
         setDuration(0);
       });
 
-      // metadata lagu diupdate (misalnya setelah scan)
+      // Metadata lagu diupdate (misalnya setelah scan)
       const ul4 = await playerService.onUpdateSong(async (e) => {
         const { dir_path } = e.payload as { dir_path: string };
         await updateSongDetails(dir_path);
       });
 
-      // shuffle mode berubah dari backend (sudah dihandle store via setShuffleModeState)
+      // Shuffle mode berubah dari backend (sudah dihandle store via setShuffleModeState)
       const ul5 = await playerService.onShuffleMode(() => {});
 
       unlisteners.current = [ul1, ul2, ul3, ul4, ul5].filter(Boolean) as Array<
@@ -77,10 +80,11 @@ export function MusicPlayer() {
     };
   }, []);
 
-  // durasi juga bisa datang dari currentSong.duration (saat restore dari localStorage)
-  const currentSong = usePlayerStore((s) => s.currentSong);
+  // Durasi juga bisa datang dari currentSong.duration (saat restore dari localStorage)
   useEffect(() => {
-    if (currentSong?.duration) setDuration(currentSong.duration);
+    if (currentSong?.duration) {
+      setDuration(currentSong.duration);
+    }
   }, [currentSong]);
 
   return (
@@ -94,9 +98,9 @@ export function MusicPlayer() {
 
           <button
             className="mpw-btn-menu"
-            onClick={() => setShowSource(true)}
-            title="More"
-            aria-label="More options"
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+            aria-label="Settings panel"
           >
             ⋮
           </button>
@@ -107,85 +111,78 @@ export function MusicPlayer() {
         <PlayerControls />
       </div>
 
-      {showSource && <SourcePicker onClose={() => setShowSource(false)} />}
+      {showSettings && <SettingsCenter onClose={() => setShowSettings(false)} />}
 
       <style>{`
-.mpw-root {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  box-sizing: border-box;
-  color: inherit;
-}
+        .mpw-root {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          padding: 16px;
+          width: 100%;
+          height: 100%;
+          min-height: 0;
+          box-sizing: border-box;
+          color: inherit;
+        }
 
-.mpw-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+        .mpw-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
 
-.mpw-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  user-select: none;
-}
+        .mpw-brand {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          user-select: none;
+        }
 
-.mpw-brand-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+        .mpw-brand-logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          font-size: 16px;
+          line-height: 1;
+        }
 
-  width: 20px;
-  height: 20px;
+        .mpw-brand-name {
+          font-size: 0.9rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
 
-  font-size: 16px;
-  line-height: 1;
-}
+        .mpw-btn-menu {
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          border-radius: 50%;
+          cursor: pointer;
+          color: inherit;
+          font-size: 18px;
+          line-height: 1;
+          opacity: 0.65;
+          transition:
+            opacity 0.15s ease,
+            background 0.15s ease,
+            transform 0.15s ease;
+        }
 
-.mpw-brand-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
+        .mpw-btn-menu:hover {
+          opacity: 1;
+          background: color-mix(in srgb, currentColor 12%, transparent);
+        }
 
-.mpw-btn-menu {
-  width: 28px;
-  height: 28px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: transparent;
-  border: none;
-  border-radius: 50%;
-
-  cursor: pointer;
-  color: inherit;
-
-  font-size: 18px;
-  line-height: 1;
-
-  opacity: 0.65;
-  transition:
-    opacity 0.15s ease,
-    background 0.15s ease,
-    transform 0.15s ease;
-}
-
-.mpw-btn-menu:hover {
-  opacity: 1;
-  background: color-mix(in srgb, currentColor 12%, transparent);
-}
-
-.mpw-btn-menu:active {
-  transform: scale(0.95);
-}
+        .mpw-btn-menu:active {
+          transform: scale(0.95);
+        }
       `}</style>
     </>
   );

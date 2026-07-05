@@ -5,7 +5,6 @@ import "./App.css";
 
 import { appService, playerService } from "./services";
 import { useAppStore, usePlayerStore } from "./stores";
-import bg from "./images/test.jpg";
 
 import MainLayout from "./layout";
 
@@ -84,14 +83,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div
-        className="container"
-        style={{
-          backgroundImage: `url(${bg})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
+      <div className="app-shell">
         <MainLayout />
       </div>
     </BrowserRouter>

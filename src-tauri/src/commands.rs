@@ -851,37 +851,43 @@ pub async fn check_for_new_version(app: tauri::AppHandle) -> Result<bool, bool> 
 
     let url_client = Client::builder().build().unwrap();
 
-    let first_res = url_client.get("https://raw.githubusercontent.com/VulshokBersrker/michie/refs/heads/main/package.json")
-        .send().await;
-    let version: String;
+    let first_res = url_client
+        .get("https://raw.githubusercontent.com/VulshokBersrker/michie/main/package.json")
+        .send()
+        .await;
 
     let current_version = app.package_info().version.to_string();
 
-    if first_res.is_ok() {
-        let res = first_res.unwrap().text().await;
-        if res.is_ok() {
-            let result = serde_json::from_str::<serde_json::Value>(res.unwrap().as_str()).unwrap();
-
-            for (key, value) in result.as_object().unwrap() {
-                if key.contains("version") {
-                    version = value.to_string().replace("\"", "");
-                    if current_version != version {
-                        return Ok(true)
-                    }
-                    else {
-                        return Ok(false)
-                    }
-                }
+    let response_text = match first_res {
+        Ok(resp) => match resp.text().await {
+            Ok(text) => text,
+            Err(err) => {
+                log::error!("Check New For Version - Error reading response text: {:?}", err);
+                return Ok(false);
             }
-            return Ok(false)
+        },
+        Err(err) => {
+            log::error!("Check New For Version - Error on remote fetch of package.json: {:?}", err);
+            return Ok(false);
         }
-        else {
-            log::error!("Check New For Version - Error getting version data");
-            return Err(false)
+    };
+
+    let result = match serde_json::from_str::<serde_json::Value>(&response_text) {
+        Ok(value) => value,
+        Err(err) => {
+            log::error!("Check New For Version - Invalid JSON response: {:?}", err);
+            return Ok(false);
+        }
+    };
+
+    if let Some(map) = result.as_object() {
+        for (key, value) in map {
+            if key.contains("version") {
+                let version = value.as_str().unwrap_or(&value.to_string()).to_string();
+                return Ok(current_version != version);
+            }
         }
     }
-    else {
-        log::error!("Check New For Version - Error on remote fetch of package.json");
-        return Err(false)
-    }    
+
+    Ok(false)
 }

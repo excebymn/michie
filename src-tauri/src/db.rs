@@ -118,11 +118,11 @@ pub async fn reset_database(state: State<AppState, '_>, app: tauri::AppHandle) -
 #[tauri::command(rename_all = "snake_case")]
 pub async fn add_directory(state: State<AppState, '_>, directory_name: String) -> Result<(), String> {
 
-    let _ = sqlx::query("INSERT INTO dirs (dir_path) VALUES (?1);")
+    sqlx::query("INSERT OR IGNORE INTO dirs (dir_path) VALUES (?1);")
         .bind(directory_name)
         .execute(&state.pool)
         .await
-        .map_err(|e| format!("Error saving directory path: {}", e)).unwrap();
+        .map_err(|e| format!("Error saving directory path: {}", e))?;
 
     Ok(())
 }
@@ -134,7 +134,7 @@ pub async fn get_directory() -> Result<Vec<DirsTable>, String> {
     let temp: Vec<DirsTable> = sqlx::query_as::<_, DirsTable>("SELECT * FROM dirs")
         .fetch_all(&pool)
         .await
-        .unwrap();
+        .map_err(|e| format!("Error fetching directories: {}", e))?;
  
     Ok(temp)
 }
