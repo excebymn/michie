@@ -23,7 +23,7 @@ function IconMenu() {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
+      fill="currentColor"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
@@ -121,7 +121,7 @@ export function MusicPlayer() {
             title="Settings"
             aria-label="Settings panel"
           >
-            <span className="mpw-icon-menu">
+            <span className="mpw-icon-menu michie-text-primary">
               <IconMenu />
             </span>
           </button>

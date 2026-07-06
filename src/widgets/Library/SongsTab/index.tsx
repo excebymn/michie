@@ -37,10 +37,14 @@ export const SongsTab: React.FC = () => {
         }}
       >
         <span />
-        <span>Judul</span>
-        <span>Album</span>
-        <span>Genre</span>
-        <span style={{ textAlign: 'right' }}>Durasi</span>
+        <span
+        className="michie-text-secondary"
+        >Judul</span>
+        <span className="michie-text-secondary">Album</span>
+        <span className="michie-text-secondary">Genre</span>
+        <span className="michie-text-secondary" style={{ textAlign: 'right' }}>
+          Durasi
+        </span>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>

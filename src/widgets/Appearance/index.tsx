@@ -38,74 +38,111 @@ export function AppearancePanel() {
     }
   };
 
+  const sectionTitleClass =
+    'michie-text-primary text-[11px] font-semibold uppercase tracking-[0.12em]';
+
   return (
-    <div className="appearance-panel">
+    <div className="appearance-panel flex flex-col gap-7 p-5">
       {/* THEME */}
-      <section className="appearance-section">
-        <h3 className="appearance-section-title michie-text-primary">Tema</h3>
-        <div className="appearance-theme-grid">
-          {themeRegistry.map((theme) => (
-            <button
-              key={theme.id}
-              type="button"
-              className={`appearance-theme-card michie-box michie-box--secondary ${
-                themeId === theme.id ? 'appearance-theme-card--active' : ''
-              }`}
-              onClick={() => setTheme(theme.id)}
-            >
-              <span className="michie-text-primary">{theme.label}</span>
-            </button>
-          ))}
+      <section className="appearance-section flex flex-col gap-3">
+        <h3 className=" michie-text-secondary {`appearance-section-title ${sectionTitleClass}`}">Tema</h3>
+        <div className="appearance-theme-grid grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          {themeRegistry.map((theme) => {
+            const isActive = themeId === theme.id;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                className={[
+                  'appearance-theme-card michie-box michie-box--secondary',
+                  'flex h-11 items-center justify-center rounded-md px-3',
+                  'text-sm transition duration-150 ease-out',
+                  'hover:scale-[1.02] active:scale-[0.98]',
+                  isActive ? 'appearance-theme-card--active' : '',
+                ].join(' ')}
+                onClick={() => setTheme(theme.id)}
+              >
+                <span className="michie-text-primary truncate">{theme.label}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
       {/* PALETTE */}
-      <section className="appearance-section">
-        <h3 className="appearance-section-title michie-text-primary">Palet Warna</h3>
-        <div className="appearance-palette-grid">
-          {paletteRegistry.map((palette) => (
-            <button
-              key={palette.id}
-              type="button"
-              title={palette.label}
-              className={`appearance-palette-swatch ${
-                paletteId === palette.id ? 'appearance-palette-swatch--active' : ''
-              }`}
-              onClick={() => setPalette(palette.id)}
-            >
-              <span className="appearance-palette-half" style={{ backgroundColor: palette.primary }} />
-              <span className="appearance-palette-half" style={{ backgroundColor: palette.secondary }} />
-            </button>
-          ))}
+      <section className="appearance-section flex flex-col gap-3">
+        <h3 className={`appearance-section-title ${sectionTitleClass}`}>Palet Warna</h3>
+        <div className="appearance-palette-grid flex flex-wrap gap-2.5">
+          {paletteRegistry.map((palette) => {
+            const isActive = paletteId === palette.id;
+            return (
+              <button
+                key={palette.id}
+                type="button"
+                title={palette.label}
+                className={[
+                  'appearance-palette-swatch',
+                  'relative h-10 w-10 shrink-0 overflow-hidden rounded-full',
+                  'transition duration-150 ease-out',
+                  'hover:scale-110 active:scale-95',
+                  isActive ? 'appearance-palette-swatch--active' : '',
+                ].join(' ')}
+                onClick={() => setPalette(palette.id)}
+              >
+                <span
+                  className="appearance-palette-half absolute inset-y-0 left-0 w-1/2"
+                  style={{ backgroundColor: palette.primary }}
+                />
+                <span
+                  className="appearance-palette-half absolute inset-y-0 right-0 w-1/2"
+                  style={{ backgroundColor: palette.secondary }}
+                />
+              </button>
+            );
+          })}
         </div>
       </section>
 
       {/* BACKGROUND */}
-      <section className="appearance-section">
-        <h3 className="appearance-section-title michie-text-primary">Background</h3>
-        <div className="appearance-background-controls">
-          <label className="appearance-bg-option">
+      <section className="appearance-section flex flex-col gap-3">
+        <h3 className={`appearance-section-title ${sectionTitleClass}`}>Background</h3>
+        <div className="appearance-background-controls flex flex-col gap-3">
+          <label className="appearance-bg-option flex items-center gap-3">
             <input
               type="radio"
               name="bg-type"
+              className="appearance-radio h-4 w-4 shrink-0"
               checked={backgroundType === 'color'}
-              onChange={() => setBackgroundColor(backgroundType === 'color' ? backgroundValue : '#101010')}
+              onChange={() =>
+                setBackgroundColor(backgroundType === 'color' ? backgroundValue : '#101010')
+              }
             />
-            <span className="michie-text-secondary">Warna</span>
+            <span className="michie-text-secondary text-sm">Warna</span>
             <input
               type="color"
-              className="appearance-color-input"
+              className="appearance-color-input h-8 w-12 shrink-0 cursor-pointer rounded-md"
               value={backgroundType === 'color' ? backgroundValue : '#101010'}
               onChange={(e) => setBackgroundColor(e.target.value)}
             />
           </label>
 
-          <label className="appearance-bg-option">
-            <input type="radio" name="bg-type" checked={backgroundType === 'image'} onChange={handlePickImage} />
-            <span className="michie-text-secondary">Gambar</span>
+          <label className="appearance-bg-option flex items-center gap-3">
+            <input
+              type="radio"
+              name="bg-type"
+              className="appearance-radio h-4 w-4 shrink-0"
+              checked={backgroundType === 'image'}
+              onChange={handlePickImage}
+            />
+            <span className="michie-text-secondary text-sm">Gambar</span>
             <button
               type="button"
-              className="appearance-bg-pick-btn michie-box michie-box--secondary"
+              className={[
+                'appearance-bg-pick-btn michie-box michie-box--secondary',
+                'rounded-md px-3 py-1.5 text-sm',
+                'transition duration-150 ease-out',
+                'hover:scale-[1.02] active:scale-[0.98]',
+              ].join(' ')}
               onClick={handlePickImage}
             >
               <span className="michie-text-primary">Pilih Gambar</span>
@@ -113,7 +150,10 @@ export function AppearancePanel() {
           </label>
 
           {backgroundType === 'image' && (
-            <span className="appearance-bg-current-path michie-text-secondary" title={backgroundValue}>
+            <span
+              className="appearance-bg-current-path michie-text-secondary truncate rounded-md px-2.5 py-1 text-xs"
+              title={backgroundValue}
+            >
               {backgroundValue}
             </span>
           )}

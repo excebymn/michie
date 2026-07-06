@@ -9,7 +9,7 @@ interface DirectoryItemProps {
 export const DirectoryItem: React.FC<DirectoryItemProps> = ({ path, onRemove, disabled }) => {
   return (
     <div
-      className="glass"
+      className="michie-box--secondary michie-text-primary"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -36,12 +36,11 @@ export const DirectoryItem: React.FC<DirectoryItemProps> = ({ path, onRemove, di
       <button
         onClick={() => onRemove(path)}
         disabled={disabled}
-        className="glass-circle"
+        className="michie-circle--secondary"
         style={{
           width: 32,
           height: 32,
           border: 'none',
-          color: '#fff',
           fontSize: '1rem',
           cursor: disabled ? 'not-allowed' : 'pointer',
           flexShrink: 0,

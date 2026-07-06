@@ -18,7 +18,7 @@ export const GenreCard: React.FC<GenreCardProps> = ({ genre, onClick }) => {
   return (
     <div
       onClick={() => onClick(genre)}
-      className="glass"
+      className="michie-box"
       style={{
         width: 160,
         height: 100,

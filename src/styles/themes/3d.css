@@ -16,21 +16,27 @@
   overflow: hidden;
   border-radius: var(--michie-3d-radius-box);
   border: none;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
 }
 
 .michie-box--primary {
   background: var(--color-primary);
   box-shadow:
-    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-primary) 55%, black 45%),
-    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+    var(--michie-3d-depth) var(--michie-3d-depth) 0 0
+      color-mix(in srgb, var(--color-primary) 55%, black 45%),
+    calc(var(--michie-3d-depth) + 5px) calc(var(--michie-3d-depth) + 5px) 10px
+      rgba(0, 0, 0, 0.25);
 }
 
 .michie-box--secondary {
   background: var(--color-secondary);
   box-shadow:
-    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-secondary) 55%, black 45%),
-    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+    var(--michie-3d-depth) var(--michie-3d-depth) 0 0
+      color-mix(in srgb, var(--color-secondary) 55%, black 45%),
+    calc(var(--michie-3d-depth) + 5px) calc(var(--michie-3d-depth) + 5px) 10px
+      rgba(0, 0, 0, 0.25);
 }
 
 .michie-box::before {
@@ -47,8 +53,8 @@
 }
 
 .michie-box:active {
-  transform: translateY(var(--michie-3d-depth));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transform: translate(var(--michie-3d-depth), var(--michie-3d-depth));
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
@@ -57,21 +63,27 @@
   overflow: hidden;
   border-radius: 50%;
   border: none;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
 }
 
 .michie-circle--primary {
   background: var(--color-primary);
   box-shadow:
-    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-primary) 55%, black 45%),
-    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+    var(--michie-3d-depth) var(--michie-3d-depth) 0 0
+      color-mix(in srgb, var(--color-primary) 55%, black 45%),
+    calc(var(--michie-3d-depth) + 5px) calc(var(--michie-3d-depth) + 5px) 10px
+      rgba(0, 0, 0, 0.25);
 }
 
 .michie-circle--secondary {
   background: var(--color-secondary);
   box-shadow:
-    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-secondary) 55%, black 45%),
-    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+    var(--michie-3d-depth) var(--michie-3d-depth) 0 0
+      color-mix(in srgb, var(--color-secondary) 55%, black 45%),
+    calc(var(--michie-3d-depth) + 5px) calc(var(--michie-3d-depth) + 5px) 10px
+      rgba(0, 0, 0, 0.25);
 }
 
 .michie-circle::before {
@@ -88,6 +100,6 @@
 }
 
 .michie-circle:active {
-  transform: translateY(var(--michie-3d-depth));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transform: translate(var(--michie-3d-depth), var(--michie-3d-depth));
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }

@@ -20,13 +20,11 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeId, onChange }) => {
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={isActive ? 'glass' : undefined}
+            className="michie-box--secondary michie-text-primary"
             style={{
               padding: '8px 18px',
               borderRadius: 999,
               border: isActive ? 'none' : '1px solid rgba(255,255,255,0.15)',
-              background: isActive ? undefined : 'transparent',
-              color: isActive ? '#fff' : 'rgba(255,255,255,0.6)',
               fontSize: '0.9rem',
               fontWeight: isActive ? 600 : 400,
               cursor: 'pointer',
