@@ -28,11 +28,14 @@ function App() {
     (state) => state.setShuffleModeState,
   );
   
-  useEffect(() => {
-    useAppearanceStore.getState().init(); // apply theme/mode/motion/transparency tersimpan
-    initColorSync();                       // mulai dengarkan perubahan lagu
-    // ...loadInitialData(), loadPlayerState(), bind event Tauri lain seperti biasa
-  }, []);
+useEffect(() => {
+  const initAppearance = async () => {
+    await useAppStore.getState().loadTheme();
+    useAppearanceStore.getState().init();
+  };
+
+  initAppearance();
+}, []);
 
   useEffect(() => {
     loadInitialData();
@@ -95,6 +98,7 @@ function App() {
 
   return (
     <BrowserRouter>
+    <div id="michie-app-background" />
       <div className="app-shell">
         <MainLayout />
       </div>

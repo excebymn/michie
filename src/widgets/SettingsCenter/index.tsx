@@ -32,7 +32,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
       }}
     >
       <div
-        className="michie-box"
+        className="glass solid panel"
         style={{
           width: '90vw',
           height: '90vh',

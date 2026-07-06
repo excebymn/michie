@@ -85,3 +85,40 @@ html, body {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
+:root {
+  --michie-bg-color: #121212;
+  --michie-bg-image: none;
+  --michie-primary: #7c5cff;
+  --michie-secondary: #ff7ce0;
+}
+
+#michie-app-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--michie-bg-color);
+  background-image: var(--michie-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 0.2s ease;
+}
+
+body[data-background-visible="false"] #michie-app-background {
+  opacity: 0;
+}
+.panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}

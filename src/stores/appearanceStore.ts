@@ -1,28 +1,26 @@
 import create from 'zustand';
-import { themeEngine } from '../engines/themeEngine';
-import { colorEngine } from '../engines/colorEngine';
+import { toAssetUrl } from '../utils/assetURL';
+import { palettes } from '../appearance/palettes';
+import type { BackgroundMode, PanelMode } from '../appearance/types';
 
-export type ColorMode = 'dark' | 'light' | 'system';
-export type Motion = 'disabled' | 'normal' | 'smooth';
-export type Transparency = 'off' | 'low' | 'medium' | 'high';
-export type ColorSource = 'album-art';
-
-const STORAGE_KEY = 'michie-appearance-settings';
+const STORAGE_KEY = 'michie-appearance-settings-v3';
+const GLASS_LINK_ID = 'michie-glass-stylesheet';
+const SOLID_LINK_ID = 'michie-solid-stylesheet';
 
 interface AppearanceSettings {
-  activeTheme: string;
-  colorMode: ColorMode;
-  colorSource: ColorSource;
-  motion: Motion;
-  transparency: Transparency;
+  backgroundMode: BackgroundMode;
+  backgroundColor: string;
+  backgroundImagePath: string | null;
+  paletteId: string;
+  panelMode: PanelMode;
 }
 
 const defaultSettings: AppearanceSettings = {
-  activeTheme: 'liquid-glass',
-  colorMode: 'system',
-  colorSource: 'album-art',
-  motion: 'normal',
-  transparency: 'medium',
+  backgroundMode: 'color',
+  backgroundColor: '#121212',
+  backgroundImagePath: null,
+  paletteId: palettes[0]?.id ?? 'default',
+  panelMode: 'glass-solid',
 };
 
 function loadSettings(): AppearanceSettings {
@@ -34,24 +32,57 @@ function loadSettings(): AppearanceSettings {
   }
 }
 
-function persistSettings(settings: AppearanceSettings) {
+function persist(settings: AppearanceSettings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
 
-function resolveColorMode(mode: ColorMode): 'dark' | 'light' {
-  if (mode === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+function applyBackground(mode: BackgroundMode, color: string, imagePath: string | null) {
+  const root = document.documentElement;
+  if (mode === 'image' && imagePath) {
+    const url = toAssetUrl(imagePath);
+    root.style.setProperty('--michie-bg-image', url ? `url("${url}")` : 'none');
+  } else {
+    root.style.setProperty('--michie-bg-image', 'none');
   }
-  return mode;
+  root.style.setProperty('--michie-bg-color', color);
+}
+
+function applyPalette(paletteId: string) {
+  const palette = palettes.find((p) => p.id === paletteId) ?? palettes[0];
+  if (!palette) return;
+  const root = document.documentElement;
+  root.style.setProperty('--michie-primary', palette.primary);
+  root.style.setProperty('--michie-secondary', palette.secondary);
+}
+
+function ensureLink(id: string): HTMLLinkElement {
+  let link = document.getElementById(id) as HTMLLinkElement | null;
+  if (!link) {
+    link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }
+  return link;
+}
+
+// Ini bagian intinya: dua <link> independen, masing-masing diarahkan
+// ke file asli atau ke empty.css tergantung mode yang dipilih.
+function applyPanelMode(mode: PanelMode) {
+  const glassLink = ensureLink(GLASS_LINK_ID);
+  const solidLink = ensureLink(SOLID_LINK_ID);
+
+  glassLink.href = mode === 'solid' ? '/appearance/empty.css' : '/appearance/glass.css';
+  solidLink.href = mode === 'glass' ? '/appearance/empty.css' : '/appearance/solid.css';
 }
 
 interface AppearanceState extends AppearanceSettings {
   init: () => void;
-  setTheme: (themeId: string) => void;
-  setColorMode: (mode: ColorMode) => void;
-  setMotion: (motion: Motion) => void;
-  setTransparency: (level: Transparency) => void;
-  applyColorFromCover: (coverPath: string | null | undefined) => Promise<void>;
+  setBackgroundColor: (color: string) => void;
+  setBackgroundImage: (path: string) => void;
+  clearBackgroundImage: () => void;
+  setPalette: (paletteId: string) => void;
+  setPanelMode: (mode: PanelMode) => void;
 }
 
 export const useAppearanceStore = create<AppearanceState>((set, get) => ({
@@ -59,40 +90,38 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
 
   init: () => {
     const s = get();
-    themeEngine.applyTheme(s.activeTheme);
-    themeEngine.applyColorMode(resolveColorMode(s.colorMode));
-    themeEngine.applyMotion(s.motion);
-    themeEngine.applyTransparency(s.transparency);
-    colorEngine.reset(resolveColorMode(s.colorMode));
+    applyBackground(s.backgroundMode, s.backgroundColor, s.backgroundImagePath);
+    applyPalette(s.paletteId);
+    applyPanelMode(s.panelMode);
   },
 
-  setTheme: (themeId) => {
-    themeEngine.applyTheme(themeId);
-    set({ activeTheme: themeId });
-    persistSettings({ ...get(), activeTheme: themeId });
+  setBackgroundColor: (color) => {
+    set({ backgroundMode: 'color', backgroundColor: color });
+    applyBackground('color', color, null);
+    persist({ ...get(), backgroundMode: 'color', backgroundColor: color });
   },
 
-  setColorMode: (mode) => {
-    const resolved = resolveColorMode(mode);
-    themeEngine.applyColorMode(resolved);
-    set({ colorMode: mode });
-    persistSettings({ ...get(), colorMode: mode });
-    colorEngine.reset(resolved);
+  setBackgroundImage: (path) => {
+    set({ backgroundMode: 'image', backgroundImagePath: path });
+    applyBackground('image', get().backgroundColor, path);
+    persist({ ...get(), backgroundMode: 'image', backgroundImagePath: path });
   },
 
-  setMotion: (motion) => {
-    themeEngine.applyMotion(motion);
-    set({ motion });
-    persistSettings({ ...get(), motion });
+  clearBackgroundImage: () => {
+    set({ backgroundMode: 'color', backgroundImagePath: null });
+    applyBackground('color', get().backgroundColor, null);
+    persist({ ...get(), backgroundMode: 'color', backgroundImagePath: null });
   },
 
-  setTransparency: (level) => {
-    themeEngine.applyTransparency(level);
-    set({ transparency: level });
-    persistSettings({ ...get(), transparency: level });
+  setPalette: (paletteId) => {
+    set({ paletteId });
+    applyPalette(paletteId);
+    persist({ ...get(), paletteId });
   },
 
-  applyColorFromCover: async (coverPath) => {
-    await colorEngine.applyFromCover(coverPath, resolveColorMode(get().colorMode));
+  setPanelMode: (mode) => {
+    set({ panelMode: mode });
+    applyPanelMode(mode);
+    persist({ ...get(), panelMode: mode });
   },
 }));

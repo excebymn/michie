@@ -64,7 +64,7 @@ export function PlayerControls() {
 
         {/* play / pause */}
         <button
-          className="mpw-btn-play michie-circle"
+          className="mpw-btn-play glass solid panel"
           onClick={handlePlayPause}
           disabled={!isLoaded}
           title={isPlaying ? "Pause" : "Play"}
