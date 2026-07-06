@@ -39,7 +39,7 @@ export const SourcePicker: React.FC = () => {
         <button
           onClick={handleRescan}
           disabled={isBusy || isScanning || !hasDirectories}
-          className="michie-box"
+          className="glass solid panel"
           style={{
             padding: '14px 20px',
             border: 'none',
