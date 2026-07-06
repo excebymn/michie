@@ -18,10 +18,11 @@ export const GenreCard: React.FC<GenreCardProps> = ({ genre, onClick }) => {
   return (
     <div
       onClick={() => onClick(genre)}
-      className="michie-box"
+      className="glass"
       style={{
         width: 160,
         height: 100,
+        borderRadius: 14,
         display: 'flex',
         alignItems: 'flex-end',
         padding: 14,

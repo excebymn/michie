@@ -39,11 +39,12 @@ export const SourcePicker: React.FC = () => {
         <button
           onClick={handleRescan}
           disabled={isBusy || isScanning || !hasDirectories}
-          className="michie-box"
+          className="glass"
           style={{
             padding: '14px 20px',
+            borderRadius: 14,
             border: 'none',
-            color: 'var(--michie-on-surface)',
+            color: '#fff',
             fontWeight: 500,
             fontSize: '0.95rem',
             cursor: isBusy || isScanning || !hasDirectories ? 'not-allowed' : 'pointer',

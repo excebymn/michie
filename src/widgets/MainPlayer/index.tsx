@@ -18,6 +18,7 @@ import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
 import { SettingsCenter } from "../SettingsCenter";
 import MichieLogo from "../../images/logo.svg";
+import "../../styles/glass.css";
 
 export function MusicPlayer() {
   const {
@@ -88,7 +89,7 @@ export function MusicPlayer() {
 
   return (
     <>
-      <div className="mpw-root michie-box">
+      <div className="mpw-root glass">
         <div className="mpw-header">
           <div className="mpw-brand">
             <img src={MichieLogo} alt="Michie logo" className="mpw-brand-logo" />

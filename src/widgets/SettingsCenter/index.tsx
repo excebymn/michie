@@ -32,13 +32,13 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
       }}
     >
       <div
-        className="michie-box"
+        className="glass"
         style={{
           width: '90vw',
           height: '90vh',
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1.4fr) minmax(280px, 1fr)',
-          color: 'var(--michie-on-surface)',
+          color: '#fff',
           boxSizing: 'border-box',
           overflow: 'hidden',
         }}
@@ -111,10 +111,9 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
             style={{
               padding: '16px',
               borderRadius: '14px',
-              border: '1px solid var(--michie-border)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
               background: 'transparent',
-              color: 'var(--michie-on-surface)',
-              opacity: 0.7,
+              color: 'rgba(255, 255, 255, 0.7)',
               fontSize: '1rem',
               cursor: 'pointer',
             }}

@@ -28,7 +28,7 @@ export const ArtistAvatar: React.FC<ArtistAvatarProps> = ({ path, name, size = 4
 
   return (
     <div
-      className="michie-circle"
+      className="glass-circle"
       style={{
         width: size,
         height: size,
@@ -50,7 +50,7 @@ export const ArtistAvatar: React.FC<ArtistAvatarProps> = ({ path, name, size = 4
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       ) : (
-        <span style={{ color: 'var(--michie-on-surface)', fontWeight: 600, fontSize: size * 0.36, letterSpacing: 0.5 }}>
+        <span style={{ color: '#fff', fontWeight: 600, fontSize: size * 0.36, letterSpacing: 0.5 }}>
           {getInitials(name)}
         </span>
       )}

@@ -14,7 +14,7 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({ path, alt, size = 48, rounde
 
   return (
     <div
-      className="michie-box"
+      className="glass"
       style={{
         width: size,
         height: size,
@@ -35,7 +35,7 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({ path, alt, size = 48, rounde
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       ) : (
-        <svg viewBox="0 0 24 24" width={size * 0.45} height={size * 0.45} fill="var(--michie-on-surface)" style={{ opacity: 0.4 }}>
+        <svg viewBox="0 0 24 24" width={size * 0.45} height={size * 0.45} fill="rgba(255,255,255,0.4)">
           <path d="M12 3v10.55a4 4 0 1 0 2 3.45V7h4V3h-6z" />
         </svg>
       )}
