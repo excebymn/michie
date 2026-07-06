@@ -1,0 +1,93 @@
+/* ==========================================================================
+   MICHIE THEME: 3D
+   Bukan gloss/blur — solid color + bayangan offset tegas (bukan blur) di
+   bawah elemen, seperti tombol "chunky" ala Duolingo/neubrutalism.
+   Saat diklik (:active), elemen benar-benar "turun" mengikuti shadow-nya.
+   Theme ini hanya mengubah appearance, tidak mengubah layout/geometri.
+   ========================================================================== */
+:root {
+  --michie-3d-radius-box: 0.9rem;
+  --michie-3d-depth: 5px; /* seberapa "tebal" sisi bawah tombolnya */
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--michie-3d-radius-box);
+  border: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+  box-shadow:
+    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-primary) 55%, black 45%),
+    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+  box-shadow:
+    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-secondary) 55%, black 45%),
+    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+}
+
+.michie-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.22),
+    transparent 40%
+  );
+}
+
+.michie-box:active {
+  transform: translateY(var(--michie-3d-depth));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+  box-shadow:
+    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-primary) 55%, black 45%),
+    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+  box-shadow:
+    0 var(--michie-3d-depth) 0 0 color-mix(in srgb, var(--color-secondary) 55%, black 45%),
+    0 calc(var(--michie-3d-depth) + 5px) 10px rgba(0, 0, 0, 0.25);
+}
+
+.michie-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.25),
+    transparent 45%
+  );
+}
+
+.michie-circle:active {
+  transform: translateY(var(--michie-3d-depth));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}

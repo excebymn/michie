@@ -1,0 +1,89 @@
+Konsep Penamaan Class
+===============================================================================================
+
+Class                              Fungsi                                           Lokasi
+-----------------------------------------------------------------------------------------------
+.michie-box                        Struktur panel/card (blur, border-radius,         Tiap file tema
+                                   shadow) — tanpa warna
+
+.michie-box--primary               Tint warna primary buat box                       Tiap file tema
+
+.michie-box--secondary             Tint warna secondary buat box                     Tiap file tema
+
+.michie-circle                     Struktur lingkaran (avatar/FAB/toggle)            Tiap file tema
+
+.michie-circle--primary            Tint warna primary buat circle                    Tiap file tema
+
+.michie-circle--secondary          Tint warna secondary buat circle                  Tiap file tema
+
+.michie-bg-primary                 Background solid warna primary                    base.css
+                                   (flat, gak ada efek)
+
+.michie-bg-secondary               Background solid warna secondary                  base.css
+
+.michie-text-primary               Warna teks primary                               base.css
+
+.michie-text-secondary             Warna teks secondary                             base.css
+
+.michie-border-primary             Border warna primary (bonus utilities)           base.css
+
+.michie-border-secondary           Border warna secondary                           base.css
+
+===============================================================================================
+
+
+VERSI UNTUK SCAN
+
+Konsep Penamaan Class
+================================================================================
+
+[ Struktur ]
+--------------------------------------------------------------------------------
+.michie-box
+  Struktur panel/card (blur, border-radius, shadow)
+  Tanpa warna
+  Lokasi : tiap file tema
+
+.michie-box--primary
+  Tint warna primary untuk box
+  Lokasi : tiap file tema
+
+.michie-box--secondary
+  Tint warna secondary untuk box
+  Lokasi : tiap file tema
+
+
+.michie-circle
+  Struktur lingkaran (avatar/FAB/toggle)
+  Lokasi : tiap file tema
+
+.michie-circle--primary
+  Tint warna primary untuk circle
+  Lokasi : tiap file tema
+
+.michie-circle--secondary
+  Tint warna secondary untuk circle
+  Lokasi : tiap file tema
+
+
+[ Utilitas Global (base.css) ]
+--------------------------------------------------------------------------------
+.michie-bg-primary
+  Background solid warna primary (flat)
+
+.michie-bg-secondary
+  Background solid warna secondary
+
+.michie-text-primary
+  Warna teks primary
+
+.michie-text-secondary
+  Warna teks secondary
+
+.michie-border-primary
+  Border warna primary
+
+.michie-border-secondary
+  Border warna secondary
+
+================================================================================

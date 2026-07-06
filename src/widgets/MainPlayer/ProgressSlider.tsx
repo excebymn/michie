@@ -39,7 +39,7 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
       songProgress: s.songProgress,
       isPlaying: s.isPlaying,
       isLoaded: s.isLoaded,
-    }))
+    })),
   );
   const seek = usePlayerStore((s) => s.seek);
   const setSongProgress = usePlayerStore((s) => s.setSongProgress);
@@ -81,7 +81,7 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
         currentTimeRef.current.textContent = formatTime(val);
       }
     },
-    [duration]
+    [duration],
   );
 
   // sinkron pertama kali & tiap kali duration berubah (ganti lagu)
@@ -123,7 +123,7 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
       const ratio = clamp((clientX - rect.left) / rect.width, 0, 1);
       return ratio * duration;
     },
-    [duration]
+    [duration],
   );
 
   const schedulePaint = useCallback(
@@ -136,7 +136,7 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
         });
       }
     },
-    [paint]
+    [paint],
   );
 
   // commit HANYA dipanggil sekali per gesture: sinkronkan state, kirim seek,
@@ -208,7 +208,7 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
       window.addEventListener("pointercancel", onUp);
       dragCleanupRef.current = onUp;
     },
-    [isLoaded, valueFromPointer, schedulePaint, commit]
+    [isLoaded, valueFromPointer, schedulePaint, commit],
   );
 
   // dukungan keyboard dasar untuk aksesibilitas (opsional tapi murah untuk ditambahkan)
@@ -231,12 +231,12 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
         suppressPoll.current = false;
       });
     },
-    [isLoaded, duration, songProgress, paint, setSongProgress, seek]
+    [isLoaded, duration, songProgress, paint, setSongProgress, seek],
   );
 
   return (
     <div className="mpw-progress-row">
-      <span className="mpw-time" ref={currentTimeRef}>
+      <span className="mpw-time michie-text-secondary" ref={currentTimeRef}>
         {formatTime(songProgress)}
       </span>
 
@@ -252,76 +252,86 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
         onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}
       >
-        <div ref={playedRef} className="mpw-track-played glass" />
-        <div ref={unplayedRef} className="mpw-track-unplayed glass" />
-        <div ref={thumbRef} className="mpw-thumb glass" />
+        <div
+          ref={playedRef}
+          className="mpw-track-played michie-box michie-box--secondary"
+        />
+        <div ref={unplayedRef} className="mpw-track-unplayed michie-box michie-box--secondary" />
+        <div
+          ref={thumbRef}
+          className="mpw-thumb michie-box michie-box--secondary"
+        />
       </div>
 
-      <span className="mpw-time mpw-time-right">{formatTime(duration)}</span>
+      <span className="mpw-time mpw-time-right michie-text-secondary">{formatTime(duration)}</span>
 
       <style>{`
-        .mpw-progress-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .mpw-time {
-          font-size: 0.7rem;
-          opacity: 0.5;
-          white-space: nowrap;
-          font-variant-numeric: tabular-nums;
-          min-width: 28px;
-        }
-        .mpw-time-right { text-align: right; }
+.mpw-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-        .mpw-track {
-          --mpw-track-h: 8px;
-          --mpw-color-played: #2b3b5c;
-          --mpw-color-unplayed: #9b9b9b;
+.mpw-time {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+}
 
-          position: relative;
-          flex: 1;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          touch-action: none;
-        }
-        .mpw-track--disabled {
-          cursor: default;
-          opacity: 0.4;
-          pointer-events: none;
-        }
+.mpw-time-right {
+  text-align: right;
+}
 
-        .mpw-track-played,
-        .mpw-track-unplayed {
-          position: absolute;
-          top: 50%;
-          left: 0;
-          transform: translateY(-50%);
-          height: var(--mpw-track-h);
-          border-radius: 999px;
-          width: 0;
-        }
-        .mpw-track-played { background: var(--mpw-color-played); }
-        .mpw-track-unplayed { background: var(--mpw-color-unplayed); }
+.mpw-track {
+  --mpw-track-h: 8px;
 
-        .mpw-thumb {
-          position: absolute;
-          top: 50%;
-          left: 0;
-          width: 4px;
-          height: var(--mpw-track-h);
-          border-radius: 999px;
-          background: var(--mpw-color-played);
-          transform: translate(-50%, -50%);
-          transition: width 0.12s ease, height 0.12s ease;
-        }
-        .mpw-track:hover .mpw-thumb,
-        .mpw-track:active .mpw-thumb {
-          width: 14px;
-          height: 14px;
-        }
+  position: relative;
+  flex: 1;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.mpw-track--disabled {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.mpw-track-played,
+.mpw-track-unplayed {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: var(--mpw-track-h);
+  border-radius: 999px;
+  width: 0;
+}
+
+.mpw-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 4px;
+  height: var(--mpw-track-h);
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  transition: width 0.12s ease, height 0.12s ease;
+}
+
+.mpw-track:hover .mpw-thumb,
+.mpw-track:active .mpw-thumb {
+  width: 14px;
+  height: 14px;
+}
+  .mpw-track-unplayed{
+  opacity: 0.8;
+  }
       `}</style>
     </div>
   );

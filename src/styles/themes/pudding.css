@@ -1,0 +1,109 @@
+/* ==========================================================================
+   MICHIE THEME: PUDDING
+   Solid, glossy, tanpa blur.
+   Gabungan dari FLAT (solid, tanpa transparansi) + GLASS (gloss/highlight layer).
+   Theme ini hanya mengubah appearance, tidak mengubah layout/geometri.
+   ========================================================================== */
+:root {
+  --michie-pudding-shadow: rgba(20, 20, 25, 0.18);
+  --michie-pudding-border: rgba(255, 255, 255, 0.18);
+  --michie-pudding-radius-box: 0.75rem;
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--michie-pudding-radius-box);
+  border: 1px solid var(--michie-pudding-border);
+  box-shadow:
+    0 8px 20px var(--michie-pudding-shadow),
+    inset 0 1px rgba(255, 255, 255, 0.20),
+    inset 0 -1px rgba(0, 0, 0, 0.05);
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+}
+
+.michie-box::before,
+.michie-box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.michie-box::before {
+  background:
+    radial-gradient(
+      circle at 25% 15%,
+      rgba(255, 255, 255, 0.28),
+      transparent 42%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.12),
+      transparent 45%
+    );
+}
+
+.michie-box::after {
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.20),
+    inset 0 -1px rgba(0, 0, 0, 0.04);
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid var(--michie-pudding-border);
+  box-shadow:
+    0 8px 20px var(--michie-pudding-shadow),
+    inset 0 1px rgba(255, 255, 255, 0.20),
+    inset 0 -1px rgba(0, 0, 0, 0.05);
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+}
+
+.michie-circle::before,
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.michie-circle::before {
+  background:
+    radial-gradient(
+      circle at 28% 18%,
+      rgba(255, 255, 255, 0.28),
+      transparent 42%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.12),
+      transparent 45%
+    );
+}
+
+.michie-circle::after {
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.20),
+    inset 0 -1px rgba(0, 0, 0, 0.04);
+}

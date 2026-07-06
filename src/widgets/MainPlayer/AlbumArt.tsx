@@ -1,7 +1,6 @@
 // AlbumArt.tsx
 // Menampilkan cover art dan info lagu (judul, artist, album).
 // Membaca: currentSong dari playerStore.
-
 import { usePlayerStore } from "../../stores/playerStore";
 
 export function AlbumArt() {
@@ -9,7 +8,7 @@ export function AlbumArt() {
 
   return (
     <>
-      <div className="mpw-art">
+      <div className="mpw-art michie-box michie-box--secondary">
         {currentSong?.cover ? (
           <img
             src={`asset://localhost/${currentSong.cover}`}
@@ -20,13 +19,15 @@ export function AlbumArt() {
             }}
           />
         ) : (
-          <div className="mpw-art-placeholder">♪</div>
+          <div className="mpw-art-placeholder michie-text-primary">♪</div>
         )}
       </div>
 
       <div className="mpw-info">
-        <p className="mpw-info-title">{currentSong?.name ?? "No song selected"}</p>
-        <p className="mpw-info-sub">
+        <p className="mpw-info-title michie-text-secondary">
+          {currentSong?.name ?? "No song selected"}
+        </p>
+        <p className="mpw-info-sub michie-text-secondary">
           {currentSong?.artist ?? currentSong?.album_artist ?? "—"}
           {currentSong?.album ? ` · ${currentSong.album}` : ""}
         </p>
@@ -36,9 +37,7 @@ export function AlbumArt() {
         .mpw-art {
           width: 100%;
           aspect-ratio: 1;
-          border-radius: 8px;
           overflow: hidden;
-          background: color-mix(in srgb, currentColor 8%, transparent);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -50,7 +49,6 @@ export function AlbumArt() {
         }
         .mpw-art-placeholder {
           font-size: 48px;
-          opacity: 0.2;
           user-select: none;
         }
         .mpw-info { text-align: center; }

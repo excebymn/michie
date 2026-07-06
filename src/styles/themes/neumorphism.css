@@ -1,0 +1,51 @@
+/* ==========================================================================
+   MICHIE THEME: NEUMORPHISM (SOFT UI)
+   Tanpa border, tanpa gloss — kesan "timbul" dari permukaan lewat
+   shadow ganda (terang di satu sudut, gelap di sudut berlawanan).
+   Theme ini hanya mengubah appearance, tidak mengubah layout/geometri.
+   ========================================================================== */
+:root {
+  --michie-neu-radius-box: 1rem;
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  border-radius: var(--michie-neu-radius-box);
+  border: none;
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+  box-shadow:
+    8px 8px 16px color-mix(in srgb, var(--color-primary) 70%, black 30%),
+    -8px -8px 16px color-mix(in srgb, var(--color-primary) 60%, white 40%);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+  box-shadow:
+    8px 8px 16px color-mix(in srgb, var(--color-secondary) 70%, black 30%),
+    -8px -8px 16px color-mix(in srgb, var(--color-secondary) 60%, white 40%);
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  border-radius: 50%;
+  border: none;
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+  box-shadow:
+    6px 6px 12px color-mix(in srgb, var(--color-primary) 70%, black 30%),
+    -6px -6px 12px color-mix(in srgb, var(--color-primary) 60%, white 40%);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+  box-shadow:
+    6px 6px 12px color-mix(in srgb, var(--color-secondary) 70%, black 30%),
+    -6px -6px 12px color-mix(in srgb, var(--color-secondary) 60%, white 40%);
+}

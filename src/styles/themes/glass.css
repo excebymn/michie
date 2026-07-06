@@ -1,0 +1,117 @@
+/* ==========================================================================
+   MICHIE THEME: GLASS
+   File ini HANYA berisi efek struktural (blur, shadow, radius).
+   Warna diambil dari --color-primary / --color-secondary (diatur palette),
+   supaya nama class tetap sama di semua tema.
+   ========================================================================== */
+
+:root {
+  --michie-glass-shadow: rgba(28, 27, 31, 0.16);
+  --michie-glass-tint-alpha: 14%;
+  --michie-glass-blur: blur(20px) saturate(210%);
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+
+  backdrop-filter: var(--michie-glass-blur);
+  -webkit-backdrop-filter: var(--michie-glass-blur);
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 2rem;
+
+  box-shadow:
+    0 12px 32px var(--michie-glass-shadow),
+    inset 0 3px 12px rgba(255, 255, 255, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.40);
+}
+
+.michie-box--primary {
+  background: color-mix(in srgb, var(--color-primary) var(--michie-glass-tint-alpha), transparent);
+}
+
+.michie-box--secondary {
+  background: color-mix(in srgb, var(--color-secondary) var(--michie-glass-tint-alpha), transparent);
+}
+
+.michie-box::before,
+.michie-box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.michie-box::before {
+  background:
+    radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.38), transparent 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 45%);
+  opacity: 0.95;
+}
+
+.michie-box::after {
+  box-shadow:
+    inset 0 1.5px rgba(255, 255, 255, 0.45),
+    inset 0 -1px rgba(255, 255, 255, 0.12),
+    inset 1px 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+
+  backdrop-filter: var(--michie-glass-blur);
+  -webkit-backdrop-filter: var(--michie-glass-blur);
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+
+  box-shadow:
+    0 12px 32px var(--michie-glass-shadow),
+    inset 0 3px 12px rgba(255, 255, 255, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.40);
+}
+
+.michie-circle--primary {
+  background: color-mix(in srgb, var(--color-primary) var(--michie-glass-tint-alpha), transparent);
+}
+
+.michie-circle--secondary {
+  background: color-mix(in srgb, var(--color-secondary) var(--michie-glass-tint-alpha), transparent);
+}
+
+.michie-circle::before,
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.michie-circle::before {
+  background:
+    radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.38), transparent 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 45%);
+  opacity: 0.95;
+}
+
+.michie-circle::after {
+  box-shadow:
+    inset 0 1.5px rgba(255, 255, 255, 0.45),
+    inset 0 -1px rgba(255, 255, 255, 0.12),
+    inset 1px 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Override teks & icon supaya selalu putih di atas background blur album art,
+   apapun palette primary/secondary yang lagi dipilih */
+.michie-text-primary,
+.michie-text-secondary {
+  color: #ffffff;
+}

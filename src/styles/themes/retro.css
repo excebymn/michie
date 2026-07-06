@@ -1,0 +1,88 @@
+/* ==========================================================================
+   MICHIE THEME: RETRO
+   Bevel klasik ala tombol Windows 95/98 (terang di atas-kiri, gelap di
+   bawah-kanan biar keliatan "timbul"), plus scanline tipis ala layar CRT.
+   Sudut lebih blocky (radius kecil), bukan rounded modern.
+   Theme ini hanya mengubah appearance, tidak mengubah layout/geometri.
+   ========================================================================== */
+:root {
+  --michie-retro-radius-box: 4px;
+  --michie-retro-border-width: 2px;
+  --michie-retro-scanline: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--michie-retro-radius-box);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+  border-top: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 35%, white 65%);
+  border-left: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 35%, white 65%);
+  border-bottom: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 45%, black 55%);
+  border-right: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 45%, black 55%);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+  border-top: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 35%, white 65%);
+  border-left: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 35%, white 65%);
+  border-bottom: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 45%, black 55%);
+  border-right: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 45%, black 55%);
+}
+
+.michie-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--michie-retro-scanline);
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+  border-top: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 35%, white 65%);
+  border-left: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 35%, white 65%);
+  border-bottom: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 45%, black 55%);
+  border-right: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-primary) 45%, black 55%);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+  border-top: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 35%, white 65%);
+  border-left: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 35%, white 65%);
+  border-bottom: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 45%, black 55%);
+  border-right: var(--michie-retro-border-width) solid color-mix(in srgb, var(--color-secondary) 45%, black 55%);
+}
+
+.michie-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--michie-retro-scanline);
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}

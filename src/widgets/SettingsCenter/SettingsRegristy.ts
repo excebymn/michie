@@ -1,6 +1,7 @@
 import React from 'react';
 import { SourcePicker } from '../SourcePicker';
 import { LibraryView } from '../Library';
+import { AppearancePanel } from '../Appearance';
 
 
 export interface SettingsPanelConfig {
@@ -12,4 +13,5 @@ export interface SettingsPanelConfig {
 export const settingsRegistry: SettingsPanelConfig[] = [
   { id: 'source', label: 'Sumber Direktori', component: SourcePicker },
   { id: 'library', label: 'Perpustakaan Musik', component: LibraryView },
+  { id: 'appearance', label: 'Tampilan', component: AppearancePanel },
 ];

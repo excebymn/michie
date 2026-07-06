@@ -1,0 +1,60 @@
+/* ==========================================================================
+   MICHIE THEME: NEON
+   Solid background, dikelilingi cincin cahaya (glow) yang mengikuti warna
+   primary/secondary. Vibe gelap/cyberpunk — makin kontras backgroundnya,
+   makin "nyala" efeknya.
+   Theme ini hanya mengubah appearance, tidak mengubah layout/geometri.
+   ========================================================================== */
+:root {
+  --michie-neon-radius-box: 0.75rem;
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--michie-neon-radius-box);
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 70%, white 30%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 60%, white 40%),
+    0 0 12px 1px color-mix(in srgb, var(--color-primary) 75%, transparent),
+    0 0 28px 6px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 70%, white 30%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-secondary) 60%, white 40%),
+    0 0 12px 1px color-mix(in srgb, var(--color-secondary) 75%, transparent),
+    0 0 28px 6px color-mix(in srgb, var(--color-secondary) 40%, transparent);
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 70%, white 30%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 60%, white 40%),
+    0 0 12px 1px color-mix(in srgb, var(--color-primary) 75%, transparent),
+    0 0 28px 6px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 70%, white 30%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-secondary) 60%, white 40%),
+    0 0 12px 1px color-mix(in srgb, var(--color-secondary) 75%, transparent),
+    0 0 28px 6px color-mix(in srgb, var(--color-secondary) 40%, transparent);
+}

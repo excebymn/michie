@@ -1,0 +1,41 @@
+/* ==========================================================================
+   MICHIE THEME: FLAT
+   Tanpa blur/transparansi, warna solid, shadow tipis.
+   ========================================================================== */
+
+:root {
+  --michie-flat-shadow: rgba(0, 0, 0, 0.12);
+  --michie-flat-radius-box: 0.75rem;
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  border-radius: var(--michie-flat-radius-box);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--michie-flat-shadow);
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--michie-flat-shadow);
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+}

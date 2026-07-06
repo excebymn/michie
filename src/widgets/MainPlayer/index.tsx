@@ -18,7 +18,22 @@ import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
 import { SettingsCenter } from "../SettingsCenter";
 import MichieLogo from "../../images/logo.svg";
-import "../../styles/glass.css";
+
+function IconMenu() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+    </svg>
+  );
+}
 
 export function MusicPlayer() {
   const {
@@ -89,20 +104,26 @@ export function MusicPlayer() {
 
   return (
     <>
-      <div className="mpw-root glass">
+      <div className="mpw-root michie-box michie-box--primary">
         <div className="mpw-header">
           <div className="mpw-brand">
-            <img src={MichieLogo} alt="Michie logo" className="mpw-brand-logo" />
-            <span className="mpw-brand-name">Michie</span>
+            <img
+              src={MichieLogo}
+              alt="Michie logo"
+              className="mpw-brand-logo"
+            />
+            <span className="mpw-brand-name michie-text-secondary">michie</span>
           </div>
 
           <button
-            className="mpw-btn-menu"
+            className="mpw-btn-menu michie-circle michie-circle--secondary"
             onClick={() => setShowSettings(true)}
             title="Settings"
             aria-label="Settings panel"
           >
-            ⋮
+            <span className="mpw-icon-menu">
+              <IconMenu />
+            </span>
           </button>
         </div>
 
@@ -111,78 +132,91 @@ export function MusicPlayer() {
         <PlayerControls />
       </div>
 
-      {showSettings && <SettingsCenter onClose={() => setShowSettings(false)} />}
+      {showSettings && (
+        <SettingsCenter onClose={() => setShowSettings(false)} />
+      )}
 
       <style>{`
-        .mpw-root {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding: 16px;
-          width: 100%;
-          height: 100%;
-          min-height: 0;
-          box-sizing: border-box;
-          color: inherit;
-        }
+.mpw-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
 
-        .mpw-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 
-        .mpw-brand {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          user-select: none;
-        }
+  box-sizing: border-box;
+}
 
-        .mpw-brand-logo {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 20px;
-          height: 20px;
-          font-size: 16px;
-          line-height: 1;
-        }
+.mpw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-        .mpw-brand-name {
-          font-size: 0.9rem;
-          font-weight: 600;
-          letter-spacing: 0.02em;
-        }
+.mpw-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-        .mpw-btn-menu {
-          width: 28px;
-          height: 28px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: transparent;
-          border: none;
-          border-radius: 50%;
-          cursor: pointer;
-          color: inherit;
-          font-size: 18px;
-          line-height: 1;
-          opacity: 0.65;
-          transition:
-            opacity 0.15s ease,
-            background 0.15s ease,
-            transform 0.15s ease;
-        }
+  user-select: none;
+}
 
-        .mpw-btn-menu:hover {
-          opacity: 1;
-          background: color-mix(in srgb, currentColor 12%, transparent);
-        }
+.mpw-brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-        .mpw-btn-menu:active {
-          transform: scale(0.95);
-        }
+  width: 20px;
+  height: 20px;
+
+  font-size: 16px;
+  line-height: 1;
+}
+
+.mpw-brand-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.mpw-btn-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  border: none;
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  transition: transform 0.15s ease;
+}
+
+.mpw-btn-menu:active {
+  transform: scale(0.95);
+}
+
+.mpw-icon-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+  height: 18px;
+}
+
+.mpw-icon-menu svg {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
       `}</style>
     </>
   );

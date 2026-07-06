@@ -1,0 +1,58 @@
+/* ==========================================================================
+   MICHIE THEME: PAPER
+   Matte total — kebalikan ekstrem dari pudding/jelly yang glossy.
+   Shadow super lembut, tanpa highlight/gloss, ditambah tekstur noise
+   halus (seperti serat kertas) lewat inline SVG feTurbulence.
+   Theme ini hanya mengubah appearance, tidak mengubah layout/geometri.
+   ========================================================================== */
+:root {
+  --michie-paper-radius-box: 0.6rem;
+  --michie-paper-shadow: rgba(20, 20, 20, 0.08);
+  --michie-paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--michie-paper-radius-box);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 1px 2px var(--michie-paper-shadow),
+    0 4px 10px var(--michie-paper-shadow);
+}
+
+.michie-box--primary {
+  background-color: var(--color-primary);
+  background-image: var(--michie-paper-noise);
+  background-blend-mode: overlay;
+}
+
+.michie-box--secondary {
+  background-color: var(--color-secondary);
+  background-image: var(--michie-paper-noise);
+  background-blend-mode: overlay;
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 1px 2px var(--michie-paper-shadow),
+    0 4px 10px var(--michie-paper-shadow);
+}
+
+.michie-circle--primary {
+  background-color: var(--color-primary);
+  background-image: var(--michie-paper-noise);
+  background-blend-mode: overlay;
+}
+
+.michie-circle--secondary {
+  background-color: var(--color-secondary);
+  background-image: var(--michie-paper-noise);
+  background-blend-mode: overlay;
+}
