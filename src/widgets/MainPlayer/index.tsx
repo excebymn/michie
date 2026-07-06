@@ -88,7 +88,7 @@ export function MusicPlayer() {
 
   return (
     <>
-      <div className="mpw-root glass solid panel">
+      <div className="mpw-root michie-box">
         <div className="mpw-header">
           <div className="mpw-brand">
             <img src={MichieLogo} alt="Michie logo" className="mpw-brand-logo" />
