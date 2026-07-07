@@ -21,6 +21,12 @@ import "@fontsource/barlow/700.css";
 import "@fontsource/bitter/400.css";
 import "@fontsource/bitter/500.css";
 import "@fontsource/bitter/700.css";
+import './styles/animation.css'
+import AOS from 'aos';
+AOS.init({
+  once: false, // Animasi scroll hanya berjalan sekali
+  duration: 600, // Kecepatan default animasi muncul
+});
 
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

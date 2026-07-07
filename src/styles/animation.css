@@ -1,0 +1,33 @@
+/* ==========================================================================
+   Michie Box - Aktif untuk Button, Link (a), Span, dan Elemen Tombol Lain
+   ========================================================================== */
+
+.michie-box {
+  display: inline-block;
+  position: relative;
+  text-decoration: none;
+
+  transition:
+    transform 0.18s cubic-bezier(.2,.8,.2,1),
+    box-shadow 0.18s ease;
+}
+
+/* Hover */
+button.michie-box:hover,
+a.michie-box:hover,
+span.michie-box:hover,
+[role="button"].michie-box:hover {
+  cursor: pointer;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Active / Pressed */
+button.michie-box:active,
+a.michie-box:active,
+span.michie-box:active,
+[role="button"].michie-box:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition-duration: 0.05s;
+}

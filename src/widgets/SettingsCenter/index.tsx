@@ -18,6 +18,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
 
   return (
     <div
+    data-aos="fade-right"
       onClick={handleBackdropClick}
       style={{
         position: "fixed",
@@ -87,7 +88,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
 
         {/* === SLOT KANAN: NAVIGASI MENU === */}
         <div
-          className="michie-box--secondary"
+          className="michie-box michie-box--secondary"
           style={{
             padding: "40px",
             display: "flex",
@@ -102,7 +103,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
             const isActive = item.id === activeId;
             return (
               <button
-                className="michie-box--primary michie-text-secondary"
+                className="michie-box michie-box--primary michie-text-secondary"
                 key={item.id}
                 onClick={() => setActiveId(item.id)}
                 style={{
@@ -123,7 +124,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
           <div style={{ flex: 1 }} />
 
           <button
-            className="michie-box--primary michie-text-secondary"
+            className="michie-box michie-box--primary michie-text-secondary"
             onClick={onClose}
             style={{
                 border: "none",
@@ -134,7 +135,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
               opacity: 0.8,
             }}
           >
-            Tutup
+           close
           </button>
         </div>
       </div>

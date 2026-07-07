@@ -4,7 +4,7 @@ type Props = {
 
 export default function WidgetSlot({ title }: Props) {
     return (
-        <div className="widget-slot">
+        <div className="widget-slot michie-box michie-box--primary">
             <span>{title}</span>
         </div>
     );
