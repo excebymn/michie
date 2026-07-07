@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { themeRegistry } from "../../config/themeRegistry";
 import { paletteRegistry } from "../../config/paletteRegistry";
 import { useAppearanceStore } from "../../stores/appearanceStore";
+import { saveBackgroundImage } from "../../services/appearanceService";
 import "./appearance.css";
 
 export function AppearancePanel() {
@@ -13,8 +14,10 @@ export function AppearancePanel() {
     backgroundValue,
     setTheme,
     setPalette,
+    setAlbumTonePalette,
     setBackgroundColor,
     setBackgroundImage,
+    setBackgroundPaletteRef,
   } = useAppearanceStore(
     useShallow((s) => ({
       themeId: s.themeId,
@@ -23,8 +26,10 @@ export function AppearancePanel() {
       backgroundValue: s.backgroundValue,
       setTheme: s.setTheme,
       setPalette: s.setPalette,
+      setAlbumTonePalette: s.setAlbumTonePalette,
       setBackgroundColor: s.setBackgroundColor,
       setBackgroundImage: s.setBackgroundImage,
+      setBackgroundPaletteRef: s.setBackgroundPaletteRef,
     })),
   );
 
@@ -34,7 +39,8 @@ export function AppearancePanel() {
       filters: [{ name: "Image", extensions: ["png", "jpg", "jpeg", "webp"] }],
     });
     if (typeof selected === "string") {
-      setBackgroundImage(selected);
+      const savedPath = await saveBackgroundImage(selected);
+      setBackgroundImage(savedPath);
     }
   };
 
@@ -45,12 +51,10 @@ export function AppearancePanel() {
     <div className="appearance-panel flex flex-col gap-7 p-5">
       {/* THEME */}
       <section className="appearance-section flex flex-col gap-3">
-        <h2 className=" michie-text-secondary {`appearance-section-title ${sectionTitleClass}`}">
-          Theme
+        <h2 className="michie-text-secondary appearance-section-title">
+          You can arrange everything in michie, find your best combination
         </h2>
-        <p className=" michie-text-secondary">
-          you can arrange everything in michie, find your best combination
-        </p>
+        <p className="michie-text-secondary">Themes</p>
         <div className="appearance-theme-grid grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           {themeRegistry.map((theme) => {
             const isActive = themeId === theme.id;
@@ -78,10 +82,27 @@ export function AppearancePanel() {
 
       {/* PALETTE */}
       <section className="appearance-section flex flex-col gap-3">
-        <h3 className={`appearance-section-title ${sectionTitleClass}`}>
+        <p className={`michie-box michie-box--secondary michie-text-primary ${sectionTitleClass}`}>
           color palette
-        </h3>
+        </p>
         <div className="appearance-palette-grid flex flex-wrap gap-2.5">
+          <button
+            type="button"
+            title="follow the album art of the song currently playing."
+            className={[
+              "appearance-palette-swatch appearance-palette-swatch--tone",
+              "relative h-10 w-10 shrink-0 overflow-hidden rounded-full",
+              "transition duration-150 ease-out",
+              "hover:scale-110 active:scale-95",
+              paletteId === "album-tone"
+                ? "appearance-palette-swatch--active"
+                : "",
+            ].join(" ")}
+            onClick={setAlbumTonePalette}
+          >
+            <span className="appearance-palette-tone-icon">🎨</span>
+          </button>
+
           {paletteRegistry.map((palette) => {
             const isActive = paletteId === palette.id;
             return (
@@ -110,12 +131,17 @@ export function AppearancePanel() {
             );
           })}
         </div>
+        {paletteId === "album-tone" && (
+          <p className="michie-text-secondary appearance-tone-hint">
+            The color will match the album art of the song currently playing.
+          </p>
+        )}
       </section>
 
       {/* BACKGROUND */}
       <section className="appearance-section flex flex-col gap-3">
         <div className="michie-box michie-box--secondary">
-          <h3 className={`appearance-section-title  ${sectionTitleClass}`}>
+          <h3 className={`appearance-section-title ${sectionTitleClass}`}>
             Custom app background
           </h3>
         </div>
@@ -132,7 +158,7 @@ export function AppearancePanel() {
                 )
               }
             />
-            <span className="michie-text-secondary text-sm">color</span>
+            <span className="michie-text-secondary text-sm">custom colors</span>
             <input
               type="color"
               className="appearance-color-input h-8 w-12 shrink-0 cursor-pointer rounded-md"
@@ -146,10 +172,36 @@ export function AppearancePanel() {
               type="radio"
               name="bg-type"
               className="appearance-radio h-4 w-4 shrink-0"
+              checked={backgroundType === "primary"}
+              onChange={() => setBackgroundPaletteRef("primary")}
+            />
+            <span className="michie-text-secondary text-sm">
+              follow primary color palette
+            </span>
+          </label>
+
+          <label className="appearance-bg-option flex items-center gap-3">
+            <input
+              type="radio"
+              name="bg-type"
+              className="appearance-radio h-4 w-4 shrink-0"
+              checked={backgroundType === "secondary"}
+              onChange={() => setBackgroundPaletteRef("secondary")}
+            />
+            <span className="michie-text-secondary text-sm">
+              follow secondary color palette
+            </span>
+          </label>
+
+          <label className="appearance-bg-option flex items-center gap-3">
+            <input
+              type="radio"
+              name="bg-type"
+              className="appearance-radio h-4 w-4 shrink-0"
               checked={backgroundType === "image"}
               onChange={handlePickImage}
             />
-            <span className="michie-text-secondary text-sm">Image</span>
+            <span className="michie-text-secondary text-sm">custom images</span>
             <button
               type="button"
               className={[
@@ -160,7 +212,7 @@ export function AppearancePanel() {
               ].join(" ")}
               onClick={handlePickImage}
             >
-              <span className="michie-text-primary">Choose image</span>
+              <span className="michie-text-primary">choose image</span>
             </button>
           </label>
 

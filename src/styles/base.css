@@ -45,3 +45,31 @@
 .michie-border-secondary {
   border-color: var(--color-secondary);
 }
+/* Transisi mulus tiap ganti tema/palette - berlaku ke semua elemen bertema */
+.michie-box,
+.michie-box--primary,
+.michie-box--secondary,
+.michie-circle,
+.michie-circle--primary,
+.michie-circle--secondary,
+.michie-text-primary,
+.michie-text-secondary,
+.michie-bg-primary,
+.michie-bg-secondary,
+.michie-border-primary,
+.michie-border-secondary {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.app-root {
+  transition: background-color 0.35s ease;
+}
+
+.app-root--pulse {
+  animation: michie-bg-pulse 0.4s ease;
+}
+
+@keyframes michie-bg-pulse {
+  0% { filter: brightness(0.85); }
+  100% { filter: brightness(1); }
+}

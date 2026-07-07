@@ -7,6 +7,7 @@ import { playerService } from "../../services/playerService";
 import { useAppStore } from "../../stores/appStore";
 import type { PlaylistFull, Songs, SongsFull } from "../../globalValues";
 import { AddSongsPanel } from "./AddSongsPanel";
+import { ConfirmDialog } from "./ConfirmDialog";
 import {
   IconTrash,
   IconPencil,
@@ -41,7 +42,7 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [showAddSongs, setShowAddSongs] = useState(false);
-
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const songs: Songs[] = isLiked ? likedSongs : (playlist?.songs ?? []);
 
   const load = useCallback(async () => {
@@ -83,12 +84,16 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
     await load();
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!playlist) return;
-    const ok = window.confirm(`Hapus playlist "${playlist.name}"?`);
-    if (!ok) return;
+    setConfirmingDelete(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!playlist) return;
     await playlistService.deletePlaylist(playlist.name);
     await refreshPlaylists();
+    setConfirmingDelete(false);
     onBack();
   };
 
@@ -196,7 +201,9 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
               )}
             </div>
           )}
-          <p className="pd-count michie-text-secondary">{songs.length} Song(s)</p>
+          <p className="pd-count michie-text-secondary">
+            {songs.length} Song(s)
+          </p>
 
           <div className="pd-actions">
             <button
@@ -250,7 +257,7 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
       <div className="pd-list">
         {songs.length === 0 ? (
           <div className="pd-empty michie-text-secondary">
-            No songs here yet
+            add some songs first, darling
           </div>
         ) : (
           songs.map((song, index) => (
@@ -278,6 +285,16 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
               </button>
             </div>
           ))
+        )}
+        {confirmingDelete && playlist && (
+          <ConfirmDialog
+            title="do you wanna delete this playlist?"
+            message={`are you really sure wanna delete this playlist "${playlist.name}"? this action have a consequences.`}
+            confirmLabel="delete"
+            danger
+            onConfirm={confirmDelete}
+            onCancel={() => setConfirmingDelete(false)}
+          />
         )}
       </div>
 

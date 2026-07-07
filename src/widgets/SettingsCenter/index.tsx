@@ -18,7 +18,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
 
   return (
     <div
-    data-aos="fade-right"
+      data-aos="fade-right"
       onClick={handleBackdropClick}
       style={{
         position: "fixed",
@@ -68,7 +68,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
                   fontWeight: 600,
                 }}
               >
-                Pengaturan Sistem
+                System settings
               </h2>
               <p
                 style={{
@@ -79,8 +79,8 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
                   maxWidth: "480px",
                 }}
               >
-                Sesuaikan preferensi audio, sumber direktori musik, dan tampilan
-                antarmuka aplikasi Michie Anda di sini.
+                Adjust the audio preferences, music directory source, and
+                interface appearance of your Michie app here.
               </p>
             </>
           )}
@@ -107,7 +107,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
                 key={item.id}
                 onClick={() => setActiveId(item.id)}
                 style={{
-                    border: "none",
+                  border: "none",
                   padding: "14px 16px",
                   borderRadius: "14px",
                   fontWeight: isActive ? 600 : 400,
@@ -127,7 +127,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
             className="michie-box michie-box--primary michie-text-secondary"
             onClick={onClose}
             style={{
-                border: "none",
+              border: "none",
               padding: "16px",
               borderRadius: "14px",
               fontSize: "1rem",
@@ -135,7 +135,7 @@ export const SettingsCenter: React.FC<SettingsCenterProps> = ({ onClose }) => {
               opacity: 0.8,
             }}
           >
-           close
+            close
           </button>
         </div>
       </div>

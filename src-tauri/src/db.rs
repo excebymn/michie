@@ -412,7 +412,11 @@ pub async fn get_liked_songs(state: State<AppState, '_>) -> Result<Vec<SongTable
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn toggle_favorite_song(state: State<AppState, '_>, app: tauri::AppHandle, path: String) -> Result<bool, String> {
+pub async fn toggle_favorite_song(
+    state: State<AppState, '_>,
+    app: tauri::AppHandle,
+    path: String,
+) -> Result<bool, String> {
     let current: (bool,) = sqlx::query_as("SELECT favorited FROM songs WHERE path = $1")
         .bind(&path)
         .fetch_one(&state.pool)
@@ -428,7 +432,13 @@ pub async fn toggle_favorite_song(state: State<AppState, '_>, app: tauri::AppHan
         .await
         .map_err(|e| e.to_string())?;
 
-    let _ = app.emit("song-favorited-changed", crate::types::FavoriteChanged { path, favorited: new_value });
+    let _ = app.emit(
+        "song-favorited-changed",
+        crate::types::FavoriteChanged {
+            path,
+            favorited: new_value,
+        },
+    );
 
     Ok(new_value)
 }
@@ -797,22 +807,30 @@ pub async fn rename_playlist(
 // Take in the new name of the playlist and update the name value of the playlist
 #[tauri::command(rename_all = "snake_case")]
 pub async fn delete_playlist(state: State<AppState, '_>, name: String) -> Result<(), String> {
-    let covers_to_delete: Covers =
-        sqlx::query_as::<_, Covers>("SELECT image AS cover FROM playlists WHERE image IS NOT NULL")
-            .fetch_one(&state.pool)
+    let existing: Option<PlaylistTable> =
+        sqlx::query_as::<_, PlaylistTable>("SELECT id, name, image FROM playlists WHERE name = $1")
+            .bind(&name)
+            .fetch_optional(&state.pool)
             .await
-            .unwrap();
-    let _ = fs::remove_file(covers_to_delete.cover);
+            .map_err(|e| e.to_string())?;
 
-    let _ = sqlx::query("DELETE FROM playlists WHERE name=$1;")
-        .bind(&name)
-        .execute(&state.pool)
-        .await;
+    if let Some(playlist) = existing {
+        if !playlist.image.is_empty() {
+            let _ = fs::remove_file(&playlist.image);
+        }
 
-    let _ = sqlx::query("DELETE FROM playlist_tracks WHERE playlist_name=$1;")
-        .bind(&name)
-        .execute(&state.pool)
-        .await;
+        sqlx::query("DELETE FROM playlist_tracks WHERE playlist_id = $1")
+            .bind(playlist.id)
+            .execute(&state.pool)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        sqlx::query("DELETE FROM playlists WHERE id = $1")
+            .bind(playlist.id)
+            .execute(&state.pool)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
 
     Ok(())
 }
@@ -969,7 +987,23 @@ pub async fn add_playlist_cover(
 
     Ok(())
 }
+#[tauri::command(rename_all = "snake_case")]
+pub async fn set_background_image(file_path: String) -> Result<String, String> {
+    let image_dir = dirs::home_dir().unwrap().to_str().unwrap().to_string()
+        + "/.config/michie_player/backgrounds/";
+    fs::create_dir_all(&image_dir).map_err(|e| e.to_string())?;
 
+    let file_type = Path::new(&file_path)
+        .extension()
+        .and_then(OsStr::to_str)
+        .unwrap_or("png");
+
+    let new_path = image_dir + "app_background." + file_type;
+
+    fs::copy(&file_path, &new_path).map_err(|e| e.to_string())?;
+
+    Ok(new_path)
+}
 // Queue DB Commands
 
 #[tauri::command(rename_all = "snake_case")]

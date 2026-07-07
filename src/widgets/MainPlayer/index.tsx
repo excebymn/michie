@@ -8,6 +8,11 @@ import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
 import { SettingsCenter } from "../SettingsCenter";
 import MichieLogo from "../../images/logo.svg";
+import { useAppearanceStore } from "../../stores/appearanceStore";
+import {
+  extractDominantColor,
+  deriveSecondaryFor,
+} from "../../services/appearanceService";
 
 function IconMenu() {
   return (
@@ -115,6 +120,27 @@ export function MusicPlayer() {
       setDuration(currentSong.duration);
     }
   }, [currentSong]);
+  const paletteId = useAppearanceStore((s) => s.paletteId);
+  const applyAlbumTone = useAppearanceStore((s) => s.applyAlbumTone);
+
+  // Mode "ikut warna album art": setiap lagu berganti, ekstrak ulang warna
+  // dominan dari cover-nya dan terapkan sebagai palette sementara.
+  useEffect(() => {
+    if (paletteId !== "album-tone") return;
+    if (!currentSong?.cover) return;
+
+    let cancelled = false;
+    const assetUrl = `asset://localhost/${currentSong.cover}`;
+
+    extractDominantColor(assetUrl).then((primaryHex) => {
+      if (cancelled || !primaryHex) return;
+      applyAlbumTone(primaryHex, deriveSecondaryFor(primaryHex));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSong?.path, paletteId, applyAlbumTone]);
 
   return (
     <>
