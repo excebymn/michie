@@ -1,0 +1,120 @@
+/* ==========================================================================
+   MICHIE THEME: AMOLED
+   Pure black. Minimal. Premium.
+   Palette hanya dipakai sebagai accent.
+   ========================================================================== */
+
+:root {
+  --michie-amoled-bg: #000000;
+  --michie-amoled-bg-secondary: #050505;
+
+  --michie-amoled-border: rgba(255,255,255,.08);
+  --michie-amoled-border-hover: rgba(255,255,255,.14);
+
+  --michie-amoled-text: #ffffff;
+  --michie-amoled-text-secondary: #9d9d9d;
+
+  --michie-amoled-radius: 12px;
+}
+
+/* ==========================================================================
+   BOX
+   ========================================================================== */
+
+.michie-box {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: var(--michie-amoled-radius);
+
+  border: 1px solid var(--michie-amoled-border);
+
+  background: var(--michie-amoled-bg);
+
+  box-shadow: none;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.michie-box:hover {
+  border-color: var(--michie-amoled-border-hover);
+}
+
+.michie-box--primary {
+  background: var(--michie-amoled-bg);
+}
+
+.michie-box--secondary {
+  background: var(--michie-amoled-bg-secondary);
+}
+
+/* ==========================================================================
+   CIRCLE
+   ========================================================================== */
+
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  border: 1px solid var(--michie-amoled-border);
+
+  background: var(--michie-amoled-bg);
+
+  box-shadow: none;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.michie-circle:hover {
+  border-color: var(--michie-amoled-border-hover);
+}
+
+.michie-circle--primary {
+  background: var(--michie-amoled-bg);
+}
+
+.michie-circle--secondary {
+  background: var(--michie-amoled-bg-secondary);
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.michie-text-primary,
+.michie-text-secondary {
+
+  font-family:
+    "Manrope",
+    system-ui,
+    sans-serif;
+
+  letter-spacing: .01em;
+  line-height: 1.45;
+
+  -webkit-font-smoothing: antialiased;
+}
+
+.michie-text-primary {
+  color: var(--michie-amoled-text);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.michie-text-secondary {
+  color: var(--michie-amoled-text-secondary);
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.amoled{
+  background: white;
+}

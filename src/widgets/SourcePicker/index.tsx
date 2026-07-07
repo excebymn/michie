@@ -20,7 +20,7 @@ export const SourcePicker: React.FC = () => {
 
   return (
     <div
-    className="michie-text-secondary"
+      className="michie-text-secondary"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -30,7 +30,7 @@ export const SourcePicker: React.FC = () => {
     >
       <div>
         <h2 style={{ margin: "0 0 8px 0", fontSize: "2rem", fontWeight: 600 }}>
-          Sumber Direktori
+          Source Directory
         </h2>
         <p
           style={{
@@ -40,8 +40,8 @@ export const SourcePicker: React.FC = () => {
             lineHeight: 1.6,
           }}
         >
-          Tambahkan folder yang berisi musikmu. Michie akan memindai dan
-          menambahkan lagu-lagunya ke library.
+          Add the folder containing your music. Michie will scan it and add the
+          songs to the library.
         </p>
       </div>
 
@@ -77,7 +77,7 @@ export const SourcePicker: React.FC = () => {
             whiteSpace: "nowrap",
           }}
         >
-          {isScanning ? "Memindai..." : "Pindai Ulang"}
+          {isScanning ? "Scanning..." : "Rescan"}
         </button>
       </div>
 

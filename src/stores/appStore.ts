@@ -1,7 +1,15 @@
 import create from "zustand";
 import { appService } from "../services/appService";
 import { settingsService } from "../services/settingsService";
-import type { AlbumDetails, AllArtistResults, AllGenreResults, DirectoryInfo, Playlists, SongsFull, PlayHistory } from "../globalValues";
+import type {
+  AlbumDetails,
+  AllArtistResults,
+  AllGenreResults,
+  DirectoryInfo,
+  Playlists,
+  SongsFull,
+  PlayHistory,
+} from "../globalValues";
 
 interface AppState {
   songList: SongsFull[];
@@ -27,6 +35,7 @@ interface AppState {
   setScanning: (value: boolean) => void;
   setScanProgress: (current: number, length: number) => void;
   setBackupRestoreStatus: (status: number) => void;
+  setSongFavorited: (path: string, favorited: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -53,13 +62,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   refreshLibrary: async () => {
-    const [songList, albumList, artistList, genreList, playlistList] = await Promise.all([
-      appService.getAllSongs(),
-      appService.getAllAlbums(),
-      appService.getAllArtists(),
-      appService.getAllGenres(),
-      appService.getAllPlaylists(),
-    ]);
+    const [songList, albumList, artistList, genreList, playlistList] =
+      await Promise.all([
+        appService.getAllSongs(),
+        appService.getAllAlbums(),
+        appService.getAllArtists(),
+        appService.getAllGenres(),
+        appService.getAllPlaylists(),
+      ]);
     set({ songList, albumList, artistList, genreList, playlistList });
   },
 
@@ -94,6 +104,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   setScanning: (value: boolean) => set({ isScanning: value }),
-  setScanProgress: (current: number, length: number) => set({ scanCurrent: current, scanLength: length }),
-  setBackupRestoreStatus: (status: number) => set({ backupRestoreStatus: status }),
+  setScanProgress: (current: number, length: number) =>
+    set({ scanCurrent: current, scanLength: length }),
+  setBackupRestoreStatus: (status: number) =>
+    set({ backupRestoreStatus: status }),
+
+  setSongFavorited: (path: string, favorited: boolean) =>
+    set((state) => ({
+      songList: state.songList.map((s) =>
+        s.path === path ? { ...s, favorited } : s,
+      ),
+    })),
 }));

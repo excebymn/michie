@@ -10,7 +10,16 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@fontsource/arimo": "^5.2.8",
+    "@fontsource/barlow": "^5.2.8",
+    "@fontsource/bitter": "^5.2.10",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/manrope": "^5.2.8",
+    "@fontsource/montserrat": "^5.2.8",
     "@fontsource/nunito": "^5.2.7",
+    "@fontsource/pixelify-sans": "^5.2.7",
+    "@fontsource/short-stack": "^5.2.8",
+    "@fontsource/shrikhand": "^5.2.8",
     "@hello-pangea/dnd": "^18.0.1",
     "@tauri-apps/api": "2.9.1",
     "@tauri-apps/plugin-dialog": "^2.6.0",

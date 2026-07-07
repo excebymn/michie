@@ -1,58 +1,189 @@
 /* ==========================================================================
-   MICHIE THEME: PAPER
-   Matte total — kebalikan ekstrem dari pudding/jelly yang glossy.
-   Shadow super lembut, tanpa highlight/gloss, ditambah tekstur noise
-   halus (seperti serat kertas) lewat inline SVG feTurbulence.
-   Theme ini hanya mengubah appearance, tidak mengubah layout/geometri.
+   MICHIE THEME: PAPER (COMIC EDITION)
+   Soft pastel paper meets comic pop-art.
+   Matte finish, pulp paper texture, thick ink borders, hard shadows.
    ========================================================================== */
+
 :root {
-  --michie-paper-radius-box: 0.6rem;
-  --michie-paper-shadow: rgba(20, 20, 20, 0.08);
-  --michie-paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  --michie-paper-radius-box: 0.8rem;
+
+  /* Mengubah border menjadi warna tinta hitam khas komik */
+  --michie-paper-border: #1a1a1a;
+
+  /* Mengubah shadow lembut menjadi bayangan tegas (hard-block shadow) */
+  --michie-paper-shadow-1: #1a1a1a;
+  --michie-paper-shadow-2: rgba(26, 26, 26, 0.4);
+
+  /* Tekstur kertas ditingkatkan agar sedikit mirip dot-matrix/pulp cetakan komik */
+  --michie-paper-noise:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
 }
 
-/* ---------- BOX (Card / Panel) ---------- */
+/* ==========================================================================
+   BOX (Comic Panel Style)
+   ========================================================================== */
+
 .michie-box {
   position: relative;
   overflow: hidden;
+
   border-radius: var(--michie-paper-radius-box);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow:
-    0 1px 2px var(--michie-paper-shadow),
-    0 4px 10px var(--michie-paper-shadow);
+
+  /* Border dipertebal menjadi ciri khas outline komik */
+  border: 2.5px solid var(--michie-paper-border);
+
+  /* Menggunakan hard-shadow offset (pop-art / cel-shading style) */
+  box-shadow: 4px 4px 0px var(--michie-paper-shadow-1);
+
+  /* Efek transisi saat berinteraksi (opsional, jika di-hover bayangan membesar) */
+  transition:
+    background .2s,
+    transform .2s,
+    box-shadow .2s;
+}
+
+/* Efek interaktif komik saat hover (opsional, tetap aman untuk theme engine) */
+.michie-box:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--michie-paper-shadow-1);
 }
 
 .michie-box--primary {
-  background-color: var(--color-primary);
-  background-image: var(--michie-paper-noise);
-  background-blend-mode: overlay;
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, .25),
+      rgba(255, 255, 255, .25)
+    ),
+    var(--michie-paper-noise),
+    var(--color-primary);
+
+  background-size:
+    auto,
+    180px,
+    auto;
+
+  background-blend-mode:
+    normal,
+    overlay,
+    normal;
+
+  /* Menyesuaikan kontras agar warna pastel komik lebih keluar */
+  filter:
+    saturate(.80)
+    brightness(1.02);
 }
 
 .michie-box--secondary {
-  background-color: var(--color-secondary);
-  background-image: var(--michie-paper-noise);
-  background-blend-mode: overlay;
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, .35),
+      rgba(255, 255, 255, .35)
+    ),
+    var(--michie-paper-noise),
+    var(--color-secondary);
+
+  background-size:
+    auto,
+    180px,
+    auto;
+
+  background-blend-mode:
+    normal,
+    overlay,
+    normal;
+
+  filter:
+    saturate(.75)
+    brightness(1.05);
 }
 
-/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+/* ==========================================================================
+   CIRCLE (Speech Bubble / Badge Style)
+   ========================================================================== */
+
 .michie-circle {
   position: relative;
   overflow: hidden;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow:
-    0 1px 2px var(--michie-paper-shadow),
-    0 4px 10px var(--michie-paper-shadow);
+
+  /* Tetap memakai 42% karena memberikan impresi lingkaran organik buatan tangan */
+  border-radius: 42%;
+
+  /* Border tebal komik */
+  border: 2.5px solid var(--michie-paper-border);
+
+  /* Hard shadow */
+  box-shadow: 4px 4px 0px var(--michie-paper-shadow-1);
+
+  transition:
+    background .2s,
+    transform .2s,
+    box-shadow .2s;
+}
+
+.michie-circle:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--michie-paper-shadow-1);
 }
 
 .michie-circle--primary {
-  background-color: var(--color-primary);
-  background-image: var(--michie-paper-noise);
-  background-blend-mode: overlay;
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, .25),
+      rgba(255, 255, 255, .25)
+    ),
+    var(--michie-paper-noise),
+    var(--color-primary);
+
+  background-size:
+    auto,
+    180px,
+    auto;
+
+  background-blend-mode:
+    normal,
+    overlay,
+    normal;
+
+  filter:
+    saturate(.80)
+    brightness(1.02);
 }
 
 .michie-circle--secondary {
-  background-color: var(--color-secondary);
-  background-image: var(--michie-paper-noise);
-  background-blend-mode: overlay;
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, .35),
+      rgba(255, 255, 255, .35)
+    ),
+    var(--michie-paper-noise),
+    var(--color-secondary);
+
+  background-size:
+    auto,
+    180px,
+    auto;
+
+  background-blend-mode:
+    normal,
+    overlay,
+    normal;
+
+  filter:
+    saturate(.75)
+    brightness(1.05);
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.michie-text-primary,
+.michie-text-secondary {
+  font-family: "Short Stack", cursive;
+  font-weight: 400;
+  letter-spacing: .03em;
+  line-height: 1.35;
+  
+  /* Menambahkan sedikit text-shadow halus agar tulisan lebih tegas di atas tekstur komik */
+  text-shadow: 0.5px 0.5px 0px rgba(0, 0, 0, 0.15);
 }

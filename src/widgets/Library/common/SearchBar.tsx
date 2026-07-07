@@ -41,7 +41,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         className="michie-text-primary"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder ?? "Cari..."}
+        placeholder={placeholder ?? "Seacrh..."}
         style={{
           background: "transparent",
           border: "none",

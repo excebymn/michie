@@ -254,9 +254,9 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
       >
         <div
           ref={playedRef}
-          className="mpw-track-played michie-box michie-box--secondary"
+          className="mpw-track-played michie-box michie-box--secondary amoled"
         />
-        <div ref={unplayedRef} className="mpw-track-unplayed michie-box michie-box--secondary" />
+        <div ref={unplayedRef} className="mpw-track-unplayed michie-box michie-box--secondary amoled" />
         <div
           ref={thumbRef}
           className="mpw-thumb michie-box michie-box--secondary"

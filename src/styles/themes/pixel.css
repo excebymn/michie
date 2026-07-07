@@ -1,0 +1,173 @@
+/* ==========================================================================
+   MICHIE THEME: PIXEL
+   Retro pixel UI.
+   Sharp edges, stepped shadows, chunky borders.
+   ========================================================================== */
+
+:root {
+  --michie-pixel-border-dark: rgba(0, 0, 0, 0.45);
+  --michie-pixel-border-light: rgba(255, 255, 255, 0.28);
+
+  --michie-pixel-shadow-light: rgba(0, 0, 0, 0.18);
+  --michie-pixel-shadow-dark: rgba(0, 0, 0, 0.28);
+}
+
+/* ==========================================================================
+   BOX
+   ========================================================================== */
+
+.michie-box {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: 0;
+  border: 2px solid var(--michie-pixel-border-dark);
+
+  box-shadow:
+    inset 2px 2px 0 var(--michie-pixel-border-light),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.18),
+
+    2px 2px 0 var(--michie-pixel-shadow-light),
+    4px 4px 0 var(--michie-pixel-shadow-dark);
+}
+
+.michie-box::before,
+.michie-box::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.michie-box::before {
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+
+  background: rgba(255, 255, 255, 0.30);
+}
+
+.michie-box::after {
+  top: 2px;
+  left: 2px;
+  bottom: 2px;
+  width: 2px;
+
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ---------- BOX COLORS ---------- */
+
+.michie-box--primary {
+  background: var(--color-primary);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+
+  border-color: rgba(0, 0, 0, 0.55);
+
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.18),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.25),
+
+    2px 2px 0 rgba(0, 0, 0, 0.22),
+    4px 4px 0 rgba(0, 0, 0, 0.32);
+}
+
+.michie-box--secondary::before {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ==========================================================================
+   CIRCLE (PIXEL OCTAGON)
+   ========================================================================== */
+
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+
+  clip-path: polygon(
+    35% 0,
+    65% 0,
+    85% 15%,
+    100% 35%,
+    100% 65%,
+    85% 85%,
+    65% 100%,
+    35% 100%,
+    15% 85%,
+    0 65%,
+    0 35%,
+    15% 15%
+  );
+
+  border: 2px solid var(--michie-pixel-border-dark);
+
+  box-shadow:
+    inset 2px 2px 0 var(--michie-pixel-border-light),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.18),
+
+    2px 2px 0 var(--michie-pixel-shadow-light),
+    4px 4px 0 var(--michie-pixel-shadow-dark);
+}
+
+.michie-circle::before,
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  clip-path: inherit;
+}
+
+.michie-circle::before {
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+
+  background: rgba(255, 255, 255, 0.30);
+}
+
+.michie-circle::after {
+  top: 2px;
+  left: 2px;
+  bottom: 2px;
+  width: 2px;
+
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ---------- CIRCLE COLORS ---------- */
+
+.michie-circle--primary {
+  background: var(--color-primary);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+
+  border-color: rgba(0, 0, 0, 0.55);
+
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.18),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.25),
+
+    2px 2px 0 rgba(0, 0, 0, 0.22),
+    4px 4px 0 rgba(0, 0, 0, 0.32);
+}
+
+.michie-circle--secondary::before {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.michie-text-primary,
+.michie-text-secondary {
+  font-family: "Pixelify Sans", sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}

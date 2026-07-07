@@ -20,11 +20,11 @@ export const GenresTab: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
-      <SearchBar value={query} onChange={setQuery} placeholder="Cari genre..." />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search genre..." />
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {filtered.length === 0 ? (
-          <div style={{ padding: 24, textAlign: 'center', opacity: 0.5 }}>Tidak ada genre ditemukan.</div>
+          <div style={{ padding: 24, textAlign: 'center', opacity: 0.5 }}>No genres found.</div>
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
             {filtered.map((genre) => (

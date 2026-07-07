@@ -1,55 +1,57 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
-#![cfg_attr(all(not(debug_assertions), target_os = "windows"), windows_subsystem = "windows")]
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
 
 // Tauri Plugins
+use tauri::State;
+use tauri::{Builder, Emitter, Manager};
 #[cfg(windows)]
 use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
-use tauri_plugin_log::{Target, TargetKind, log};
+use tauri_plugin_log::{log, Target, TargetKind};
 use tauri_plugin_prevent_default::Flags;
-use tauri::{Builder, Manager, Emitter};
-use tauri::{State};
 
 // Rust Libraries
-use rodio::{OutputStream, Sink, OutputStreamBuilder};
-use sqlx::{Pool, Sqlite, prelude::FromRow};
-use std::{path::Path, sync::{Arc, Mutex}};
-use tokio::runtime::Runtime;
-use std::time::SystemTime;
+use rodio::{OutputStream, OutputStreamBuilder, Sink};
+use sqlx::{prelude::FromRow, Pool, Sqlite};
 use std::fs;
+use std::time::SystemTime;
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
+use tokio::runtime::Runtime;
 
 // Import files
 mod commands;
-mod helper;
-mod types;
-mod music;
 mod db;
+mod helper;
+mod music;
+mod types;
 
-use crate::{
-    db::establish_connection,
-    helper::get_song_data, music::MusicPlayer
-};
+use crate::{db::establish_connection, helper::get_song_data, music::MusicPlayer};
 
-#[cfg(windows)]
 use crate::types::GetCurrentSong;
 
 pub struct AppState {
-    player:  Arc<Mutex<MusicPlayer>>,
+    player: Arc<Mutex<MusicPlayer>>,
     pool: Pool<Sqlite>,
     is_scan_ongoing: Mutex<bool>,
     is_back_restore_ongoing: Mutex<i64>,
-    is_lyric_scan_ongoing: Mutex<bool>
+    is_lyric_scan_ongoing: Mutex<bool>,
 }
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> Result<(), String> {
     db::init();
 
-    let stream_handle: OutputStream = OutputStreamBuilder::open_default_stream().expect("open default audio stream");
+    let stream_handle: OutputStream =
+        OutputStreamBuilder::open_default_stream().expect("open default audio stream");
     let sink = Sink::connect_new(&stream_handle.mixer());
-    let player = Arc::new(Mutex::new(MusicPlayer::new(sink)?));
+    let player = Arc::new(Mutex::new(MusicPlayer::new(sink).map_err(|e| e.to_string())?));
     // Generate the pool for the database, so it can be reused
-    let pool: Pool<Sqlite> = Runtime::new().unwrap().block_on(establish_connection())?;
+    let pool: Pool<Sqlite> = Runtime::new().unwrap().block_on(establish_connection()).map_err(|e| e.to_string())?;
 
     // Datetime stampes for error log files
     let now = chrono::Local::now();
@@ -60,80 +62,121 @@ pub fn run() -> Result<(), String> {
         //     println!("{}, {argv:?}, {cwd}", app.package_info().name);
         //     app.emit("single-instance", Payload { args: argv, cwd }).unwrap();
         // }))
-        .plugin(tauri_plugin_log::Builder::new() // -> C:\Users\"Alice"\AppData\Local\com.tauri.dev\logs
-            .clear_targets()
-            .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
-            .level(log::LevelFilter::Info)
-            .level(log::LevelFilter::Error)
-            .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
-            .target(Target::new(TargetKind::LogDir {
-                // Specify the generated fixed filename
-                file_name: Some(file_name),
-            }))
-            .build()
+        .plugin(
+            tauri_plugin_log::Builder::new() // -> C:\Users\"Alice"\AppData\Local\com.tauri.dev\logs
+                .clear_targets()
+                .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
+                .level(log::LevelFilter::Info)
+                .level(log::LevelFilter::Error)
+                .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
+                .target(Target::new(TargetKind::LogDir {
+                    // Specify the generated fixed filename
+                    file_name: Some(file_name),
+                }))
+                .build(),
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(
             // Allow native context menu in dev mode
             if cfg!(dev) {
-                tauri_plugin_prevent_default::Builder::new().with_flags(Flags::all().difference(Flags::CONTEXT_MENU)).build()
+                tauri_plugin_prevent_default::Builder::new()
+                    .with_flags(Flags::all().difference(Flags::CONTEXT_MENU))
+                    .build()
             }
             // Remove native context menu in build mode
             else {
-                tauri_plugin_prevent_default::Builder::new().with_flags(Flags::all()).build()
-            }
+                tauri_plugin_prevent_default::Builder::new()
+                    .with_flags(Flags::all())
+                    .build()
+            },
         )
         .setup(|app: &mut tauri::App| {
-            
-            app.manage(AppState { player,
+            app.manage(AppState {
+                player,
                 pool,
                 is_scan_ongoing: Mutex::new(false),
                 is_back_restore_ongoing: Mutex::new(0),
-                is_lyric_scan_ongoing: Mutex::new(false)
+                is_lyric_scan_ongoing: Mutex::new(false),
+            });
+
+            // ---- Watcher: deteksi lagu selesai secara alami dan auto-lanjut ----
+            let watcher_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                let mut prev_nonempty = false;
+                loop {
+                    std::thread::sleep(std::time::Duration::from_millis(350));
+
+                    let state = watcher_handle.state::<AppState>();
+                    let mut player = state.player.lock().unwrap();
+
+                    let is_active = player.is_active;
+                    let nonempty = player.get_sink_length() > 0;
+
+                    if is_active && prev_nonempty && !nonempty {
+                        // Edge terdeteksi: tadinya ada isi di sink, sekarang kosong -> lagu barusan selesai sendiri
+                        if let Some(song) = player.advance_after_finish() {
+                            drop(player);
+                            let _ = watcher_handle.emit("get-current-song", GetCurrentSong { q: song });
+                            prev_nonempty = true;
+                        } else {
+                            drop(player);
+                            let _ = watcher_handle.emit("controls-play-pause", false);
+                            prev_nonempty = false;
+                        }
+                        continue;
+                    }
+
+                    prev_nonempty = nonempty;
+                }
             });
 
             #[cfg(windows)]
             {
                 app.handle().plugin(
-                    tauri_plugin_global_shortcut::Builder::new().with_shortcuts(["MediaPlayPause", "MediaTrackNext", "MediaTrackPrevious"])?
-                    .with_handler(move |_app, shortcut, event| {
+                    tauri_plugin_global_shortcut::Builder::new()
+                        .with_shortcuts(["MediaPlayPause", "MediaTrackNext", "MediaTrackPrevious"])?
+                        .with_handler(move |_app, shortcut, event| {
+                            if event.state == ShortcutState::Pressed {
+                                let app_clone = _app.state::<AppState>().clone();
+                                let mut player = app_clone.player.lock().unwrap();
 
-                        if event.state == ShortcutState::Pressed {
-                            let app_clone = _app.state::<AppState>().clone();
-                            let mut player = app_clone.player.lock().unwrap();
-                            
-                            if shortcut.matches(Modifiers::FN, Code::MediaPlayPause) {
-                                if player.check_is_paused() {
-                                    player.play_song();
-                                    let _ = _app.emit("controls-play-pause", true);
-                                }
-                                else {
-                                    player.pause_song();
-                                    let _ = _app.emit("controls-play-pause", false);
-                                }                                
-                            }
-                            if shortcut.matches(Modifiers::FN, Code::MediaTrackNext) {
-                                if player.check_is_loaded() {
-                                    player.next_song();
-                                    let q = player.get_current_song();
-                                    if q.is_ok() {
-                                        let _ = _app.emit("get-current-song", GetCurrentSong { q: q.unwrap() });
-                                    }
-                                }                                
-                            }
-                            if shortcut.matches(Modifiers::FN, Code::MediaTrackPrevious) {
-                                if player.check_is_loaded() {
-                                    player.previous_song();
-                                    let q = player.get_current_song();
-                                    if q.is_ok() {
-                                        let _ = _app.emit("get-current-song", GetCurrentSong { q: q.unwrap() });
+                                if shortcut.matches(Modifiers::FN, Code::MediaPlayPause) {
+                                    if player.check_is_paused() {
+                                        player.play_song();
+                                        let _ = _app.emit("controls-play-pause", true);
+                                    } else {
+                                        player.pause_song();
+                                        let _ = _app.emit("controls-play-pause", false);
                                     }
                                 }
+                                if shortcut.matches(Modifiers::FN, Code::MediaTrackNext) {
+                                    if player.check_is_loaded() {
+                                        player.next_song();
+                                        let q = player.get_current_song();
+                                        if q.is_ok() {
+                                            let _ = _app.emit(
+                                                "get-current-song",
+                                                GetCurrentSong { q: q.unwrap() },
+                                            );
+                                        }
+                                    }
+                                }
+                                if shortcut.matches(Modifiers::FN, Code::MediaTrackPrevious) {
+                                    if player.check_is_loaded() {
+                                        player.previous_song();
+                                        let q = player.get_current_song();
+                                        if q.is_ok() {
+                                            let _ = _app.emit(
+                                                "get-current-song",
+                                                GetCurrentSong { q: q.unwrap() },
+                                            );
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    })
-                    .build(),
+                        })
+                        .build(),
                 )?;
             }
 
@@ -145,6 +188,8 @@ pub fn run() -> Result<(), String> {
             db::get_songs_with_limit,
             db::get_all_songs,
             db::get_song,
+            db::get_liked_songs,
+            db::toggle_favorite_song,
             // Album Functions - SQLite
             db::get_albums_with_limit,
             db::get_all_albums,
@@ -204,6 +249,12 @@ pub fn run() -> Result<(), String> {
             db::get_queue,
             db::add_to_queue,
             db::clear_queue,
+            commands::player_get_current_index,
+            commands::queue_add_to_end,
+            commands::queue_play_next,
+            commands::queue_remove_at,
+            commands::queue_reorder,
+            commands::queue_jump_to,
             // Other Media Player Functions
             commands::player_get_song_pos,
             commands::player_check_repeat,
@@ -225,7 +276,7 @@ pub fn run() -> Result<(), String> {
             scan_directory,
             db::get_directory,
             db::add_directory,
-            db::remove_directory,   
+            db::remove_directory,
             db::get_settings,
             db::set_theme,
             commands::create_backup,
@@ -237,7 +288,7 @@ pub fn run() -> Result<(), String> {
             commands::export_playlist,
             db::reset_database,
             scan_for_deleted
-        ])        
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
     Ok(())
@@ -250,23 +301,26 @@ pub fn run() -> Result<(), String> {
 struct ScanResults {
     pub success: i64,
     pub updated: i64,
-    pub error: i64
+    pub error: i64,
 }
 
 #[derive(Clone, serde::Serialize)]
 struct ScanProgress {
     length: usize,
-    current: i32
+    current: i32,
 }
 
 #[derive(Clone, serde::Serialize)]
 pub struct GetScanStatus {
-  pub res: bool
+    pub res: bool,
 }
 
 // use the path value to check, since that is a unique value in each entry (files cannot share paths)
 #[tauri::command]
-async fn scan_directory(state: State<AppState, '_>, app: tauri::AppHandle) -> Result<ScanResults, String> {
+async fn scan_directory(
+    state: State<AppState, '_>,
+    app: tauri::AppHandle,
+) -> Result<ScanResults, String> {
     // Keep track of how many entires pass or fail
     let mut num_added = 0;
     let mut num_error = 0;
@@ -276,41 +330,61 @@ async fn scan_directory(state: State<AppState, '_>, app: tauri::AppHandle) -> Re
     let mut num_scanned = 0;
 
     let directories = db::get_directory().await.unwrap();
-    let second_state  = state.clone();
-    
-    app.emit("scan-started", GetScanStatus { res: *second_state.is_scan_ongoing.lock().unwrap()}).unwrap();
+    let second_state = state.clone();
+
+    app.emit(
+        "scan-started",
+        GetScanStatus {
+            res: *second_state.is_scan_ongoing.lock().unwrap(),
+        },
+    )
+    .unwrap();
     log::info!("Scan has started");
 
     if *second_state.is_scan_ongoing.lock().unwrap() {
         log::info!("There is a Music Scan already active");
         num_error += 1;
-    }
-    else {
+    } else {
         *second_state.is_scan_ongoing.lock().unwrap() = true;
         let _ = db::set_keep(&state.pool).await;
-        
+
         for p in &directories {
-            let t = jwalk::WalkDir::new(p.dir_path.clone()).into_iter().filter_map(|e| e.ok()).filter(|x|
-                x.path().display().to_string().contains(".mp3")
-                || x.path().display().to_string().contains(".flac")
-                || x.path().display().to_string().contains(".m4a")
-                || x.path().display().to_string().contains(".aiff")
-                || x.path().display().to_string().contains(".ogg")
-                || x.path().display().to_string().contains(".wav")
-            ).count();
+            let t = jwalk::WalkDir::new(p.dir_path.clone())
+                .into_iter()
+                .filter_map(|e| e.ok())
+                .filter(|x| {
+                    x.path().display().to_string().contains(".mp3")
+                        || x.path().display().to_string().contains(".flac")
+                        || x.path().display().to_string().contains(".m4a")
+                        || x.path().display().to_string().contains(".aiff")
+                        || x.path().display().to_string().contains(".ogg")
+                        || x.path().display().to_string().contains(".wav")
+                })
+                .count();
             scan_length += t;
         }
 
-        app.emit("scan-length", ScanProgress {length: scan_length, current: 0}).unwrap();
+        app.emit(
+            "scan-length",
+            ScanProgress {
+                length: scan_length,
+                current: 0,
+            },
+        )
+        .unwrap();
 
-        let (tx, rx) = flume::unbounded();        
+        let (tx, rx) = flume::unbounded();
         let pool = threadpool::ThreadPool::new(10);
-       
+
         for path in directories {
             let tx1 = tx.clone();
             pool.execute(move || {
                 // walk through the entire directory, sub folders and all
-                for entry in jwalk::WalkDir::new(path.dir_path).into_iter().filter_map(|e| e.ok()).filter(|x| x.file_type().is_file())  {
+                for entry in jwalk::WalkDir::new(path.dir_path)
+                    .into_iter()
+                    .filter_map(|e| e.ok())
+                    .filter(|x| x.file_type().is_file())
+                {
                     // if the files are music files (For now only grab mp3 and wav files \ flac to be added later)
                     if entry.path().display().to_string().contains(".mp3")
                         || entry.path().display().to_string().contains(".flac")
@@ -324,32 +398,30 @@ async fn scan_directory(state: State<AppState, '_>, app: tauri::AppHandle) -> Re
                 }
             });
         }
-       
+
         for received in rx.iter() {
-                        
             let last_modified = fs::metadata(&received).unwrap().modified().unwrap();
             let time_since = SystemTime::now().duration_since(last_modified).unwrap();
 
             // If the last modified Date was less than ten days
             let does_exist = db::does_entry_exist(&state.pool, &received).await.unwrap();
 
-
             if does_exist {
-                if time_since.as_secs() < 864000 {                
+                if time_since.as_secs() < 864000 {
                     let song_res = get_song_data(received).await;
 
                     if song_res.is_ok() {
                         if does_exist {
                             let _ = db::update_song(song_res.unwrap(), &state.pool).await;
                             num_updated += 1;
-                        }
-                        else {
+                        } else {
                             let _ = db::add_song(song_res.unwrap(), &state.pool).await;
-                            num_added += 1;                    
+                            num_added += 1;
                         }
-                    }
-                    else {
-                        let _ = song_res.inspect_err(|e| log::error!("Scan Music - Error reading Metadata{:?}", e));
+                    } else {
+                        let _ = song_res.inspect_err(|e| {
+                            log::error!("Scan Music - Error reading Metadata{:?}", e)
+                        });
                         num_error += 1;
                     }
                 }
@@ -357,26 +429,29 @@ async fn scan_directory(state: State<AppState, '_>, app: tauri::AppHandle) -> Re
                 else {
                     let _ = db::set_keep_single(&state.pool, true, &received).await;
                 }
-            }
-            else {
+            } else {
                 let song_res = get_song_data(received).await;
 
                 if song_res.is_ok() {
                     let _ = db::add_song(song_res.unwrap(), &state.pool).await;
-                    num_added += 1;                    
-                    
-                }
-                else {
-                    let _ = song_res.inspect_err(|e| log::error!("Scan Music - Error reading Metadata{:?}", e));
+                    num_added += 1;
+                } else {
+                    let _ = song_res
+                        .inspect_err(|e| log::error!("Scan Music - Error reading Metadata{:?}", e));
                     num_error += 1;
                 }
             }
-            
-
 
             num_scanned += 1;
             if num_scanned % 25 == 0 {
-                app.emit("scan-length", ScanProgress {length: scan_length, current: num_scanned}).unwrap();
+                app.emit(
+                    "scan-length",
+                    ScanProgress {
+                        length: scan_length,
+                        current: num_scanned,
+                    },
+                )
+                .unwrap();
             }
 
             if rx.is_empty() {
@@ -386,37 +461,43 @@ async fn scan_directory(state: State<AppState, '_>, app: tauri::AppHandle) -> Re
     }
 
     *second_state.is_scan_ongoing.lock().unwrap() = false;
-    app.emit("scan-length", ScanProgress {length: scan_length, current: num_scanned}).unwrap();
+    app.emit(
+        "scan-length",
+        ScanProgress {
+            length: scan_length,
+            current: num_scanned,
+        },
+    )
+    .unwrap();
 
-    app.emit("scan-finished", GetScanStatus { res: false}).unwrap();    
+    app.emit("scan-finished", GetScanStatus { res: false })
+        .unwrap();
 
     // Remove all songs that are no longer in the directories
     let _ = db::remove_songs(&state.pool).await.unwrap();
-    
 
     // println!("Scan has finished = {:?} added - {:?} updated - {:?} errors", &num_added, &num_updated, &num_error);
     log::info!("Music Scan - Results ---> Total Scanned: {:?} --  Added: {:?}, Updated: {:?}, Errors: {:?}", &num_scanned, &num_added, &num_updated, &num_error);
-    
+
     // At the end, will return the number of successes and failures
     Ok(ScanResults {
         success: num_added,
         updated: num_updated,
-        error: num_error
+        error: num_error,
     })
 }
 
-
 #[derive(serde::Serialize, FromRow)]
 struct SongPath {
-    path: String
+    path: String,
 }
 
 #[tauri::command]
 async fn scan_for_deleted(state: State<AppState, '_>, app: tauri::AppHandle) -> Result<(), String> {
-
     let songs: Vec<SongPath> = sqlx::query_as::<_, SongPath>("SELECT path FROM songs")
         .fetch_all(&state.pool)
-        .await.unwrap();
+        .await
+        .unwrap();
 
     for entry in songs {
         // Check if path exists
@@ -426,7 +507,7 @@ async fn scan_for_deleted(state: State<AppState, '_>, app: tauri::AppHandle) -> 
                 .execute(&state.pool)
                 .await;
         }
-    }    
+    }
     app.emit("remove-song", false).unwrap();
     Ok(())
 }

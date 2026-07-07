@@ -26,7 +26,7 @@ export const AddFolderButton: React.FC<AddFolderButtonProps> = ({ onClick, disab
       }}
     >
       <span style={{ fontSize: '1.1rem' }}>+</span>
-      Tambah Folder
+      Add Folder
     </button>
   );
 };

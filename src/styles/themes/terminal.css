@@ -1,0 +1,146 @@
+/* ==========================================================================
+   MICHIE THEME: TERMINAL
+   Minimal terminal UI.
+   Black background, colored outline and text using current palette.
+   ========================================================================== */
+
+:root {
+  --michie-terminal-bg: #0b0b0b;
+  --michie-terminal-bg-secondary: #151515;
+
+  --michie-terminal-outline: 1px;
+}
+
+/* ==========================================================================
+   BOX
+   ========================================================================== */
+
+.michie-box {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: 0;
+  background: var(--michie-terminal-bg);
+
+  border: var(--michie-terminal-outline) solid currentColor;
+
+  box-shadow: none;
+}
+
+.michie-box--primary {
+  background: var(--michie-terminal-bg);
+
+  color: var(--color-primary);
+  border-color: currentColor;
+}
+
+.michie-box--secondary {
+  background: var(--michie-terminal-bg-secondary);
+
+  color: var(--color-secondary);
+  border-color: currentColor;
+}
+
+.michie-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  border: 1px solid rgba(255,255,255,.025);
+}
+
+.michie-box::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+
+  height: 1px;
+
+  background: currentColor;
+  opacity: .35;
+}
+
+/* ==========================================================================
+   CIRCLE
+   ========================================================================== */
+
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: 0;
+
+  background: var(--michie-terminal-bg);
+
+  border: var(--michie-terminal-outline) solid currentColor;
+
+  box-shadow: none;
+}
+
+.michie-circle--primary {
+  background: var(--michie-terminal-bg);
+
+  color: var(--color-primary);
+  border-color: currentColor;
+}
+
+.michie-circle--secondary {
+  background: var(--michie-terminal-bg-secondary);
+
+  color: var(--color-secondary);
+  border-color: currentColor;
+}
+
+.michie-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  border: 1px solid rgba(255,255,255,.025);
+}
+
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+
+  height: 1px;
+
+  background: currentColor;
+  opacity: .35;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.michie-text-primary,
+.michie-text-secondary {
+  font-family:
+    "IBM Plex Mono",
+    "JetBrains Mono",
+    "Cascadia Mono",
+    monospace;
+
+  font-size: 13px;
+  font-weight: 400;
+
+  line-height: 1.45;
+  letter-spacing: 0;
+
+  -webkit-font-smoothing: antialiased;
+}
+
+.michie-text-primary {
+  color: var(--color-primary);
+}
+
+.michie-text-secondary {
+  color: var(--color-secondary);
+}

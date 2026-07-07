@@ -47,7 +47,7 @@ export const ArtistsTab: React.FC = () => {
       <SearchBar
         value={query}
         onChange={setQuery}
-        placeholder="Cari artis..."
+        placeholder="Search artists..."
       />
 
       <div style={{ flex: 1, overflowY: "auto" }}>
@@ -59,7 +59,7 @@ export const ArtistsTab: React.FC = () => {
               textAlign: "center",
             }}
           >
-            Tidak ada artis ditemukan.
+           No artists found.
           </div>
         ) : (
           <div

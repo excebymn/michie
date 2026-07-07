@@ -20,11 +20,11 @@ export const AlbumsTab: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
-      <SearchBar value={query} onChange={setQuery} placeholder="Cari album..." />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search albums..." />
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {filtered.length === 0 ? (
-          <div style={{ padding: 24, textAlign: 'center', opacity: 0.5 }}>Tidak ada album ditemukan.</div>
+          <div style={{ padding: 24, textAlign: 'center', opacity: 0.5 }}>No albums found.</div>
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
             {filtered.map((album) => (

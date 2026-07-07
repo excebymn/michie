@@ -39,3 +39,7 @@
 .michie-circle--secondary {
   background: var(--color-secondary);
 }
+.michie-text-secondary,
+.michie-text-primary {
+  font-family: "Montserrat", sans-serif;
+}

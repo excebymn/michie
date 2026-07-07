@@ -1,18 +1,8 @@
-// index.tsx — MusicPlayer widget entry point
-//
-// File ini HANYA bertugas:
-//   1. Mendaftarkan Tauri event listeners dan polling durasi
-//   2. Menyatukan semua sub-komponen dalam satu layout
-//
-// Impor di tempat lain cukup: import { MusicPlayer } from "@/widgets/MusicPlayer"
-//
-// Dependensi store  : playerStore (loadPlayerState, setCurrentSong, setIsPlaying, stop, updateSongDetails)
-// Dependensi service: playerService (onCurrentSong, onControlsPlayPause, onQueueCleared, onUpdateSong, onShuffleMode)
-// Sub-komponen      : AlbumArt, ProgressSlider, PlayerControls, VolumeControl, SettingsCenter
-
 import { useEffect, useRef, useState } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
+import { useAppStore } from "../../stores/appStore";
 import { playerService } from "../../services/playerService";
+import { appService } from "../../services/appService";
 import { AlbumArt } from "./AlbumArt";
 import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
@@ -42,50 +32,75 @@ export function MusicPlayer() {
     setIsPlaying,
     stop,
     updateSongDetails,
+    setCurrentIndex,
+    patchCurrentSong,
+    loadQueue,
+    refreshCurrentIndex,
   } = usePlayerStore();
 
   const currentSong = usePlayerStore((s) => s.currentSong);
 
-  // Durasi disimpan lokal karena datang dari event backend, bukan dari store
   const [duration, setDuration] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const unlisteners = useRef<Array<() => void>>([]);
 
-  // Setup Tauri event listeners
   useEffect(() => {
     loadPlayerState();
 
     const setup = async () => {
-      // Lagu berganti → update store dan durasi
-      const ul1 = await playerService.onCurrentSong((e) => {
+      const ul1 = await playerService.onCurrentSong(async (e) => {
         const song = (e.payload as { q: any }).q;
         setCurrentSong(song);
         setDuration(song?.duration ?? 0);
+        playerService.addSongToHistory(song.path); // <- baris baru
+        try {
+          const idx = await playerService.getCurrentIndex();
+          setCurrentIndex(idx);
+          localStorage.setItem("last-played-queue-position", String(idx));
+        } catch {
+          // queue kosong di antara transisi lagu — abaikan
+        }
       });
 
-      // Backend kirim sinyal play/pause (misalnya dari media key OS)
       const ul2 = await playerService.onControlsPlayPause((e) => {
         setIsPlaying(e.payload as unknown as boolean);
       });
 
-      // Queue dikosongkan → reset player
       const ul3 = await playerService.onQueueCleared(() => {
         stop();
         setDuration(0);
       });
 
-      // Metadata lagu diupdate (misalnya setelah scan)
       const ul4 = await playerService.onUpdateSong(async (e) => {
         const { dir_path } = e.payload as { dir_path: string };
         await updateSongDetails(dir_path);
       });
 
-      // Shuffle mode berubah dari backend (sudah dihandle store via setShuffleModeState)
       const ul5 = await playerService.onShuffleMode(() => {});
 
-      unlisteners.current = [ul1, ul2, ul3, ul4, ul5].filter(Boolean) as Array<
-        () => void
-      >;
+      // Antrian berubah dari widget Queue, SongsRow, atau sumber lain — sinkronkan store
+      const ul6 = await playerService.onQueueChanged(async () => {
+        await loadQueue();
+        await refreshCurrentIndex();
+      });
+
+      // Status "suka" berubah dari mana saja (SongsRow, Queue, AddToPlaylistMenu) —
+      // disatukan di sini biar appStore.songList dan playerStore.currentSong selalu sinkron
+      const ul7 = await appService.onSongFavoritedChanged((e) => {
+        const { path, favorited } = e.payload as {
+          path: string;
+          favorited: boolean;
+        };
+        useAppStore.getState().setSongFavorited(path, favorited);
+        const cur = usePlayerStore.getState().currentSong;
+        if (cur && cur.path === path) {
+          patchCurrentSong({ favorited });
+        }
+      });
+
+      unlisteners.current = [ul1, ul2, ul3, ul4, ul5, ul6, ul7].filter(
+        Boolean,
+      ) as Array<() => void>;
     };
 
     setup();
@@ -95,7 +110,6 @@ export function MusicPlayer() {
     };
   }, []);
 
-  // Durasi juga bisa datang dari currentSong.duration (saat restore dari localStorage)
   useEffect(() => {
     if (currentSong?.duration) {
       setDuration(currentSong.duration);
@@ -142,81 +156,19 @@ export function MusicPlayer() {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-
   width: 100%;
   height: 100%;
   min-height: 0;
-
   box-sizing: border-box;
 }
-
-.mpw-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.mpw-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  user-select: none;
-}
-
-.mpw-brand-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 20px;
-  height: 20px;
-
-  font-size: 16px;
-  line-height: 1;
-}
-
-.mpw-brand-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.mpw-btn-menu {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 28px;
-  height: 28px;
-
-  border: none;
-  border-radius: 50%;
-
-  cursor: pointer;
-
-  transition: transform 0.15s ease;
-}
-
-.mpw-btn-menu:active {
-  transform: scale(0.95);
-}
-
-.mpw-icon-menu {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 18px;
-  height: 18px;
-}
-
-.mpw-icon-menu svg {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-}
+.mpw-header { display: flex; align-items: center; justify-content: space-between; }
+.mpw-brand { display: flex; align-items: center; gap: 8px; user-select: none; }
+.mpw-brand-logo { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 16px; line-height: 1; }
+.mpw-brand-name { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; }
+.mpw-btn-menu { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; border-radius: 50%; cursor: pointer; transition: transform 0.15s ease; }
+.mpw-btn-menu:active { transform: scale(0.95); }
+.mpw-icon-menu { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; }
+.mpw-icon-menu svg { display: block; width: 100%; height: 100%; }
       `}</style>
     </>
   );

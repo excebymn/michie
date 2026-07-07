@@ -16,18 +16,22 @@ export const SongsTab: React.FC = () => {
     normalizeForSearch(song.artist).includes(q)
   );
 
+  // Klik lagu = putar lagu itu DAN antrikan sisa list yang sedang tampil,
+  // bukan replace queue dengan hanya 1 lagu (biar terasa seperti "context queue").
   const handlePlay = useCallback((song: SongsFull) => {
-    playerService.playSong(song);
-  }, []);
+    const index = filtered.findIndex((s) => s.path === song.path);
+    const startingFrom = index >= 0 ? filtered.slice(index) : [song];
+    playerService.playSelection(startingFrom);
+  }, [filtered]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
-      <SearchBar value={query} onChange={setQuery} placeholder="Cari lagu, album, atau artis..." />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search songs, albums, or artists..." />
 
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '48px 2fr 1.3fr 1.3fr 70px',
+          gridTemplateColumns: '48px 2fr 1.3fr 1.3fr 60px 32px 32px',
           gap: 14,
           padding: '0 12px',
           fontSize: '0.75rem',
@@ -37,19 +41,17 @@ export const SongsTab: React.FC = () => {
         }}
       >
         <span />
-        <span
-        className="michie-text-secondary"
-        >Judul</span>
+        <span className="michie-text-secondary">Title</span>
         <span className="michie-text-secondary">Album</span>
         <span className="michie-text-secondary">Genre</span>
-        <span className="michie-text-secondary" style={{ textAlign: 'right' }}>
-          Durasi
-        </span>
+        <span className="michie-text-secondary" style={{ textAlign: 'right' }}>Duration</span>
+        <span />
+        <span />
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {filtered.length === 0 ? (
-          <div style={{ padding: 24, textAlign: 'center', opacity: 0.5 }}>Tidak ada lagu ditemukan.</div>
+          <div style={{ padding: 24, textAlign: 'center', opacity: 0.5 }}>No songs found.</div>
         ) : (
           filtered.map((song) => <SongRow key={song.path} song={song} onPlay={handlePlay} />)
         )}

@@ -1,0 +1,274 @@
+/* ==========================================================================
+   MICHIE THEME: WOOD
+   Scandinavian furniture inspired.
+   Warm wood, soft grain, premium finish.
+   ========================================================================== */
+
+:root {
+  --michie-wood-radius: 12px;
+
+  --michie-wood-shadow: rgba(48, 26, 12, .18);
+  --michie-wood-border: rgba(80, 48, 24, .25);
+}
+
+/* ==========================================================================
+   BOX
+   ========================================================================== */
+
+.michie-box {
+
+  position: relative;
+  overflow: hidden;
+
+  border-radius: var(--michie-wood-radius);
+
+  border: 1px solid var(--michie-wood-border);
+
+  box-shadow:
+    0 8px 24px var(--michie-wood-shadow),
+    inset 0 1px rgba(255,255,255,.15);
+
+}
+
+.michie-box--primary {
+
+  background:
+
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.025) 0px,
+      rgba(255,255,255,.025) 2px,
+      transparent 2px,
+      transparent 8px
+    ),
+
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.04),
+      rgba(0,0,0,.03)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 72%,
+      #8b6a45 28%
+    );
+
+}
+
+.michie-box--secondary {
+
+  background:
+
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.02) 0px,
+      rgba(255,255,255,.02) 2px,
+      transparent 2px,
+      transparent 8px
+    ),
+
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.03),
+      rgba(0,0,0,.03)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-secondary) 82%,
+      #d8c1a3 18%
+    );
+
+}
+
+.michie-box::before {
+
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+background:
+  repeating-linear-gradient(
+    90deg,
+    rgba(88, 55, 30, .08) 0px,
+    rgba(88, 55, 30, .08) 2px,
+    transparent 2px,
+    transparent 8px,
+    rgba(40, 20, 8, .05) 9px,
+    transparent 12px,
+    transparent 22px
+  );
+
+}
+
+.michie-box::after{
+
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      rgba(255,255,255,.08),
+      transparent 35%
+    );
+
+}
+
+/* ==========================================================================
+   CIRCLE
+   ========================================================================== */
+
+.michie-circle{
+
+  position:relative;
+  overflow:hidden;
+
+  border-radius:18px;
+
+  border:1px solid var(--michie-wood-border);
+
+  box-shadow:
+    0 6px 18px var(--michie-wood-shadow),
+    inset 0 1px rgba(255,255,255,.15);
+
+}
+
+.michie-circle--primary{
+
+  background:
+
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.025) 0px,
+      rgba(255,255,255,.025) 2px,
+      transparent 2px,
+      transparent 8px
+    ),
+
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.04),
+      rgba(0,0,0,.03)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 72%,
+      #8b6a45 28%
+    );
+
+}
+
+.michie-circle--secondary{
+
+  background:
+
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.02) 0px,
+      rgba(255,255,255,.02) 2px,
+      transparent 2px,
+      transparent 8px
+    ),
+
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.03),
+      rgba(0,0,0,.03)
+    );
+
+  background-color:
+    color-mix(
+      in srgb,
+      var(--color-secondary) 82%,
+      #d8c1a3 18%
+    );
+
+}
+
+.michie-circle::before{
+
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(80,45,18,.05) 19px,
+      transparent 20px,
+      transparent 40px
+    );
+
+}
+
+.michie-circle::after{
+
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      rgba(255,255,255,.08),
+      transparent 35%
+    );
+
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.michie-text-primary,
+.michie-text-secondary{
+
+  font-family:
+    "Bitter",
+    Georgia,
+    serif;
+
+  line-height:1.5;
+
+  letter-spacing:.01em;
+
+}
+
+.michie-text-primary{
+
+
+
+  font-size:14px;
+
+  font-weight:700;
+
+}
+
+.michie-text-secondary{
+
+
+
+  font-size:13px;
+
+  font-weight:500;
+
+}

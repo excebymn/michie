@@ -13,13 +13,13 @@ import puddingCss from "../styles/themes/pudding.css?url";
 import retroCss from "../styles/themes/retro.css?url";
 import css3dCss from "../styles/themes/3d.css?url";
 import jellyCss from "../styles/themes/jelly.css?url";
-
+import woodCss from "../styles/themes/wood.css?url";
 import chromeCss from "../styles/themes/chrome.css?url";
-import frostCss from "../styles/themes/frost.css?url";
+import terminalCss from "../styles/themes/terminal.css?url";
 import paperCss from "../styles/themes/paper.css?url";
-import outlineCss from "../styles/themes/outline.css?url";
-import neumorphismCss from "../styles/themes/neumorphism.css?url";
-import neonCss from "../styles/themes/neon.css?url";
+import pixelCss from "../styles/themes/pixel.css?url";
+import amoledCss from "../styles/themes/amoled.css?url";
+import denimCss from "../styles/themes/denim.css?url";
 
 export const themeRegistry: ThemeDefinition[] = [
   // Tema utama
@@ -32,9 +32,10 @@ export const themeRegistry: ThemeDefinition[] = [
 
   // Tema tambahan
   { id: "chrome", label: "Chrome", cssUrl: chromeCss },
-  { id: "frost", label: "Frost", cssUrl: frostCss },
+  { id: "terminal", label: "Terminal", cssUrl: terminalCss },
   { id: "paper", label: "Paper", cssUrl: paperCss },
-  { id: "outline", label: "Outline", cssUrl: outlineCss },
-  { id: "neumorphism", label: "Neumorphism", cssUrl: neumorphismCss },
-  { id: "neon", label: "Neon", cssUrl: neonCss },
+  { id: "pixel", label: "pixel", cssUrl: pixelCss },
+  { id: "amoled", label: "AMOLED", cssUrl: amoledCss },
+  { id: "denim", label: "Denim", cssUrl: denimCss },
+  { id: "wood", label: "Wood", cssUrl: woodCss },
 ];
