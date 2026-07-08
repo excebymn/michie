@@ -1,0 +1,246 @@
+/*
+  VinylPlayer.css — layout, geometri, & animasi doang.
+  Warna theme (background/border/text) datang dari michie-* classes
+  di index.tsx. Warna yang di-hardcode di sini cuma buat "material"
+  fisik widget (piringan hitam & tonearm silver) yang memang gak
+  boleh ikut ganti-ganti tema, bukan bagian dari 6 class themes/*.css.
+*/
+
+.vinyl-player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.15;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* --- Knob panel (kanan atas) --- */
+
+.vinyl-player__knobs {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2;
+}
+
+.vinyl-player__knob {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vinyl-player__knob:not(:disabled):hover {
+  opacity: 0.85;
+  transform: scale(1.12);
+}
+
+.vinyl-player__knob:disabled {
+  cursor: default;
+}
+
+.vinyl-player__knob--deco {
+  cursor: default;
+  pointer-events: none;
+}
+
+.vinyl-player__knob--active {
+  opacity: 1;
+}
+
+/* --- Panggung piringan --- */
+
+.vinyl-player__stage {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vinyl-player__disc {
+  position: relative;
+  width: min(94%, 290px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+
+  background: #0b0b0d;
+
+  box-shadow:
+    inset 0 0 0 3px rgba(255,255,255,.08),
+    0 8px 24px rgba(0,0,0,.4),
+    0 2px 8px rgba(0,0,0,.2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateX(10px);
+}
+
+.vinyl-player__disc--spinning {
+  animation: vinyl-spin 3.2s linear infinite;
+}
+
+.vinyl-player__grooves {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  pointer-events: none;
+}
+
+.vinyl-player__label {
+  position: relative;
+  width: 53%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.vinyl-player__art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vinyl-player__art--empty {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Tonearm --- */
+
+.vinyl-player__tonearm {
+  position: absolute;
+  top: 8%;
+  right: 8%;
+  width: 8px;
+  height: 42%;
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+  z-index: 1;
+}
+
+.vinyl-player__pivot {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+.vinyl-player__arm {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+
+  width: 8px;
+  height: 170px;
+
+  transform: translateX(-50%);
+  border-radius: 999px;
+}
+
+.vinyl-player__headshell {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+
+  width: 12px;
+  height: 24px;
+
+  transform: translateX(-50%);
+  border-radius: 999px;
+}
+
+.vinyl-player__needle {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+
+  width: 6px;
+  height: 6px;
+
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.vinyl-player__tonearm--up {
+  transform: rotate(0deg);
+}
+
+.vinyl-player__tonearm--down {
+  transform: rotate(25deg);
+}
+
+/* --- Meta teks --- */
+
+.vinyl-player__meta {
+  text-align: center;
+  width: 100%;
+}
+
+.vinyl-player__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vinyl-player__artist {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Animasi --- */
+
+@keyframes vinyl-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vinyl-player__disc--spinning {
+    animation: none;
+  }
+}

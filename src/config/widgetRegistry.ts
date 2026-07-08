@@ -2,6 +2,7 @@ import React from "react";
 import { ClockWidget } from "../widgets/Clockwidget";
 import { StatsWidget } from "../widgets/Statswidget";
 import { LyricsWidget } from "../widgets/Lyrics";
+import  VinylWidget  from "../widgets/VinylWidget"
 
 export interface WidgetConfig {
   id: string;
@@ -16,5 +17,6 @@ export const widgetRegistry: WidgetConfig[] = [
   { id: "clock", label: "clock", component: ClockWidget },
   { id: "stats", label: "queue statistic", component: StatsWidget },
   { id: "lyrics", label: "song lyrics", component: LyricsWidget },
+  { id: "vinyl", label: "vinyl player", component: VinylWidget },
   
 ];
