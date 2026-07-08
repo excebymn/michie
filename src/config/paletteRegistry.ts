@@ -168,4 +168,96 @@ export const paletteRegistry: PaletteDefinition[] = [
     primary: "#243e51",
     secondary: "#d5aa65",
   },
+  {
+    id: "teal",
+    label: "mint",
+    primary: "#018081",
+    secondary: "#e1f9f4",
+  },
+  {
+    id: "mint",
+    label: "teal",
+    primary: "#e1f9f4",
+    secondary: "#018081",
+  },
+  {
+    id: "avocado",
+    label: "lemon chiffon",
+    primary: "#568203",
+    secondary: "#fff8b9",
+  },
+  {
+    id: "lemon chiffon",
+    label: "avocado",
+    primary: "#fff8b9",
+    secondary: "#568203",
+  },
+  {
+    id: "vanilla",
+    label: "moonstone",
+    primary: "#ffebaf",
+    secondary: "#4c9db0",
+  },
+  {
+    id: "moonstone",
+    label: "vanilla",
+    primary: "#4c9db0",
+    secondary: "#ffebaf",
+  },
+  {
+    id: "espresso",
+    label: "butter",
+    primary: "#3e2723",
+    secondary: "#ffedac",
+  },
+  {
+    id: "butter",
+    label: "espresso",
+    primary: "#ffedac",
+    secondary: "#3e2723",
+  },
+  {
+    id: "wisteria",
+    label: "cream",
+    primary: "#c69fd5",
+    secondary: "#fdfdc8",
+  },
+  {
+    id: "cream",
+    label: "wisteria",
+    primary: "#fdfdc8",
+    secondary: "#c69fd5",
+  },
+  {
+    id: "moss velvet",
+    label: "cloud milk",
+    primary: "#385144",
+    secondary: "#f8f5f2",
+  },
+  {
+    id: "cloud milk",
+    label: "moss velvet",
+    primary: "#f8f5f2",
+    secondary: "#385144",
+  },
+  {
+    id: "acid berry",
+    label: "frost smoke",
+    primary: "#96162b",
+    secondary: "#f2f2f2",
+  },
+  {
+    id: "frost smoke",
+    label: "acid berry",
+    primary: "#f2f2f2",
+    secondary: "#96162b",
+  },
 ];
+/*
+       {
+     id: "",
+     label: "",
+     primary: "#",
+     secondary: "#",
+   },
+   */

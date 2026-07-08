@@ -7,6 +7,7 @@ import { AlbumArt } from "./AlbumArt";
 import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
 import { SettingsCenter } from "../SettingsCenter";
+import { WidgetTray } from "../WidgetTray";
 import MichieLogo from "../../images/logo.svg";
 import { useAppearanceStore } from "../../stores/appearanceStore";
 import {
@@ -30,6 +31,25 @@ function IconMenu() {
   );
 }
 
+// Ikon "wadah widget" — 4 kotak kecil, representasi 4 slot yang ada saat ini.
+function IconWidgetGrid() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
 export function MusicPlayer() {
   const {
     loadPlayerState,
@@ -47,6 +67,7 @@ export function MusicPlayer() {
 
   const [duration, setDuration] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [showWidgetTray, setShowWidgetTray] = useState(false);
   const unlisteners = useRef<Array<() => void>>([]);
 
   useEffect(() => {
@@ -155,16 +176,29 @@ export function MusicPlayer() {
             <span className="mpw-brand-name michie-text-secondary">michie</span>
           </div>
 
-          <button
-            className="mpw-btn-menu michie-circle michie-circle--secondary"
-            onClick={() => setShowSettings(true)}
-            title="Settings"
-            aria-label="Settings panel"
-          >
-            <span className="mpw-icon-menu michie-text-primary">
-              <IconMenu />
-            </span>
-          </button>
+          <div className="mpw-header-actions">
+            <button
+              className="mpw-btn-menu michie-circle michie-circle--secondary"
+              onClick={() => setShowWidgetTray(true)}
+              title="Widget Tray"
+              aria-label="Buka wadah widget"
+            >
+              <span className="mpw-icon-menu michie-text-primary">
+                <IconWidgetGrid />
+              </span>
+            </button>
+
+            <button
+              className="mpw-btn-menu michie-circle michie-circle--secondary"
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+              aria-label="Settings panel"
+            >
+              <span className="mpw-icon-menu michie-text-primary">
+                <IconMenu />
+              </span>
+            </button>
+          </div>
         </div>
 
         <AlbumArt />
@@ -174,6 +208,10 @@ export function MusicPlayer() {
 
       {showSettings && (
         <SettingsCenter onClose={() => setShowSettings(false)} />
+      )}
+
+      {showWidgetTray && (
+        <WidgetTray onClose={() => setShowWidgetTray(false)} />
       )}
 
       <style>{`
@@ -191,6 +229,7 @@ export function MusicPlayer() {
 .mpw-brand { display: flex; align-items: center; gap: 8px; user-select: none; }
 .mpw-brand-logo { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 16px; line-height: 1; }
 .mpw-brand-name { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; }
+.mpw-header-actions { display: flex; align-items: center; gap: 8px; }
 .mpw-btn-menu { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; border-radius: 50%; cursor: pointer; transition: transform 0.15s ease; }
 .mpw-btn-menu:active { transform: scale(0.95); }
 .mpw-icon-menu { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; }

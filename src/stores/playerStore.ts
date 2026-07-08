@@ -231,4 +231,5 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ currentSong: song, isPlaying: true, songProgress: 0 });
     await get().refreshCurrentIndex();
   },
+  
 }));

@@ -1,4 +1,4 @@
-import { MusicPlayer } from "../widgets/MainPlayer/index";
+import { MusicPlayer } from "../components/MainPlayer/index";
 export default function CenterColumn() {
     return (
         <div className="main-player"

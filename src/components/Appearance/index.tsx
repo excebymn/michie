@@ -111,7 +111,7 @@ export function AppearancePanel() {
                 type="button"
                 title={palette.label}
                 className={[
-                  "appearance-palette-swatch",
+                  "appearance-palette-swatch michie-circle",
                   "relative h-10 w-10 shrink-0 overflow-hidden rounded-full",
                   "transition duration-150 ease-out",
                   "hover:scale-110 active:scale-95",

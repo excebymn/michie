@@ -340,3 +340,26 @@ pub async fn get_song_data(path: String) -> Result<SongTableUpload, ()> {
 // BadTimestamp("Timestamp segments contains non-digit characters")
 // FileDecoding(Mpeg: "File contains an invalid frame")
 // TextDecode("Expected a UTF-8 string")
+
+pub fn extract_dominant_color(image_path: &str) -> Result<String, String> {
+    let img = image::open(image_path)
+        .map_err(|e| format!("Gagal membuka gambar: {}", e))?;
+
+    // color-thief butuh format RGB8 flat bytes
+    let rgb_img = img.to_rgb8();
+    let pixels = rgb_img.into_raw();
+
+    let palette = color_thief::get_palette(
+        &pixels,
+        color_thief::ColorFormat::Rgb,
+        10,
+        5,
+    )
+    .map_err(|e| format!("Gagal ekstraksi warna: {:?}", e))?;
+
+    let dominant = palette
+        .first()
+        .ok_or_else(|| "Palette kosong".to_string())?;
+
+    Ok(format!("#{:02x}{:02x}{:02x}", dominant.r, dominant.g, dominant.b))
+}

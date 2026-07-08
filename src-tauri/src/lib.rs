@@ -49,9 +49,14 @@ pub fn run() -> Result<(), String> {
     let stream_handle: OutputStream =
         OutputStreamBuilder::open_default_stream().expect("open default audio stream");
     let sink = Sink::connect_new(&stream_handle.mixer());
-    let player = Arc::new(Mutex::new(MusicPlayer::new(sink).map_err(|e| e.to_string())?));
+    let player = Arc::new(Mutex::new(
+        MusicPlayer::new(sink).map_err(|e| e.to_string())?,
+    ));
     // Generate the pool for the database, so it can be reused
-    let pool: Pool<Sqlite> = Runtime::new().unwrap().block_on(establish_connection()).map_err(|e| e.to_string())?;
+    let pool: Pool<Sqlite> = Runtime::new()
+        .unwrap()
+        .block_on(establish_connection())
+        .map_err(|e| e.to_string())?;
 
     // Datetime stampes for error log files
     let now = chrono::Local::now();
@@ -117,7 +122,8 @@ pub fn run() -> Result<(), String> {
                         // Edge terdeteksi: tadinya ada isi di sink, sekarang kosong -> lagu barusan selesai sendiri
                         if let Some(song) = player.advance_after_finish() {
                             drop(player);
-                            let _ = watcher_handle.emit("get-current-song", GetCurrentSong { q: song });
+                            let _ =
+                                watcher_handle.emit("get-current-song", GetCurrentSong { q: song });
                             prev_nonempty = true;
                         } else {
                             drop(player);
@@ -214,6 +220,7 @@ pub fn run() -> Result<(), String> {
             db::remove_song_from_playlist,
             db::remove_multiple_songs_from_playlist,
             db::add_playlist_cover, // Custom Playlist artwork
+            db::set_background_image,
             // History Functions
             db::add_song_to_history,
             db::get_play_history,
@@ -272,6 +279,7 @@ pub fn run() -> Result<(), String> {
             commands::cancel_lyrics_scan,
             commands::update_remote_lyrics,
             commands::search_remote_lyrics,
+            commands::find_lyrics_candidates,
             // Settings Functions
             scan_directory,
             db::get_directory,

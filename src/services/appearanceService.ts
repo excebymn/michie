@@ -100,46 +100,19 @@ export function deriveSecondaryFor(primaryHex: string): string {
   return getLuminance(primaryHex) > 0.55 ? "#141414" : "#f5f5f5";
 }
 
-export function extractDominantColor(imageUrl: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const size = 32;
-        const canvas = document.createElement("canvas");
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return resolve(null);
+// VERSI BARU (Rust/color-thief) — ganti isi fungsinya
+function assetUrlToPath(assetUrl: string): string {
+  const stripped = assetUrl.replace(/^asset:\/\/localhost\//, '');
+  return decodeURIComponent(stripped);
+}
 
-        ctx.drawImage(img, 0, 0, size, size);
-        const { data } = ctx.getImageData(0, 0, size, size);
-
-        let r = 0,
-          g = 0,
-          b = 0,
-          count = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          if (data[i + 3] < 200) continue; // skip transparan
-          r += data[i];
-          g += data[i + 1];
-          b += data[i + 2];
-          count++;
-        }
-        if (count === 0) return resolve(null);
-        resolve(
-          rgbToHex(
-            Math.round(r / count),
-            Math.round(g / count),
-            Math.round(b / count),
-          ),
-        );
-      } catch {
-        // Kemungkinan canvas ke-taint oleh webview - gagal dengan aman, jangan crash
-        resolve(null);
-      }
-    };
-    img.onerror = () => resolve(null);
-    img.src = imageUrl;
-  });
+export async function extractDominantColor(assetUrl: string): Promise<string | null> {
+  try {
+    const path = assetUrlToPath(assetUrl);
+    const hex = await invoke<string>('get_dominant_color', { path });
+    return hex;
+  } catch (err) {
+    console.error('extractDominantColor gagal:', err);
+    return null;
+  }
 }

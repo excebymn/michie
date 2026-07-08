@@ -153,7 +153,8 @@ pub struct GetPlaylistList {
     pub playlist: Vec<PlaylistTable>,
 }
 
-#[derive(sqlx::FromRow, Default, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(sqlx::FromRow, Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+
 pub struct LrclibLyrics {
     pub lyrics_id: i64,
     pub plain_lyrics: String,

@@ -747,6 +747,304 @@ pub async fn update_remote_lyrics(
         Ok(())
     }
 }
+// ---------------------------------------- Lyrics Widget: Cache-first, Confidence-scored Lookup ----------------------------------------
+
+#[derive(Clone, serde::Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LyricsCandidate {
+    pub id: i64,
+    pub track_name: Option<String>,
+    pub artist_name: Option<String>,
+    pub album_name: Option<String>,
+    pub duration: Option<f64>,
+    pub instrumental: Option<bool>,
+    pub plain_lyrics: Option<String>,
+    pub synced_lyrics: Option<String>,
+    pub confidence: f64,
+}
+
+#[derive(Clone, serde::Serialize, Debug)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum LyricsLookupResult {
+    Cached { lyrics: LrclibLyrics },
+    AutoMatched { lyrics: LrclibLyrics },
+    NeedsSelection { candidates: Vec<LyricsCandidate> },
+    NotFound,
+}
+
+// Di atas angka ini, kandidat langsung dipakai tanpa tanya user
+const LYRICS_AUTO_ACCEPT_THRESHOLD: f64 = 95.0;
+// Maksimal kandidat yang dikirim ke frontend saat butuh pilihan user
+const LYRICS_MAX_CANDIDATES: usize = 8;
+
+// Kata-kata yang menandakan varian rekaman berbeda (live/remix/dst) — dipakai
+// untuk mendeteksi "judul kelihatan sama tapi ini sebenarnya rekaman berbeda"
+const VARIANT_MARKERS: &[&str] = &[
+    "live", "remix", "acoustic", "instrumental", "karaoke", "demo",
+    "remaster", "remastered", "extended", "edit", "version", "mix",
+    "deluxe", "session", "cover", "unplugged", "reprise", "bonus",
+];
+
+fn normalize_for_match(s: &str) -> String {
+    let lower = s.to_lowercase();
+    let mut cleaned = String::with_capacity(lower.len());
+    for c in lower.chars() {
+        if c.is_alphanumeric() || c.is_whitespace() {
+            cleaned.push(c);
+        } else if c == '&' {
+            cleaned.push_str(" and ");
+        } else {
+            cleaned.push(' ');
+        }
+    }
+    cleaned.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+// Ambil kata penanda varian yang muncul di judul (setelah dinormalisasi)
+fn extract_variant_tags(normalized_title: &str) -> std::collections::BTreeSet<&'static str> {
+    let mut tags = std::collections::BTreeSet::new();
+    for marker in VARIANT_MARKERS {
+        if normalized_title.split_whitespace().any(|w| w == *marker) {
+            tags.insert(*marker);
+        }
+    }
+    tags
+}
+
+// Buang kata penanda varian + "feat/ft/featuring" supaya judul inti bisa
+// dibandingkan apple-to-apple, terlepas dari embel-embel versi
+fn strip_noise_words(normalized_title: &str) -> String {
+    normalized_title
+        .split_whitespace()
+        .filter(|w| !VARIANT_MARKERS.contains(w) && *w != "feat" && *w != "ft" && *w != "featuring")
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn text_similarity(a: &str, b: &str) -> f64 {
+    let na = normalize_for_match(a);
+    let nb = normalize_for_match(b);
+    if na.is_empty() && nb.is_empty() {
+        return 1.0;
+    }
+    if na.is_empty() || nb.is_empty() {
+        return 0.0;
+    }
+    if na == nb {
+        return 1.0;
+    }
+    strsim::jaro_winkler(&na, &nb)
+}
+
+// Beda durasi <=2 detik dianggap identik, >=12 detik dianggap tidak cocok
+fn duration_similarity(song_duration: u64, candidate_duration: Option<f64>) -> Option<f64> {
+    candidate_duration.map(|cd| {
+        let diff = (song_duration as f64 - cd).abs();
+        if diff <= 2.0 {
+            1.0
+        } else if diff >= 12.0 {
+            0.0
+        } else {
+            1.0 - ((diff - 2.0) / 10.0)
+        }
+    })
+}
+
+// Judul (inti, tanpa embel varian) + artis + durasi + album (kalau ada) -> confidence,
+// lalu dipangkas kalau status varian (live/remix/dst) beda antara lokal & kandidat
+fn compute_confidence(
+    song_name: &str,
+    song_artist: &str,
+    song_album: &str,
+    song_duration: u64,
+    cand_name: &str,
+    cand_artist: &str,
+    cand_album: Option<&str>,
+    cand_duration: Option<f64>,
+) -> f64 {
+    let song_name_norm = normalize_for_match(song_name);
+    let cand_name_norm = normalize_for_match(cand_name);
+
+    let song_core = strip_noise_words(&song_name_norm);
+    let cand_core = strip_noise_words(&cand_name_norm);
+    let title_sim = text_similarity(&song_core, &cand_core);
+    let artist_sim = text_similarity(song_artist, cand_artist);
+
+    let mut weighted_sum = title_sim * 0.35 + artist_sim * 0.30;
+    let mut total_weight = 0.65_f64;
+
+    if !song_album.is_empty() {
+        if let Some(cand_album) = cand_album.filter(|a| !a.is_empty()) {
+            weighted_sum += text_similarity(song_album, cand_album) * 0.10;
+            total_weight += 0.10;
+        }
+    }
+
+    if let Some(duration_sim) = duration_similarity(song_duration, cand_duration) {
+        weighted_sum += duration_sim * 0.25;
+        total_weight += 0.25;
+    }
+
+    if total_weight <= 0.0 {
+        return 0.0;
+    }
+
+    let mut confidence = (weighted_sum / total_weight) * 100.0;
+
+    let song_tags = extract_variant_tags(&song_name_norm);
+    let cand_tags = extract_variant_tags(&cand_name_norm);
+    if song_tags != cand_tags {
+        confidence *= 0.55;
+    }
+
+    confidence.clamp(0.0, 100.0)
+}
+
+// Pencarian LRCLIB — sengaja TANPA album_name di query supaya tidak terlalu ketat
+// menyaring; album tetap dipakai nanti pas hitung confidence, bukan di sini.
+async fn lrclib_search(
+    url_client: &Client,
+    track_name: &str,
+    artist_name: Option<&str>,
+) -> Result<Vec<LRCLIBSearchResults>, String> {
+    let url = match artist_name {
+        Some(artist) => format!(
+            "https://lrclib.net/api/search?track_name={}&artist_name={}",
+            urlencoding::encode(track_name),
+            urlencoding::encode(artist),
+        ),
+        None => format!(
+            "https://lrclib.net/api/search?track_name={}",
+            urlencoding::encode(track_name),
+        ),
+    };
+
+    let response = url_client.get(&url).send().await.map_err(|e| {
+        log::error!("Lyrics Search - request failed: {:?}", e);
+        "Error Searching Remote Lyrics".to_string()
+    })?;
+
+    response
+        .json::<Vec<LRCLIBSearchResults>>()
+        .await
+        .map_err(|e| {
+            log::error!("Lyrics Search - failed parsing response: {:?}", e);
+            "Error Parsing Remote Lyrics".to_string()
+        })
+}
+
+// Command utama widget lirik: cache -> exact-match resmi LRCLIB -> fuzzy search
+// bertingkat -> auto-pakai kalau sangat yakin, atau minta user pilih.
+#[tauri::command(rename_all = "snake_case")]
+pub async fn find_lyrics_candidates(
+    state: State<AppState, '_>,
+    song_id: String,
+) -> Result<LyricsLookupResult, String> {
+    // 1. Cache SQLite dulu
+    if let Ok(lyrics) = db::get_lyrics(state.clone(), song_id.clone()).await {
+        return Ok(LyricsLookupResult::Cached { lyrics });
+    }
+
+    // 2. Ambil metadata lagu dari DB
+    let song = sqlx::query_as::<_, SongDataLyrics>(
+        "SELECT artist, album, name, duration, path FROM songs WHERE path = ?1",
+    )
+    .bind(&song_id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(|_| "Song Not Found".to_string())?;
+
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        CONTENT_TYPE,
+        "application/x-www-form-urlencoded".parse().unwrap(),
+    );
+    headers.insert(USER_AGENT, "Michie Music Player".parse().unwrap());
+    let url_client = Client::builder()
+        .default_headers(headers)
+        .build()
+        .map_err(|_| "Failed To Build HTTP Client".to_string())?;
+
+    // 3. Coba endpoint exact-match resmi LRCLIB dulu — authoritative, toleransi
+    // durasi dihitung di server mereka, biasanya jauh lebih akurat dari fuzzy search kita.
+    if let Ok(exact) = get_remote_lyrics(
+        &url_client,
+        song.name.clone(),
+        song.artist.clone(),
+        song.album.clone(),
+        song.duration,
+    )
+    .await
+    {
+        if exact.lyrics_id != 0 {
+            let _ = db::add_lyrics(state.clone(), exact.clone(), song_id.clone()).await;
+            return Ok(LyricsLookupResult::AutoMatched { lyrics: exact });
+        }
+    }
+
+    // 4. Kalau exact-match gagal, cari kandidat lewat /api/search — track+artist dulu,
+    // kalau kosong baru coba track name saja (jaring lebih lebar)
+    let mut results = lrclib_search(&url_client, &song.name, Some(&song.artist)).await?;
+    if results.is_empty() {
+        results = lrclib_search(&url_client, &song.name, None).await?;
+    }
+
+    if results.is_empty() {
+        return Ok(LyricsLookupResult::NotFound);
+    }
+
+    // 5. Hitung confidence tiap kandidat
+    let mut candidates: Vec<LyricsCandidate> = results
+        .into_iter()
+        .filter(|r| {
+            !(r.plain_lyrics.is_none() && r.synced_lyrics.is_none()) || r.instrumental == Some(true)
+        })
+        .map(|r| {
+            let confidence = compute_confidence(
+                &song.name,
+                &song.artist,
+                &song.album,
+                song.duration,
+                r.track_name.as_deref().unwrap_or(""),
+                r.artist_name.as_deref().unwrap_or(""),
+                r.album_name.as_deref(),
+                r.duration,
+            );
+            LyricsCandidate {
+                id: r.id,
+                track_name: r.track_name,
+                artist_name: r.artist_name,
+                album_name: r.album_name,
+                duration: r.duration,
+                instrumental: r.instrumental,
+                plain_lyrics: r.plain_lyrics,
+                synced_lyrics: r.synced_lyrics,
+                confidence,
+            }
+        })
+        .collect();
+
+    if candidates.is_empty() {
+        return Ok(LyricsLookupResult::NotFound);
+    }
+
+    candidates.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
+
+    if let Some(best) = candidates.first() {
+        if best.confidence >= LYRICS_AUTO_ACCEPT_THRESHOLD {
+            let lyrics = LrclibLyrics {
+                lyrics_id: best.id,
+                plain_lyrics: best.plain_lyrics.clone().unwrap_or_default(),
+                synced_lyrics: best.synced_lyrics.clone(),
+            };
+            let _ = db::add_lyrics(state.clone(), lyrics.clone(), song_id.clone()).await;
+            return Ok(LyricsLookupResult::AutoMatched { lyrics });
+        }
+    }
+
+    candidates.truncate(LYRICS_MAX_CANDIDATES);
+    Ok(LyricsLookupResult::NeedsSelection { candidates })
+}
 
 #[tauri::command]
 pub fn check_for_ongoing_scan(state: State<AppState, '_>) -> bool {
@@ -1071,4 +1369,8 @@ pub async fn check_for_new_version(app: tauri::AppHandle) -> Result<bool, bool> 
     }
 
     Ok(false)
+}
+#[tauri::command]
+pub fn get_dominant_color(path: String) -> Result<String, String> {
+    crate::helper::extract_dominant_color(&path)
 }

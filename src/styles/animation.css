@@ -31,3 +31,50 @@ span.michie-box:active,
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   transition-duration: 0.05s;
 }
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+.michie-box,
+.michie-circle {
+  animation: michie-box-enter 650ms cubic-bezier(.18, 1, .22, 1);
+  animation-fill-mode: both;
+  will-change: transform, opacity, filter;
+}
+
+.michie-box--primary
+.michie-circle--primary
+.michie-circle {
+  animation-duration: 700ms;
+}
+
+.michie-box--secondary
+.michie-circle--secondary {
+  animation-duration: 520ms;
+}
+
+@keyframes michie-box-start {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(42px)
+      scale(.90)
+      rotateX(8deg);
+    filter: blur(20px);
+  }
+
+  65% {
+    opacity: 1;
+    transform:
+      translateY(-6px)
+      scale(1.02)
+      rotateX(0deg);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+    filter: blur(0);
+  }
+}
