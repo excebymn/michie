@@ -29,6 +29,7 @@ mod db;
 mod helper;
 mod music;
 mod types;
+mod visualizer; // BARU: daftarkan module visualizer
 
 use crate::{db::establish_connection, helper::get_song_data, music::MusicPlayer};
 
@@ -134,6 +135,56 @@ pub fn run() -> Result<(), String> {
                     }
 
                     prev_nonempty = nonempty;
+                }
+            });
+
+            let visualizer_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                let mut smoothed = [0.0f32; visualizer::BAND_COUNT]; // BARU — state persisten antar-iterasi
+
+                loop {
+                    std::thread::sleep(std::time::Duration::from_millis(33));
+
+                    let state = visualizer_handle.state::<AppState>();
+                    let player = state.player.lock().unwrap();
+
+                    if !player.is_active || player.check_is_paused() {
+                        drop(player);
+                        smoothed = [0.0; visualizer::BAND_COUNT]; // BARU — reset pas pause/stop, gak nyangkut di nilai lama
+                        let _ = visualizer_handle.emit(
+                            "visualizer-levels",
+                            crate::types::VisualizerLevels {
+                                levels: smoothed.to_vec(),
+                            },
+                        );
+                        continue;
+                    }
+
+                    let buffer = player.visualizer_buffer.clone();
+                    let sample_rate = player.current_sample_rate;
+                    drop(player);
+
+                    let raw = visualizer::compute_band_levels(&buffer, sample_rate);
+
+                    // BARU — attack cepat (naik), release lambat (turun)
+                    const ATTACK: f32 = 0.6;
+                    const RELEASE: f32 = 0.15;
+                    for i in 0..visualizer::BAND_COUNT {
+                        let target = raw[i];
+                        let factor = if target > smoothed[i] {
+                            ATTACK
+                        } else {
+                            RELEASE
+                        };
+                        smoothed[i] += (target - smoothed[i]) * factor;
+                    }
+
+                    let _ = visualizer_handle.emit(
+                        "visualizer-levels",
+                        crate::types::VisualizerLevels {
+                            levels: smoothed.to_vec(),
+                        },
+                    );
                 }
             });
 

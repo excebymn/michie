@@ -1,0 +1,19 @@
+.dot-grid__col {
+  flex: 1;
+  height: 100%; /* wajib eksplisit — lihat pelajaran dari SymetricVisualizer kemarin */
+  display: flex;
+  flex-direction: column-reverse; /* dot pertama = paling bawah */
+  align-items: center;
+  gap: 4px;
+}
+
+.dot-grid__dot {
+  width: 8px;
+  aspect-ratio: 1;
+  opacity: 0.15;
+  transition: opacity 90ms ease-out;
+}
+
+.dot-grid__dot--lit {
+  opacity: 1;
+}

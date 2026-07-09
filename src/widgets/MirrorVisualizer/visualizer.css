@@ -1,0 +1,4 @@
+.mirror-visualizer__bar {
+  transform-origin: center;
+  transition: transform 90ms ease-out;
+}

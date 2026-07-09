@@ -59,12 +59,12 @@ export function TraySlotPreview({ slot }: TraySlotPreviewProps) {
         }}
         title={
           widget
-            ? `${slot.label}: ${widget.label} (drop widget lain buat ganti)`
-            : `${slot.label}: kosong — drop widget di sini`
+            ? `${slot.label}: ${widget.label} (drop another widget to change)`
+            : `${slot.label}: empty, you can drop a widget here`
         }
       >
         <span
-          className="michie-text-secondary"
+          className="michie-text-primary"
           style={{ fontSize: "0.72rem", opacity: 0.6, letterSpacing: "0.02em" }}
         >
           {slot.label}

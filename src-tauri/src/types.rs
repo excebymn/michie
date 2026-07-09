@@ -160,3 +160,8 @@ pub struct LrclibLyrics {
     pub plain_lyrics: String,
     pub synced_lyrics: Option<String>,
 }
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VisualizerLevels {
+    pub levels: Vec<f32>,
+}

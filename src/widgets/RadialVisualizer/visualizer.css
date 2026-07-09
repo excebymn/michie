@@ -1,0 +1,4 @@
+.radial-visualizer__bar {
+  transform-origin: top center;
+  transition: height 90ms ease-out;
+}

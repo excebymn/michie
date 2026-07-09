@@ -1,0 +1,15 @@
+/* SVG path gak bisa dikasih warna lewat michie-box/circle (itu buat div),
+   jadi ambil warnanya langsung dari CSS custom property yang sama seperti
+   yang dipakai file tema — bukan hardcode warna. */
+.smooth-wave__line {
+  stroke: var(--color-secondary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: d 90ms ease-out;
+}
+
+.smooth-wave__area {
+  fill: var(--color-secondary);
+  opacity: 0.18;
+  transition: d 90ms ease-out;
+}

@@ -1,0 +1,29 @@
+.pulsing-blob__circle {
+  position: relative;
+  overflow: hidden;
+}
+
+.pulsing-blob__circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.9; /* atur kekuatan texture */
+  background:
+    radial-gradient(circle,
+      rgba(0,0,0,.55) 22%,
+      rgba(255,255,255,.08) 28%,
+      transparent 34%) 0 0 / 10px 10px,
+
+    radial-gradient(circle,
+      rgba(0,0,0,.55) 22%,
+      rgba(255,255,255,.08) 28%,
+      transparent 34%) 5px 5px / 10px 10px;
+}
+.speaker-texture {
+  background:
+    radial-gradient(circle at center,
+      rgba(0,0,0,.45) 22%,
+      rgba(255,255,255,.05) 28%,
+      transparent 34%) 0 0 / 10px 10px;
+}

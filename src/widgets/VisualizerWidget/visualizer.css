@@ -1,0 +1,35 @@
+.visualizer__bar {
+  transform-origin: bottom;
+  transition: height 90ms ease-out; /* smoothing kecil biar gak "patah-patah" antar frame FFT */
+}
+
+.visualizer__bar--active {
+  animation-name: visualizer-bounce;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+    margin-bottom: 20px;
+}
+
+@keyframes visualizer-bounce {
+  0% { height: 14px; }
+  100% { height: 100%; }
+}
+
+.visualizer {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  gap: 12px; /* jarak tengah */
+}
+
+.visualizer-half {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.visualizer-half--left {
+  flex-direction: row-reverse;
+}

@@ -1,0 +1,46 @@
+.pulsing-blob__circle {
+  transform-origin: center;
+  transition: transform 90ms ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.pulsing-blob__cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pulsing-blob__circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08; /* coba 0.04–0.12 */
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(0, 0, 0, 0.85) 22%,
+      rgba(255, 255, 255, 0.18) 28%,
+      transparent 34%
+    ) 0 0 / 10px 10px,
+
+    radial-gradient(
+      circle,
+      rgba(0, 0, 0, 0.85) 22%,
+      rgba(255, 255, 255, 0.18) 28%,
+      transparent 34%
+    ) 5px 5px / 10px 10px;
+
+  mix-blend-mode: soft-light;
+}
+.speaker-texture {
+  background:
+    radial-gradient(circle at center,
+      rgba(0,0,0,.45) 22%,
+      rgba(255,255,255,.05) 28%,
+      transparent 34%) 0 0 / 10px 10px;
+}
