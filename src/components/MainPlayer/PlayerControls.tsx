@@ -1,6 +1,8 @@
 // PlayerControls.tsx
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
+import { appService } from "../../services/appService";
+import type { Songs } from "../../globalValues";
 
 function IconPlay() {
   return (
@@ -52,12 +54,102 @@ function IconNext() {
   );
 }
 
+// Sengaja dibuat lokal (bukan import dari ./Icons) supaya konsisten dengan
+// icon-icon lain di file ini yang juga didefinisikan lokal, bukan di-share.
+function IconHeart({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.1 21.35c-.18.1-.38.15-.6.15s-.42-.05-.6-.15C6.5 18.36 2 14.86 2 9.86 2 6.6 4.6 4 7.8 4c1.85 0 3.5.9 4.2 2.3C12.7 4.9 14.35 4 16.2 4 19.4 4 22 6.6 22 9.86c0 5-4.5 8.5-9.9 11.49Z" />
+    </svg>
+  );
+}
+
+// Format label kecil "FLAC · 44.1kHz · 1411kbps" dari metadata teknis lagu.
+// Field sample_rate/bit_rate/format masih opsional karena backend belum
+// mengirimnya — begitu backend sudah kirim, badge ini otomatis terisi tanpa
+// perubahan lagi di sini. Selama belum ada datanya, tampil "—" (placeholder)
+// supaya lebar kolom kanan tetap konsisten dan layout tidak "kedut".
+function formatAudioInfo(song: Songs | null): string {
+  if (!song) return "—";
+  const parts: string[] = [];
+  const fmt = (song as Songs & { format?: string }).format;
+  const sampleRate = (song as Songs & { sample_rate?: number }).sample_rate;
+  const bitRate = (song as Songs & { bit_rate?: number }).bit_rate;
+
+  if (fmt) parts.push(fmt.toUpperCase());
+  if (sampleRate) {
+    const khz = sampleRate / 1000;
+    parts.push(`${khz % 1 === 0 ? khz : khz.toFixed(1)}kHz`);
+  }
+  if (bitRate) parts.push(`${Math.round(bitRate)}kbps`);
+
+  return parts.length ? parts.join(" · ") : "—";
+}
+
+// Badge marquee: teks statis kalau muat di lebar kolom kanan, otomatis geser
+// bolak-balik kalau kepanjangan. Diukur pakai ResizeObserver supaya re-check
+// tiap kali lebar sidebar berubah atau lagu ganti (label beda panjang).
+function FormatBadge({ song }: { song: Songs | null }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [overflowAmount, setOverflowAmount] = useState(0);
+  const label = formatAudioInfo(song);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const text = textRef.current;
+    if (!container || !text) return;
+
+    const measure = () => {
+      const diff = text.scrollWidth - container.clientWidth;
+      setOverflowAmount(diff > 4 ? diff : 0);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [label]);
+
+  return (
+    <div
+      className="mpw-format-badge"
+      ref={containerRef}
+      title="Format & kualitas audio file yang sedang diputar"
+    >
+      <span
+        ref={textRef}
+        className={
+          overflowAmount > 0
+            ? "mpw-format-badge__text mpw-format-badge__text--marquee"
+            : "mpw-format-badge__text"
+        }
+        style={
+          overflowAmount > 0
+            ? ({ "--scroll-distance": `${overflowAmount}px` } as React.CSSProperties)
+            : undefined
+        }
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
 export function PlayerControls() {
   const {
     isPlaying,
     isLoaded,
     isShuffle,
     repeatMode,
+    currentSong,
     play,
     pause,
     next,
@@ -75,6 +167,14 @@ export function PlayerControls() {
     await setRepeatMode((repeatMode + 1) % 3);
   }, [repeatMode, setRepeatMode]);
 
+  const handleToggleFavorite = useCallback(() => {
+    if (!currentSong) return;
+    appService.toggleFavorite(currentSong.path);
+    // Tidak perlu setState manual di sini — event `song-favorited-changed`
+    // dari backend akan di-patch balik ke currentSong lewat listener
+    // terpusat di MainPlayer/index.tsx (lihat konvensi #3 project context).
+  }, [currentSong]);
+
   return (
     <>
       {/*
@@ -83,75 +183,146 @@ export function PlayerControls() {
           so it uses --secondary directly for all its icons (shuffle, previous, next, repeat).
         - The play/pause button IS wrapped in a `michie-circle--secondary` circle,
           so its icon needs --primary for contrast against that secondary background.
+        - Row dibagi 3 kolom (like | transport | info format) memakai flex:1 di
+          kolom kiri & kanan supaya cluster transport tetap presisi di tengah,
+          apa pun isi kolom kiri/kanan.
       */}
-      <div className="mpw-controls michie-text-secondary">
-        {/* shuffle */}
-        <button
-          className={`mpw-btn-icon ${isShuffle ? "active" : ""}`}
-          onClick={setShuffleMode}
-          title="Shuffle"
-          aria-label="Shuffle"
-        >
-          <span className="mpw-icon">
-            <IconShuffle />
-          </span>
-        </button>
+      <div className="mpw-controls-row michie-text-secondary">
+        <div className="mpw-side mpw-side--left">
+          <button
+            className={`mpw-btn-icon ${currentSong?.favorited ? "active" : ""}`}
+            onClick={handleToggleFavorite}
+            disabled={!currentSong}
+            title="Suka"
+            aria-label="Sukai lagu ini"
+          >
+            <span className="mpw-icon">
+              <IconHeart filled={!!currentSong?.favorited} />
+            </span>
+          </button>
+        </div>
 
-        {/* previous */}
-        <button
-          className="mpw-btn-icon"
-          onClick={previous}
-          disabled={!isLoaded}
-          title="Previous"
-          aria-label="Previous"
-        >
-          <span className="mpw-icon">
-            <IconPrevious />
-          </span>
-        </button>
+        <div className="mpw-controls">
+          {/* shuffle */}
+          <button
+            className={`mpw-btn-icon ${isShuffle ? "active" : ""}`}
+            onClick={() => setShuffleMode()}
+            title="Shuffle"
+            aria-label="Shuffle"
+          >
+            <span className="mpw-icon">
+              <IconShuffle />
+            </span>
+          </button>
 
-        {/* play / pause — inner icon overrides to primary for contrast on the secondary circle */}
-        <button
-          className="mpw-btn-play michie-circle michie-circle--secondary michie-border-primary"
-          onClick={handlePlayPause}
-          disabled={!isLoaded}
-          title={isPlaying ? "Pause" : "Play"}
-          aria-label={isPlaying ? "Pause" : "Play"}
-        >
-          <span className="mpw-icon mpw-icon--play michie-text-primary">
-            {isPlaying ? <IconPause /> : <IconPlay />}
-          </span>
-        </button>
+          {/* previous */}
+          <button
+            className="mpw-btn-icon"
+            onClick={() => previous()}
+            disabled={!isLoaded}
+            title="Previous"
+            aria-label="Previous"
+          >
+            <span className="mpw-icon">
+              <IconPrevious />
+            </span>
+          </button>
 
-        {/* next */}
-        <button
-          className="mpw-btn-icon"
-          onClick={next}
-          disabled={!isLoaded}
-          title="Next"
-          aria-label="Next"
-        >
-          <span className="mpw-icon">
-            <IconNext />
-          </span>
-        </button>
+          {/* play / pause — inner icon overrides to primary for contrast on the secondary circle */}
+          <button
+            className="mpw-btn-play michie-circle michie-circle--secondary michie-border-primary"
+            onClick={handlePlayPause}
+            disabled={!isLoaded}
+            title={isPlaying ? "Pause" : "Play"}
+            aria-label={isPlaying ? "Pause" : "Play"}
+          >
+            <span className="mpw-icon mpw-icon--play michie-text-primary">
+              {isPlaying ? <IconPause /> : <IconPlay />}
+            </span>
+          </button>
 
-        {/* repeat */}
-        <button
-          className={`mpw-btn-icon ${repeatMode > 0 ? "active" : ""}`}
-          onClick={cycleRepeat}
-          title={["No repeat", "Repeat all", "Repeat one"][repeatMode]}
-          aria-label="Repeat"
-        >
-          <span className="mpw-icon">
-            <IconRepeat />
-          </span>
-          {repeatMode === 2 && <span className="mpw-repeat-badge">1</span>}
-        </button>
+          {/* next */}
+          <button
+            className="mpw-btn-icon"
+            onClick={() => next()}
+            disabled={!isLoaded}
+            title="Next"
+            aria-label="Next"
+          >
+            <span className="mpw-icon">
+              <IconNext />
+            </span>
+          </button>
+
+          {/* repeat */}
+          <button
+            className={`mpw-btn-icon ${repeatMode > 0 ? "active" : ""}`}
+            onClick={cycleRepeat}
+            title={["No repeat", "Repeat all", "Repeat one"][repeatMode]}
+            aria-label="Repeat"
+          >
+            <span className="mpw-icon">
+              <IconRepeat />
+            </span>
+            {repeatMode === 2 && <span className="mpw-repeat-badge">1</span>}
+          </button>
+        </div>
+
+        <div className="mpw-side mpw-side--right">
+          <FormatBadge song={currentSong} />
+        </div>
       </div>
 
       <style>{`
+        .mpw-controls-row {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          gap: 8px;
+        }
+
+        .mpw-side {
+          flex: 1 1 0;
+          display: flex;
+          align-items: center;
+          min-width: 0;
+        }
+
+        .mpw-side--left {
+          justify-content: flex-start;
+        }
+
+        .mpw-side--right {
+          justify-content: flex-end;
+        }
+
+        .mpw-format-badge {
+          font-size: 0.68rem;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          opacity: 0.55;
+          overflow: hidden;
+          max-width: 100%;
+        }
+
+        .mpw-format-badge__text {
+          display: inline-block;
+          white-space: nowrap;
+          will-change: transform;
+        }
+
+        .mpw-format-badge__text--marquee {
+          animation: mpw-marquee 7s ease-in-out infinite;
+        }
+
+        @keyframes mpw-marquee {
+          0%, 12% { transform: translateX(0); }
+          50%, 62% { transform: translateX(calc(-1 * var(--scroll-distance))); }
+          100% { transform: translateX(0); }
+        }
+
         .mpw-controls {
+          flex: 0 0 auto;
           display: flex;
           align-items: center;
           justify-content: center;

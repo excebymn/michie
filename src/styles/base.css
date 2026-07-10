@@ -1,3 +1,16 @@
+/* Daftarkan sebagai <color> supaya transisi interpolasi lewat color-space asli,
+   bukan cuma diam-diam snap di tengah kalau lompatan value-nya besar. */
+@property --color-primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #888888;
+}
+@property --color-secondary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #cccccc;
+}
+
 :root {
   --color-primary: #888888;
   --color-secondary: #cccccc;
@@ -58,15 +71,19 @@
 .michie-bg-secondary,
 .michie-border-primary,
 .michie-border-secondary {
-  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  transition:
+    background-color 1.5s cubic-bezier(0.4, 0, 0.2, 1),
+    color 1.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 1s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-root {
-  transition: background-color 0.35s ease;
+  transition: background-color 1.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-root--pulse {
-  animation: michie-bg-pulse 0.4s ease;
+  animation: michie-bg-pulse 1.5s ease;
 }
 
 @keyframes michie-bg-pulse {

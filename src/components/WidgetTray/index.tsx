@@ -1,8 +1,8 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { widgetRegistry } from "../../config/widgetRegistry";
 import { slotRegistry } from "../../config/slotRegistry";
 import { TraySlotPreview } from "./TraySlotPreview";
-import { LazyWidgetPreview } from "./LazyWidgetPreview";
+import { LazyWidgetPreview, type PreviewMode } from "./LazyWidgetPreview";
 import { WIDGET_DRAG_MIME } from "./dragConstants";
 
 export { WIDGET_DRAG_MIME };
@@ -16,6 +16,10 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
   // pas drag selesai (onDragEnd). Dibikin kecil supaya nggak nutupin
   // TraySlotPreview di belakangnya waktu kursor lewat di atasnya.
   const dragPreviewRef = useRef<HTMLDivElement | null>(null);
+
+  // Default "hover" — cuma widget yang lagi ditunjuk kursor yang jalan,
+  // paling ringan buat grid yang isinya banyak visualizer real-time.
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("hover");
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
@@ -127,7 +131,7 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
            di-drop di sini, slot kiri/kanan aplikasi ikut ke-update otomatis. */}
         <div style={{ marginBottom: "20px" }}>
           <span
-            className="michie-text-secondary"
+            className="michie-text-primary"
             style={{
               fontSize: "0.75rem",
               opacity: 0.7,
@@ -135,7 +139,7 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
               marginBottom: "8px",
             }}
           >
-            current layout, drop one of those
+            current layout, drop one of those widgets here :)
           </span>
           <div
             style={{
@@ -147,6 +151,75 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
             {slotRegistry.map((slot) => (
               <TraySlotPreview key={slot.id} slot={slot} />
             ))}
+          </div>
+        </div>
+
+        {/* Toggle mode preview: "all" mount semua tile yang keliatan di
+           layar, "hover" cuma mount tile yang lagi ditunjuk kursor. Default
+           "hover" biar buka tray gak langsung nyalain semua visualizer
+           sekaligus. */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "12px",
+          }}
+        >
+          <span
+            className="michie-text-primary"
+            style={{ fontSize: "0.85rem", fontWeight: 600, opacity: 0.85 }}
+          >
+            Featured widgets
+          </span>
+
+          <div
+            className="michie-box michie-box--primary"
+            style={{
+              display: "inline-flex",
+              padding: "4px",
+              borderRadius: "12px",
+              gap: "4px",
+            }}
+          >
+            <button
+              onClick={() => setPreviewMode("hover")}
+              className={
+                "michie-text-secondary" +
+                (previewMode === "hover" ? " michie-box michie-box--secondary" : "")
+              }
+              style={{
+                border: "none",
+                background: "none",
+                padding: "8px 14px",
+                borderRadius: "9px",
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                opacity: previewMode === "hover" ? 1 : 0.55,
+              }}
+            >
+              Muat saat hover
+            </button>
+            <button
+              onClick={() => setPreviewMode("all")}
+              className={
+                "michie-text-secondary" +
+                (previewMode === "all" ? " michie-box michie-box--secondary" : "")
+              }
+              style={{
+                border: "none",
+                background: "none",
+                padding: "8px 14px",
+                borderRadius: "9px",
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                opacity: previewMode === "all" ? 1 : 0.55,
+              }}
+            >
+              Muat semua
+            </button>
           </div>
         </div>
 
@@ -193,16 +266,18 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
               >
                 {/* Area preview: render komponen widget asli, di-scale supaya
                    muat di tile kecil. pointerEvents none biar interaksi
-                   internal widget (kalau ada) nggak nyolong event drag. */}
+                   internal widget (kalau ada) nggak nyolong event drag —
+                   TAPI mode "hover" butuh mouseenter/leave di sini, makanya
+                   pointer-events-nya ditaruh "auto" khusus di level ini. */}
                 <div
                   style={{
                     flex: 1,
                     position: "relative",
                     overflow: "hidden",
-                    pointerEvents: "none",
+                    pointerEvents: previewMode === "hover" ? "auto" : "none",
                   }}
                 >
-                  <LazyWidgetPreview component={WidgetComponent} />
+                  <LazyWidgetPreview component={WidgetComponent} mode={previewMode} />
                 </div>
 
                 <span

@@ -22,6 +22,14 @@ pub struct SongTableUpload {
     pub album_section: Option<i32>,
     pub artist_section: Option<i32>,
     pub genre_section: Option<i32>,
+    // --- Metadata teknis audio, ditambahkan untuk fitur badge kualitas file di UI ---
+    // Diisi saat scan (get_song_data di helper.rs) lewat crate ekstraksi metadata
+    // (mis. `lofty`). Opsional karena ekstraksi bisa gagal untuk file yang corrupt
+    // atau format yang tidak didukung reader-nya — jangan sampai satu file rusak
+    // menggagalkan seluruh proses scan directory.
+    pub sample_rate: Option<i64>,
+    pub bit_rate: Option<i64>,
+    pub format: Option<String>,
 }
 
 // This struct is for data retreived from the database
@@ -41,6 +49,17 @@ pub struct SongTable {
     pub song_section: u64,
     #[sqlx(default)]
     pub favorited: bool,
+    // --- Metadata teknis audio (lihat catatan di SongTableUpload di atas) ---
+    // #[sqlx(default)] penting di sini: kolom ini nullable — baris lagu lama
+    // sebelum rescan akan bernilai NULL/absent. Tanpa default, query lama
+    // yang belum eksplisit SELECT kolom ini akan panic saat FromRow decode,
+    // sama seperti pola `favorited` di atas.
+    #[sqlx(default)]
+    pub sample_rate: Option<i64>,
+    #[sqlx(default)]
+    pub bit_rate: Option<i64>,
+    #[sqlx(default)]
+    pub format: Option<String>,
 }
 
 #[derive(sqlx::FromRow, Default, Debug, Clone, Serialize)]
@@ -126,8 +145,24 @@ pub struct SongHistory {
     pub song_section: u64,
     #[sqlx(default)]
     pub favorited: bool,
+    // Sama seperti SongTable — kalau query history JOIN ke tabel songs
+    // sudah pakai SELECT *, field ini otomatis kebawa; kalau query-nya
+    // eksplisit sebutkan kolom satu-satu di db.rs, kolom sample_rate/
+    // bit_rate/format perlu ditambahkan manual ke situ juga.
+    #[sqlx(default)]
+    pub sample_rate: Option<i64>,
+    #[sqlx(default)]
+    pub bit_rate: Option<i64>,
+    #[sqlx(default)]
+    pub format: Option<String>,
 }
 
+// NOTE: hanya SATU definisi struct ini boleh ada di seluruh file/project.
+// Sebelumnya sempat ke-duplikat (satu di atas file, satu di sini) yang
+// menyebabkan error compiler "conflicting implementations of trait
+// `Serialize` for type `types::FavoriteChanged`". Kalau nanti muncul error
+// itu lagi, cari dengan `grep -rn "struct FavoriteChanged" src-tauri/src/`
+// dan pastikan hasilnya cuma 1 baris.
 #[derive(Clone, Serialize)]
 pub struct FavoriteChanged {
     pub path: String,

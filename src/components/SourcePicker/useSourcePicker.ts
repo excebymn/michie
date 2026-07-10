@@ -10,7 +10,7 @@ export const useSourcePicker = () => {
   const scanCurrent = useAppStore((s) => s.scanCurrent);
   const scanLength = useAppStore((s) => s.scanLength);
   const refreshDirectories = useAppStore((s) => s.refreshDirectories);
-  const refreshLibrary = useAppStore((s) => s.refreshLibrary);
+  const rescanLibrary = useAppStore((s) => s.rescanLibrary);
 
   const [isBusy, setIsBusy] = useState(false);
 
@@ -22,11 +22,11 @@ export const useSourcePicker = () => {
     try {
       await settingsService.addDirectory(selected);
       await refreshDirectories();
-      await refreshLibrary(); // trigger scan ke folder baru
+      await rescanLibrary(); // scan folder yang baru ditambahkan
     } finally {
       setIsBusy(false);
     }
-  }, [refreshDirectories, refreshLibrary]);
+  }, [refreshDirectories, rescanLibrary]);
 
   const handleRemoveFolder = useCallback(
     async (path: string) => {
@@ -44,11 +44,11 @@ export const useSourcePicker = () => {
   const handleRescan = useCallback(async () => {
     setIsBusy(true);
     try {
-      await refreshLibrary();
+      await rescanLibrary();
     } finally {
       setIsBusy(false);
     }
-  }, [refreshLibrary]);
+  }, [rescanLibrary]);
 
   return {
     directories,

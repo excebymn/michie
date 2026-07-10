@@ -1,4 +1,3 @@
-
 -- Create the tables for all the Music
 CREATE TABLE IF NOT EXISTS songs (
     -- The name of the song
@@ -17,8 +16,6 @@ CREATE TABLE IF NOT EXISTS songs (
     album_artist TEXT,
     disc_number INTEGER,
     duration INTEGER,
-    -- Favorited value - might not use
-    favorited BOOLEAN,
     song_section INTEGER NOT NULL,
     album_section INTEGER,
     artist_section INTEGER,

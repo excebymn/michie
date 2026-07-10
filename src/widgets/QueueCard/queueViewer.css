@@ -1,0 +1,56 @@
+/* ==========================================================================
+   QUEUE VIEWER
+   ========================================================================== */
+
+.queue-viewer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  isolation: isolate;
+}
+
+.queue-card {
+  position: absolute;
+  top: 50%;
+  left: 0;
+
+  /* Vertical centering lives here (independent `translate` property) so it
+     never fights with the horizontal slide animation driven by `transform`
+     below. */
+  translate: 0 -50%;
+
+  width: 46%;
+  aspect-ratio: 2 / 3;
+
+  border-radius: 20px;
+  overflow: hidden;
+
+  background: linear-gradient(160deg, #3a3d42, #202226);
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+
+  transition:
+    transform 0.45s cubic-bezier(0.22, 0.85, 0.4, 1),
+    opacity 0.35s ease;
+
+  will-change: transform, opacity;
+}
+
+.queue-card-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.queue-card-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: rgba(255, 255, 255, 0.4);
+}

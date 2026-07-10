@@ -27,6 +27,7 @@ interface AppState {
   backupRestoreStatus: number;
   loadTheme: () => Promise<void>;
   refreshLibrary: () => Promise<void>;
+  rescanLibrary: () => Promise<void>;
   loadInitialData: () => Promise<void>;
   refreshPlaylists: () => Promise<void>;
   refreshHistory: () => Promise<void>;
@@ -61,6 +62,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ theme });
   },
 
+  // Cuma re-fetch data yang SUDAH ada di DB, TIDAK men-scan folder di disk.
+  // Ini yang dipanggil `loadInitialData` tiap app dibuka — harus tetap
+  // ringan/cepat. Jangan taruh `scanDirectory`/`scanForDeleted` di sini lagi,
+  // itu penyebab app jadi full-rescan tiap kali dibuka (lihat `rescanLibrary`
+  // untuk aksi scan yang sebenarnya).
   refreshLibrary: async () => {
     const [songList, albumList, artistList, genreList, playlistList] =
       await Promise.all([
@@ -71,6 +77,20 @@ export const useAppStore = create<AppState>((set, get) => ({
         appService.getAllPlaylists(),
       ]);
     set({ songList, albumList, artistList, genreList, playlistList });
+  },
+
+  // Aksi scan yang sebenarnya: jalankan `scan_directory` + `scan_for_deleted`
+  // di backend, baru refresh data di frontend. Dipakai tombol "Rescan" dan
+  // saat user nambah folder baru — TIDAK dipanggil saat startup.
+  rescanLibrary: async () => {
+    set({ isScanning: true });
+    try {
+      await settingsService.scanDirectory();
+      await appService.scanForDeleted();
+      await get().refreshLibrary();
+    } finally {
+      set({ isScanning: false });
+    }
   },
 
   loadInitialData: async () => {

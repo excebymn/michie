@@ -1,6 +1,6 @@
 // Libraries
 use std::{
-    fs::{self}, hash::{BuildHasher, DefaultHasher, Hash, Hasher, RandomState}, path::{PathBuf}
+    fs::{self}, hash::{BuildHasher, DefaultHasher, Hash, Hasher, RandomState}, path::{Path, PathBuf}
 };
 use tauri_plugin_log::log;
 
@@ -76,6 +76,14 @@ pub async fn get_song_data(path: String) -> Result<SongTableUpload, ()> {
         path: path.to_string(),
         ..SongTableUpload::default()
     };
+
+    // Format file (flac/mp3/ogg/wav/m4a/...) diambil dari ekstensi path,
+    // bukan dari lofty's FileType — lebih simpel dan cukup buat ditampilkan
+    // di UI, dan tidak tergantung tag/metadata ada atau tidak.
+    song_data.format = Path::new(&path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.to_lowercase());
 
     // Prevents an error where a file might have a bad Timestamp
     let parsing_options = ParseOptions::new().parsing_mode(ParsingMode::BestAttempt);
@@ -275,6 +283,20 @@ pub async fn get_song_data(path: String) -> Result<SongTableUpload, ()> {
             let properties = tagged.properties();
             let duration = properties.duration();
             song_data.duration = duration.as_secs().to_string();
+
+            // --- Metadata teknis audio: sample rate & bitrate ---
+            // sample_rate() dikembalikan dalam Hz (mis. 44100) — disimpan apa
+            // adanya, dibagi 1000 nanti di frontend buat ditampilkan sebagai kHz.
+            song_data.sample_rate = properties.sample_rate().map(|sr| sr as i64);
+            // PENTING: audio_bitrate() lofty sudah dalam satuan KBPS (mis. 320
+            // untuk mp3 320kbps, bukan 320000). Kalau audio_bitrate() kosong
+            // (beberapa format lossless kadang tidak melaporkannya lewat field
+            // ini), fallback ke overall_bitrate() yang mencakup bitrate
+            // keseluruhan file (audio + overhead container).
+            song_data.bit_rate = properties
+                .audio_bitrate()
+                .or_else(|| properties.overall_bitrate())
+                .map(|br| br as i64);
 
 
             // Get the directory where all the data is stored

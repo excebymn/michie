@@ -272,6 +272,7 @@ pub fn run() -> Result<(), String> {
             db::remove_multiple_songs_from_playlist,
             db::add_playlist_cover, // Custom Playlist artwork
             db::set_background_image,
+            commands::get_dominant_color, // Ekstraksi warna dominan album art (mode "ikuti tone album")
             // History Functions
             db::add_song_to_history,
             db::get_play_history,
@@ -374,7 +375,7 @@ pub struct GetScanStatus {
     pub res: bool,
 }
 
-// use the path value to check, since that is a unique value in each entry (files cannot share paths)
+// use the path value to check, since that's a unique value in each entry (files cannot share paths)
 #[tauri::command]
 async fn scan_directory(
     state: State<AppState, '_>,
@@ -458,6 +459,10 @@ async fn scan_directory(
             });
         }
 
+        // FIX: Drop the original sender explicitly.
+        // This ensures the channel closes naturally once all spawned threads (tx1) finish and drop their clones.
+        drop(tx);
+
         for received in rx.iter() {
             let last_modified = fs::metadata(&received).unwrap().modified().unwrap();
             let time_since = SystemTime::now().duration_since(last_modified).unwrap();
@@ -513,9 +518,8 @@ async fn scan_directory(
                 .unwrap();
             }
 
-            if rx.is_empty() {
-                break;
-            }
+            // FIX: Removed the `if rx.is_empty() { break; }` check to prevent race condition.
+            // The loop will now safely terminate on its own when all threads finish and drop their senders.
         }
     }
 

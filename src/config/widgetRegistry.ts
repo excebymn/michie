@@ -11,7 +11,11 @@ import PulsingBlob from "../widgets/PulsingBlob";
 import SmoothWave from "../widgets/SmoothWave";
 import DotGridVisualizer from "../widgets/DotGridVisualizer";
 import PulseAlbum from "../widgets/PulseAlbum";
-
+import { QueueView } from "../widgets/Queue"
+import { QueueCard } from "../widgets/QueueCard";
+import { DVDBouncingWidget } from "../widgets/DVDBouncingWidget"
+import { VinylCatcherWidget } from "../widgets/CatcherGame"
+ 
 export interface WidgetConfig {
   id: string;
   label: string;
@@ -34,4 +38,8 @@ export const widgetRegistry: WidgetConfig[] = [
 { id: "smoothWave", label: "smooth wave", component: SmoothWave },
 { id: "dotGridVisualizer", label: "dot grid visualizer", component: DotGridVisualizer },
 { id: "pulseAlbum", label: "pulsing album art", component: PulseAlbum },
+{ id: "Queue", label: "queue", component: QueueView },
+{ id: "queue-card", label: "queue card", component: QueueCard },
+{ id: "dvd", label: "dvd", component: DVDBouncingWidget },
+{ id: "catcher game", label: "vinyl catcher", component: VinylCatcherWidget },
 ];

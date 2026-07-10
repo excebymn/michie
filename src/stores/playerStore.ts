@@ -62,7 +62,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const storedVolume = JSON.parse(
       localStorage.getItem("volume-level") ?? "20",
     );
-    set({ volume: storedVolume ?? 20, isShuffle: shuffleMode ?? false });
+    // Sebelumnya repeat-mode disimpan (lihat setRepeatMode) tapi tidak pernah
+    // dibaca balik di sini — jadi repeatMode selalu reset ke default (1) tiap
+    // app dibuka ulang meskipun terlihat "tersimpan" di localStorage.
+    const storedRepeatMode = JSON.parse(
+      localStorage.getItem("repeat-mode") ?? "1",
+    );
+    set({
+      volume: storedVolume ?? 20,
+      isShuffle: shuffleMode ?? false,
+      repeatMode: storedRepeatMode ?? 1,
+    });
 
     if (qPositionString !== null) {
       const queue = await playerService.getQueue(
@@ -75,6 +85,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         // cuma menyimpan tampilan terakhir di frontend. Tanpa panggilan ini, tombol
         // play tidak akan berbunyi karena sink Rust-nya benar-benar kosong.
         await playerService.setupQueueAndSong(queue, position);
+        // Sync repeat mode yang dipulihkan ke state in-memory Rust juga —
+        // kalau tidak, backend tetap pakai repeat_mode default-nya sendiri
+        // walau UI sudah menampilkan mode yang benar.
+        await playerService.setRepeatMode(storedRepeatMode ?? 1);
         set({
           queue,
           currentSong,
@@ -121,7 +135,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   next: async () => {
-    const qPosition = await playerService.getCurrentPosition();
+    // FIX: sebelumnya pakai getCurrentPosition() (detik playback yang sudah
+    // berjalan), padahal yang dibutuhkan di sini adalah posisi/index lagu di
+    // queue. Akibatnya, saat shuffle ON, kondisi "qPosition + 1 > qLength - 1"
+    // hampir selalu true begitu lagu sudah jalan beberapa detik, memicu
+    // reshuffle tak sengaja sebelum next_song() dipanggil -> lompat lagu.
+    const qPosition = await playerService.getCurrentIndex();
     const qLength = await playerService.getQueueLength();
     if (get().repeatMode === 0 && qPosition + 1 > qLength - 1) {
       await playerService.stop();
@@ -231,5 +250,4 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ currentSong: song, isPlaying: true, songProgress: 0 });
     await get().refreshCurrentIndex();
   },
-  
 }));

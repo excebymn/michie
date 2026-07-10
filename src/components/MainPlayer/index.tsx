@@ -102,7 +102,15 @@ export function MusicPlayer() {
         await updateSongDetails(dir_path);
       });
 
-      const ul5 = await playerService.onShuffleMode(() => {});
+      // Sebelumnya listener ini no-op (callback kosong), jadi kalau shuffle mode
+      // berubah dari luar tombol shuffle di UI ini (mis. dari device lain / media
+      // key / re-shuffle otomatis saat queue habis di playerStore.next()), state
+      // isShuffle di frontend tidak pernah ikut ter-update. setShuffleModeState
+      // sudah tersedia di playerStore tapi belum pernah dipanggil dari mana pun.
+      const ul5 = await playerService.onShuffleMode((e) => {
+        const shuffled = e.payload as unknown as boolean;
+        usePlayerStore.getState().setShuffleModeState(shuffled);
+      });
 
       // Antrian berubah dari widget Queue, SongsRow, atau sumber lain — sinkronkan store
       const ul6 = await playerService.onQueueChanged(async () => {

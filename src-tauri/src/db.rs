@@ -24,7 +24,15 @@ pub fn init() {
     }
     // Allows you to run async commands in sync methods
     let tr = tokio::runtime::Runtime::new().unwrap();
-    let _ = tr.block_on(apply_initial_migrations());
+    // Sebelumnya `let _ = ...` di sini nelen error migration secara diam-diam —
+    // kalau migrate! gagal (mis. karena tabel udah ada dari mekanisme lama,
+    // sebelum pindah ke sqlx::migrate!), app tetap jalan seolah normal padahal
+    // skema database-nya nggak pernah beneran ter-update. eprintln! di sini
+    // sementara buat debugging; nanti bisa diganti log::error! biar konsisten
+    // sama logging lain di project.
+    if let Err(e) = tr.block_on(apply_initial_migrations()) {
+        eprintln!("[MIGRATION ERROR] Gagal menjalankan migration: {}", e);
+    }
 
     // Create the cover folder
     let covers_dir =
@@ -68,12 +76,24 @@ pub fn get_db_path() -> String {
 async fn apply_initial_migrations() -> Result<(), String> {
     let pool = establish_connection().await?;
 
-    let _ = pool
-        .execute(include_str!("../migrations/0001_init.sql"))
-        .await;
-    let _ = pool
-        .execute(include_str!("../migrations/0002_add_favorited.sql"))
-        .await;
+    // Sebelumnya di sini cuma manggil include_str!(...) buat 0001 dan 0002 secara
+    // hardcode — jadi 0003, 0004, dan migration baru mana pun ke depannya TIDAK
+    // PERNAH otomatis jalan kecuali ditambahin manual ke fungsi ini. sqlx::migrate!
+    // membaca seluruh folder migrations/, urut berdasar nomor versi di nama file
+    // (format 0001_xxx.sql yang memang sudah dipakai di project ini), lalu cuma
+    // menjalankan yang belum pernah di-apply (dicatat di tabel _sqlx_migrations).
+    // Migration baru otomatis kepakai cukup dengan naruh file baru di folder itu.
+    //
+    // PENTING: 9999_reset.sql TIDAK BOLEH ada di folder migrations/ ini — kalau
+    // ada, sqlx::migrate! akan menganggapnya migration urutan terakhir dan
+    // menjalankannya otomatis di setiap instalasi baru, yang berarti DROP semua
+    // tabel begitu user baru pertama buka app. File itu harus dipindah ke folder
+    // lain (mis. src-tauri/sql/9999_reset.sql) dan dipanggil manual saja lewat
+    // reset_database(), bukan lewat migrator ini.
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .map_err(|e| format!("Failed to run migrations: {}", e))?;
 
     Ok(())
 }
@@ -101,9 +121,12 @@ pub async fn reset_database(
     let _ = commands::player_clear_queue(app.clone(), state.clone());
 
     // First delete all the tables from the database
+    // Dipindah dari migrations/9999_reset.sql ke sql/9999_reset.sql — lihat
+    // catatan di apply_initial_migrations() kenapa file ini tidak boleh ada
+    // di folder migrations/.
     let _ = state
         .pool
-        .execute(include_str!("../migrations/9999_reset.sql"))
+        .execute(include_str!("../sql/9999_reset.sql"))
         .await;
 
     // Then use the migration files to re-add the tables to the database
@@ -277,8 +300,8 @@ pub async fn add_song(
     pool: &Pool<Sqlite>,
 ) -> Result<SqliteQueryResult, String> {
     let res: Result<SqliteQueryResult, sqlx::Error> = sqlx::query("INSERT OR IGNORE INTO songs
-        (name, path, cover, release, track, album, artist, genre, album_artist, disc_number, duration, favorited, song_section, album_section, artist_section, genre_section, keep) 
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)")
+        (name, path, cover, release, track, album, artist, genre, album_artist, disc_number, duration, favorited, song_section, album_section, artist_section, genre_section, keep, sample_rate, bit_rate, format) 
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20)")
         .bind(&entry.name)
         .bind(&entry.path)
         .bind(&entry.cover)
@@ -296,6 +319,9 @@ pub async fn add_song(
         .bind(&entry.artist_section)
         .bind(&entry.genre_section)
         .bind(true)
+        .bind(&entry.sample_rate)
+        .bind(&entry.bit_rate)
+        .bind(&entry.format)
         .execute(pool)
         .await;
 
@@ -309,8 +335,9 @@ pub async fn update_song(
 ) -> Result<SqliteQueryResult, String> {
     let res: Result<SqliteQueryResult, sqlx::Error> = sqlx::query("UPDATE songs
         SET name = ?1, cover = ?2, release = ?3, track = ?4, album = ?5, artist = ?6, genre = ?7,
-        album_artist = ?8, disc_number = ?9, duration = ?10, song_section = ?11, album_section = ?12, artist_section = ?13, genre_section = ?14, keep = ?15
-        WHERE path = ?16
+        album_artist = ?8, disc_number = ?9, duration = ?10, song_section = ?11, album_section = ?12, artist_section = ?13, genre_section = ?14, keep = ?15,
+        sample_rate = ?16, bit_rate = ?17, format = ?18
+        WHERE path = ?19
         ")
         .bind(&entry.name)
         .bind(&entry.cover)
@@ -327,6 +354,9 @@ pub async fn update_song(
         .bind(&entry.artist_section)
         .bind(&entry.genre_section)
         .bind(true)
+        .bind(&entry.sample_rate)
+        .bind(&entry.bit_rate)
+        .bind(&entry.format)
 
         .bind(entry.path)
         .execute(pool)
@@ -667,7 +697,7 @@ pub async fn get_playlist(state: State<AppState, '_>, id: i64) -> Result<Playlis
 
     // Get the playlist tracks
     let song_arr: Vec<SongTable> = sqlx::query_as::<_, SongTable>("    
-            SELECT s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section
+            SELECT s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section, s.favorited, s.sample_rate, s.bit_rate, s.format
             FROM playlist_tracks p 
             INNER JOIN songs s ON s.path = p.track_id 
             WHERE p.playlist_id = ?1 ORDER BY p.position ASC
@@ -934,7 +964,7 @@ pub async fn remove_multiple_songs_from_playlist(
         .await;
 
     let res: Vec<SongTable> = sqlx::query_as::<_, SongTable>("    
-            SELECT s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section
+            SELECT s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section, s.favorited, s.sample_rate, s.bit_rate, s.format
             FROM playlist_tracks p 
             INNER JOIN songs s ON s.path = p.track_id 
             WHERE p.playlist_id = ?1 ORDER BY p.position ASC
@@ -998,7 +1028,24 @@ pub async fn set_background_image(file_path: String) -> Result<String, String> {
         .and_then(OsStr::to_str)
         .unwrap_or("png");
 
-    let new_path = image_dir + "app_background." + file_type;
+    // Bersihkan background lama dulu (nama lama "app_background_*")
+    // biar folder gak numpuk sisa file tiap ganti-ganti gambar
+    if let Ok(entries) = fs::read_dir(&image_dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            if name.to_string_lossy().starts_with("app_background_") {
+                let _ = fs::remove_file(entry.path());
+            }
+        }
+    }
+
+    // Nama file unik tiap save → URL yang dikirim ke frontend selalu beda →
+    // WebView otomatis fetch ulang, gak kena cache lagi
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    let new_path = format!("{image_dir}app_background_{timestamp}.{file_type}");
 
     fs::copy(&file_path, &new_path).map_err(|e| e.to_string())?;
 
@@ -1013,13 +1060,13 @@ pub async fn get_queue(
 ) -> Result<Vec<SongTable>, String> {
     if shuffled == true {
         let list: Vec<SongTable> = sqlx::query_as::<_, SongTable>("
-            SELECT q.position, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section
+            SELECT q.position, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section, s.favorited, s.sample_rate, s.bit_rate, s.format
             FROM queue_shuffled q 
             INNER JOIN songs s ON s.path = q.song_id ORDER BY q.position ASC").fetch_all(&state.pool).await.unwrap();
         Ok(list)
     } else {
         let list: Vec<SongTable> = sqlx::query_as::<_, SongTable>("
-            SELECT q.position, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section
+            SELECT q.position, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section, s.favorited, s.sample_rate, s.bit_rate, s.format
             FROM queue q 
             INNER JOIN songs s ON s.path = q.song_id ORDER BY q.position ASC").fetch_all(&state.pool).await.unwrap();
         Ok(list)
@@ -1183,7 +1230,7 @@ pub async fn get_play_history(
 ) -> Result<Vec<SongHistory>, String> {
     if limit == -1 {
         let history: Vec<SongHistory> = sqlx::query_as::<_, SongHistory>("
-            SELECT h.id, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section
+            SELECT h.id, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section, s.favorited, s.sample_rate, s.bit_rate, s.format
             FROM history h 
             INNER JOIN songs s ON s.path = h.song_id ORDER BY h.id DESC")
         .fetch_all(&state.pool)
@@ -1192,7 +1239,7 @@ pub async fn get_play_history(
         Ok(history)
     } else {
         let history: Vec<SongHistory> = sqlx::query_as::<_, SongHistory>("
-            SELECT h.id, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section
+            SELECT h.id, s.name, s.path, s.album, s.artist, s.duration, s.genre, s.cover, s.release, s.album_artist, s.track, s.disc_number, s.song_section, s.favorited, s.sample_rate, s.bit_rate, s.format
             FROM history h 
             INNER JOIN songs s ON s.path = h.song_id ORDER BY h.id DESC LIMIT $1")
         .bind(limit)

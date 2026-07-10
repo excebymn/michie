@@ -50,8 +50,8 @@ export default function WidgetSlot({ slotId }: Props) {
           <button
             className="widget-slot-remove michie-circle michie-circle--secondary michie-text-primary"
             onClick={() => clearSlot(slotId)}
-            title="Lepas widget dari slot"
-            aria-label="Lepas widget dari slot"
+            title="release widget from slot"
+            aria-label="release widget from slot"
           >
             ×
           </button>
@@ -61,7 +61,7 @@ export default function WidgetSlot({ slotId }: Props) {
         </div>
       ) : (
         <span className="widget-slot-empty michie-text-secondary">
-          Drop widget di sini
+         
         </span>
       )}
 

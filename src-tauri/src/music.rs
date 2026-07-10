@@ -11,7 +11,7 @@ pub struct MusicPlayer {
     pub queue: Vec<SongTable>,
     pub is_active: bool,
     pub visualizer_buffer: crate::visualizer::VisualizerBuffer, // BARU
-    pub current_sample_rate: u32,                                // BARU
+    pub current_sample_rate: u32,                               // BARU
 }
 
 // Rework Parts
@@ -26,7 +26,7 @@ impl MusicPlayer {
             queue: vec![],
             is_active: false,
             visualizer_buffer: crate::visualizer::new_buffer(), // BARU
-            current_sample_rate: 44100,                          // BARU
+            current_sample_rate: 44100,                         // BARU
         })
     }
 
@@ -69,19 +69,26 @@ impl MusicPlayer {
     pub fn next_song(&mut self) {
         // no repeat
         if self.repeat_mode == 0 {
-            if self.position + 1 == self.queue.len() - 1 {
+            // FIX: kondisi sebelumnya (`position + 1 == queue.len() - 1`)
+            // berhenti satu lagu terlalu cepat, di posisi len-2, sehingga
+            // lagu terakhir di queue tidak pernah ikut diputar saat mode
+            // "No Repeat". Seharusnya baru berhenti kalau posisi berikutnya
+            // sudah melewati akhir queue (position + 1 >= queue.len()).
+            if self.position + 1 >= self.queue.len() {
                 self.position = 0;
                 self.sink.stop();
             } else {
                 let new_pos = self.position + 1;
-
                 // Update the current position in the player
                 let _ = self.update_current_index(new_pos);
-                // Play the next song - Create case for last song in queue
-                println!("Before Skip Length - {:?}", self.sink.len());
-                let _ = self.sink.skip_one();
-                println!("After Skip Length - {:?}", self.sink.len());
+
+                // --- PERBAIKAN DI SINI ---
+                // Kosongkan sink dari lagu lama agar watcher background tidak bingung,
+                // lalu load ulang lagu baru dari disk (bukan skip_one).
+                self.sink.clear();
+                let _ = self.load_song(new_pos);
                 self.play_song();
+                // -------------------------
             }
         }
         // repeat the queue
@@ -332,11 +339,14 @@ impl MusicPlayer {
                     Ok(source) => {
                         // BARU: Ambil sample rate dan bungkus source dengan TapSource
                         self.current_sample_rate = source.sample_rate();
-                        let tapped = crate::visualizer::TapSource::new(source, self.visualizer_buffer.clone());
-                        
+                        let tapped = crate::visualizer::TapSource::new(
+                            source,
+                            self.visualizer_buffer.clone(),
+                        );
+
                         // GANTI: dulu self.sink.append(source)
                         self.sink.append(tapped);
-                        
+
                         self.is_active = true;
                         log::info!(
                             "Load Song - Song Successfully loaded - {:?} -- {:?}",
