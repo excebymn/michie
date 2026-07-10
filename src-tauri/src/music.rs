@@ -1,7 +1,8 @@
 use rodio::{Decoder, Sink, Source};
-use std::{fs::File, io::BufReader, time};
+use std::{fs::File, io::BufReader, sync::Arc, time};
 use tauri_plugin_log::log;
 
+use crate::equalizer::{EqualizerParams, EqualizerSource};
 use crate::types::SongTable;
 
 pub struct MusicPlayer {
@@ -10,13 +11,14 @@ pub struct MusicPlayer {
     pub repeat_mode: i64,
     pub queue: Vec<SongTable>,
     pub is_active: bool,
-    pub visualizer_buffer: crate::visualizer::VisualizerBuffer, // BARU
-    pub current_sample_rate: u32,                               // BARU
+    pub visualizer_buffer: crate::visualizer::VisualizerBuffer,
+    pub current_sample_rate: u32,
+    pub equalizer_params: Arc<EqualizerParams>, // BARU
 }
 
 // Rework Parts
 impl MusicPlayer {
-    pub fn new(sink: Sink) -> Result<Self, String> {
+    pub fn new(sink: Sink, equalizer_params: Arc<EqualizerParams>) -> Result<Self, String> {
         sink.pause();
 
         Ok(Self {
@@ -25,8 +27,9 @@ impl MusicPlayer {
             repeat_mode: 1,
             queue: vec![],
             is_active: false,
-            visualizer_buffer: crate::visualizer::new_buffer(), // BARU
-            current_sample_rate: 44100,                         // BARU
+            visualizer_buffer: crate::visualizer::new_buffer(),
+            current_sample_rate: 44100,
+            equalizer_params, // BARU
         })
     }
 
@@ -337,14 +340,19 @@ impl MusicPlayer {
                     .build()
                 {
                     Ok(source) => {
-                        // BARU: Ambil sample rate dan bungkus source dengan TapSource
                         self.current_sample_rate = source.sample_rate();
+
+                        // BARU: chaining EQ dulu SEBELUM tap visualizer, supaya
+                        // visualizer nampilin suara yang sudah di-EQ (yang beneran
+                        // didengar user), bukan sinyal mentah sebelum diproses.
+                        //   decoder -> EqualizerSource -> TapSource -> sink
+                        let equalized =
+                            EqualizerSource::new(source, self.equalizer_params.clone());
                         let tapped = crate::visualizer::TapSource::new(
-                            source,
+                            equalized,
                             self.visualizer_buffer.clone(),
                         );
 
-                        // GANTI: dulu self.sink.append(source)
                         self.sink.append(tapped);
 
                         self.is_active = true;

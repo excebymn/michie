@@ -12,7 +12,7 @@ const VISIBLE_COUNT = 5;
 const BUFFER = 2;
 
 // How far (in % of the stack width) each step in the stack shifts a card.
-const STEP_PERCENT = 13.5;
+const STEP_PERCENT = 11;
 
 export function QueueCard() {
   const queue = usePlayerStore((s) => s.queue);

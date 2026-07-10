@@ -15,6 +15,9 @@ import { QueueView } from "../widgets/Queue"
 import { QueueCard } from "../widgets/QueueCard";
 import { DVDBouncingWidget } from "../widgets/DVDBouncingWidget"
 import { VinylCatcherWidget } from "../widgets/CatcherGame"
+import  VintageTV  from "../widgets/VintageTV"
+import { LyricsFlipWidget } from "../widgets/LyricsFlipWidget";
+import { LyricsKaraokeWidget } from "../widgets/LyricsKaraokeWidget";
  
 export interface WidgetConfig {
   id: string;
@@ -41,5 +44,8 @@ export const widgetRegistry: WidgetConfig[] = [
 { id: "Queue", label: "queue", component: QueueView },
 { id: "queue-card", label: "queue card", component: QueueCard },
 { id: "dvd", label: "dvd", component: DVDBouncingWidget },
-{ id: "catcher game", label: "vinyl catcher", component: VinylCatcherWidget },
+{ id: "catcher-game", label: "vinyl catcher", component: VinylCatcherWidget },
+{ id: "vintage-tv", label: "vintage tv", component: VintageTV },
+{ id: "flip-lyrics", label: "flip lyrics", component : LyricsFlipWidget},
+{ id: "karaoke-lyrics", label: "karaoke lyrics", component : LyricsKaraokeWidget}
 ];

@@ -77,14 +77,14 @@ export async function saveBackgroundImage(filePath: string): Promise<string> {
 
 // ---- Ekstraksi warna dominan dari album art ----
 
-function rgbToHex(r: number, g: number, b: number): string {
-  return (
-    "#" +
-    [r, g, b]
-      .map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0"))
-      .join("")
-  );
-}
+// function rgbToHex(r: number, g: number, b: number): string {
+//   return (
+//     "#" +
+//     [r, g, b]
+//       .map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0"))
+//       .join("")
+//   );
+// }
 
 function getLuminance(hex: string): number {
   const clean = hex.replace("#", "");

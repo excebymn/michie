@@ -11,7 +11,7 @@ type LyricsPhase =
   | { kind: "synced"; lines: LrcLine[] }
   | { kind: "plain"; lines: string[] };
 
-export function LyricsWidget() {
+export function LyricsFlipWidget() {
   const currentSong = usePlayerStore((s) => s.currentSong);
   const songProgress = usePlayerStore((s) => s.songProgress);
   const [phase, setPhase] = useState<LyricsPhase>({ kind: "loading" });
@@ -30,14 +30,13 @@ export function LyricsWidget() {
     lyricsService
       .findLyricsCandidates(path)
       .then((result) => {
-        if (requestIdRef.current !== requestId) return; // lagu sudah berganti lagi sebelum respons datang
+        if (requestIdRef.current !== requestId) return;
         applyResult(result);
       })
       .catch(() => {
         if (requestIdRef.current !== requestId) return;
         setPhase({ kind: "empty" });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong?.path]);
 
   function applyResult(result: LyricsLookupResult) {
@@ -59,8 +58,6 @@ export function LyricsWidget() {
       }
     }
     if (plain && plain.trim().length > 0) {
-      // Baris kosong (jeda antar bait di teks plain) dibuang supaya tidak ada
-      // baris kosong yang ke-render sebagai blank tanpa guna.
       const lines = plain.split(/\r?\n/).filter((l) => l.trim().length > 0);
       if (lines.length > 0) {
         setPhase({ kind: "plain", lines });
@@ -72,7 +69,6 @@ export function LyricsWidget() {
 
   async function pickCandidate(candidate: LyricsCandidate) {
     if (!currentSong?.path) return;
-    // Simpan pilihan user ke cache supaya lagu ini tidak perlu dicari lagi
     await lyricsService.updateRemoteLyrics(
       currentSong.path,
       candidate.syncedLyrics ?? "",
@@ -83,7 +79,7 @@ export function LyricsWidget() {
   }
 
   return (
-    <div className="widget-lyrics">
+    <div className="widget-lyrics-flip">
       {phase.kind === "loading" && (
         <div className="widget-lyrics-status michie-text-secondary">Memuat lirik...</div>
       )}
@@ -94,27 +90,26 @@ export function LyricsWidget() {
 
       {phase.kind === "plain" && <PlainLyrics lines={phase.lines} />}
 
-      {phase.kind === "synced" && <SyncedLyrics lines={phase.lines} progress={songProgress} />}
+      {phase.kind === "synced" && <SyncedFlipLyrics lines={phase.lines} progress={songProgress} />}
 
       {phase.kind === "selecting" && (
         <CandidatePicker candidates={phase.candidates} onPick={pickCandidate} />
       )}
 
       <style>{`
-        .widget-lyrics {
+        .widget-lyrics-flip {
           width: 100%;
           height: 100%;
           box-sizing: border-box;
           overflow: hidden;
           user-select: none;
-        }
-
-        .widget-lyrics-status {
-          width: 100%;
-          height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 1rem;
+        }
+
+        .widget-lyrics-status {
           font-size: 0.95rem;
           opacity: 0.7;
           text-align: center;
@@ -124,93 +119,90 @@ export function LyricsWidget() {
   );
 }
 
-// Baris ditampilin apa adanya (semua baris, bukan cuma 2), di-scroll biasa.
-// Baris aktif = baris terakhir yang timestamp-nya sudah lewat progress lagu.
-// Container auto-scroll ke baris aktif setiap kali index-nya berubah — jadi
-// yang keliatan di layar itu langsung representasi jujur dari data lirik,
-// bukan tersamar sama animasi ticker 2-baris seperti sebelumnya.
-function SyncedLyrics({ lines, progress }: { lines: LrcLine[]; progress: number }) {
-  const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  // -1 berarti belum ada baris yang waktunya lewat (masih di intro sebelum baris pertama)
+function SyncedFlipLyrics({ lines, progress }: { lines: LrcLine[]; progress: number }) {
   let activeIndex = -1;
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].time <= progress) activeIndex = i;
     else break;
   }
 
-  useEffect(() => {
-    const el = lineRefs.current[activeIndex];
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [activeIndex]);
+  const currentText = activeIndex >= 0 ? lines[activeIndex].text : "\u266A";
 
   return (
-    <div className="widget-lyrics-scroll">
-      {/* Spacer atas & bawah supaya baris pertama/terakhir tetap bisa
-          ke-center di tengah viewport saat di-scroll, bukan mentok di ujung. */}
-      <div className="widget-lyrics-spacer" aria-hidden />
-      {lines.map((line, i) => (
-        <div
-          key={i}
-          ref={(el) => {
-            lineRefs.current[i] = el;
-          }}
-          className={
-            i === activeIndex
-              ? "widget-lyrics-line widget-lyrics-line--active michie-text-secondary"
-              : "widget-lyrics-line michie-text-secondary"
-          }
-        >
-          {line.text || "\u266A"}
+    <div className="lyric-flip-viewport">
+      {/* re-render dipicu via key reaktif untuk menjamin reset animasi CSS */}
+      <div className="lyric-flip-card" key={activeIndex}>
+        <div className="lyric-flip-box michie-box--secondary">
+          <div className="lyric-flip-text michie-text-primary">
+            {currentText || "\u266A"}
+          </div>
         </div>
-      ))}
-      <div className="widget-lyrics-spacer" aria-hidden />
+      </div>
 
       <style>{`
-        .widget-lyrics-scroll {
+        .lyric-flip-viewport {
+          perspective: 1200px;
           width: 100%;
-          height: 100%;
-          overflow-y: auto;
-          box-sizing: border-box;
           display: flex;
-          flex-direction: column;
-          gap: 0.9rem;
-          padding: 0 1rem;
-          scrollbar-width: none;
-        }
-        .widget-lyrics-scroll::-webkit-scrollbar {
-          display: none;
+          align-items: center;
+          justify-content: center;
         }
 
-        .widget-lyrics-spacer {
-          flex: 0 0 42%;
+        .lyric-flip-card {
+          width: 100%;
+          max-width: 92%;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
+          will-change: transform, opacity;
+          /* Kurva bezier elastis (spring) dengan durasi 0.55s */
+          animation: lyricSmoothFlipIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        .widget-lyrics-line {
+        .lyric-flip-box {
+          padding: 1.25rem 1.5rem;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 4.8rem;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 16px -6px rgba(0, 0, 0, 0.1);
           text-align: center;
-          font-size: 0.95rem;
-          font-weight: 500;
-          opacity: 0.35;
-          text-shadow: none;
-          transition: opacity 0.35s ease, font-size 0.35s ease, font-weight 0.35s ease, text-shadow 0.35s ease;
+          -webkit-font-smoothing: antialiased;
+          transform: translateZ(0); 
         }
 
-        .widget-lyrics-line--active {
-          font-size: 1.4rem;
-          font-weight: 800;
-          opacity: 1;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35);
+        .lyric-flip-text {
+          font-size: 1.25rem;
+          font-weight: 700;
+          line-height: 1.45;
+          word-break: break-word;
+          white-space: normal;
+        }
+
+        @keyframes lyricSmoothFlipIn {
+          0% {
+            transform: rotateX(-75deg) translateY(15px) scale(0.95);
+            opacity: 0;
+            filter: blur(5px);
+          }
+          50% {
+            filter: blur(2px);
+          }
+          /* Overshoot inertia effect pada derajat ke-3 */
+          85% {
+            transform: rotateX(3deg) translateY(-1px) scale(1.01);
+          }
+          100% {
+            transform: rotateX(0deg) translateY(0) scale(1);
+            opacity: 1;
+            filter: blur(0px);
+          }
         }
       `}</style>
     </div>
   );
 }
 
-// Lirik tanpa timestamp — ditampilin utuh sebagai teks statis (semua baris),
-// dengan catatan kecil di atas biar jelas kenapa gak ada highlight yang jalan.
-// Sebelumnya cuma baris pertama yang ditampilkan, seolah itu "baris aktif"
-// yang jalan — padahal statis total, gak pernah berubah. Itu yang bikin
-// keliatan seperti "salah sinkron" padahal sebenarnya emang gak ada data waktu.
 function PlainLyrics({ lines }: { lines: string[] }) {
   return (
     <div className="widget-lyrics-plain-scroll">

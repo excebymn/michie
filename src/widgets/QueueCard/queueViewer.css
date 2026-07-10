@@ -11,23 +11,24 @@
 
 .queue-card {
   position: absolute;
+  /* 1. Posisi awal di tengah container secara vertikal dan horizontal */
   top: 50%;
-  left: 0;
+  left: 40%;
 
-  /* Vertical centering lives here (independent `translate` property) so it
-     never fights with the horizontal slide animation driven by `transform`
-     below. */
-  translate: 0 -50%;
+  /* 2. Menyeimbangkan sumbu X dan Y agar benar-benar di tengah */
+  translate: -50% -50%;
 
-  width: 46%;
-  aspect-ratio: 2 / 3;
+  /* 3. Ukuran diperkecil (misal dari 46% jadi 40% agar proporsional) */
+  width: 60%;
+  
+  /* 4. Ubah aspect-ratio dari 2 / 3 menjadi 1 / 1 supaya bentuknya PERSEGI */
+  aspect-ratio: 1 / 1;
 
-  border-radius: 20px;
+  border-radius: 16px; /* Sedikit disesuaikan agar pas dengan ukuran yang lebih kecil */
   overflow: hidden;
 
   background: linear-gradient(160deg, #3a3d42, #202226);
-
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 
   transition:
     transform 0.45s cubic-bezier(0.22, 0.85, 0.4, 1),

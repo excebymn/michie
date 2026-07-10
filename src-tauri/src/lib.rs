@@ -26,12 +26,17 @@ use tokio::runtime::Runtime;
 // Import files
 mod commands;
 mod db;
+mod equalizer; // Fitur equalizer: DSP biquad, state, DB persist, commands — semua disatukan di sini (pola sama seperti lyrics.rs)
 mod helper;
+mod lyrics; // Fitur lirik: types, cache DB, fetch LRCLib, fuzzy matching, commands — semua disatukan di sini
 mod music;
 mod types;
 mod visualizer; // BARU: daftarkan module visualizer
 
-use crate::{db::establish_connection, helper::get_song_data, music::MusicPlayer};
+use crate::{
+    db::establish_connection, equalizer::EqualizerParams, helper::get_song_data,
+    music::MusicPlayer,
+};
 
 use crate::types::GetCurrentSong;
 
@@ -40,7 +45,7 @@ pub struct AppState {
     pool: Pool<Sqlite>,
     is_scan_ongoing: Mutex<bool>,
     is_back_restore_ongoing: Mutex<i64>,
-    is_lyric_scan_ongoing: Mutex<bool>,
+    equalizer_params: Arc<EqualizerParams>, // BARU
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -50,14 +55,28 @@ pub fn run() -> Result<(), String> {
     let stream_handle: OutputStream =
         OutputStreamBuilder::open_default_stream().expect("open default audio stream");
     let sink = Sink::connect_new(&stream_handle.mixer());
-    let player = Arc::new(Mutex::new(
-        MusicPlayer::new(sink).map_err(|e| e.to_string())?,
-    ));
+
     // Generate the pool for the database, so it can be reused
     let pool: Pool<Sqlite> = Runtime::new()
         .unwrap()
         .block_on(establish_connection())
         .map_err(|e| e.to_string())?;
+
+    // BARU: restore state equalizer (gain per band + enabled) dari DB SEBELUM
+    // MusicPlayer dibuat, supaya EQ sudah aktif sejak lagu pertama diputar —
+    // bukan cuma nyala setelah user pertama kali buka panel EQ di frontend.
+    let equalizer_params = Arc::new(EqualizerParams::new());
+    {
+        let rt = Runtime::new().unwrap();
+        match rt.block_on(equalizer::load_equalizer_state(&pool)) {
+            Ok((gains, enabled)) => equalizer_params.restore(gains, enabled),
+            Err(e) => eprintln!("[EQUALIZER] Gagal restore state dari DB: {}", e),
+        }
+    }
+
+    let player = Arc::new(Mutex::new(
+        MusicPlayer::new(sink, equalizer_params.clone()).map_err(|e| e.to_string())?,
+    ));
 
     // Datetime stampes for error log files
     let now = chrono::Local::now();
@@ -103,7 +122,7 @@ pub fn run() -> Result<(), String> {
                 pool,
                 is_scan_ongoing: Mutex::new(false),
                 is_back_restore_ongoing: Mutex::new(0),
-                is_lyric_scan_ongoing: Mutex::new(false),
+                equalizer_params, // BARU
             });
 
             // ---- Watcher: deteksi lagu selesai secara alami dan auto-lanjut ----
@@ -321,17 +340,20 @@ pub fn run() -> Result<(), String> {
             commands::player_set_repeat_mode,
             commands::player_stop,
             commands::player_get_sink_length,
+            // Equalizer Functions - BARU (semua logic disatukan di equalizer.rs, pola sama seperti lyrics.rs)
+            equalizer::get_eq_bands,
+            equalizer::get_eq_enabled,
+            equalizer::set_eq_band_gain,
+            equalizer::set_eq_enabled,
             // Event Caller Functions
             commands::update_current_song_played,
             commands::new_playlist_added,
             commands::set_shuffle_mode,
             // Lyrics Functions
-            db::get_lyrics,
-            commands::check_for_single_lyrics,
-            commands::cancel_lyrics_scan,
-            commands::update_remote_lyrics,
-            commands::search_remote_lyrics,
-            commands::find_lyrics_candidates,
+            lyrics::get_lyrics,
+            lyrics::update_remote_lyrics,
+            lyrics::search_remote_lyrics,
+            lyrics::find_lyrics_candidates,
             // Settings Functions
             scan_directory,
             db::get_directory,

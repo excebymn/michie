@@ -1,22 +1,31 @@
 // AlbumArt.tsx
 // Menampilkan cover art dan info lagu (judul, artist, album).
 // Membaca: currentSong dari playerStore.
+import { useEffect, useState } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
 
 export function AlbumArt() {
   const currentSong = usePlayerStore((s) => s.currentSong);
+  const [artFailed, setArtFailed] = useState(false);
+
+  // Reset flag error setiap kali cover berganti (lagu baru / cover baru),
+  // supaya kegagalan load pada satu lagu tidak "nempel" ke lagu berikutnya.
+  useEffect(() => {
+    setArtFailed(false);
+  }, [currentSong?.cover]);
+
+  const showArt = !!currentSong?.cover && !artFailed;
 
   return (
     <>
       <div className="mpw-art michie-box michie-box--secondary">
-        {currentSong?.cover ? (
+        {showArt ? (
           <img
+            key={currentSong.cover}
             src={`asset://localhost/${currentSong.cover}`}
             alt={currentSong.album ?? "Album art"}
             className="mpw-art-img"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
+            onError={() => setArtFailed(true)}
           />
         ) : (
           <div className="mpw-art-placeholder michie-text-primary">♪</div>

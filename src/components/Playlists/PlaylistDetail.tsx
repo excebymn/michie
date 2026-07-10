@@ -9,7 +9,6 @@ import type { PlaylistFull, Songs, SongsFull } from "../../globalValues";
 import { AddSongsPanel } from "./AddSongsPanel";
 import { ConfirmDialog } from "./ConfirmDialog";
 import {
-  IconTrash,
   IconPencil,
   IconImage,
   IconShuffle,

@@ -188,13 +188,8 @@ pub struct GetPlaylistList {
     pub playlist: Vec<PlaylistTable>,
 }
 
-#[derive(sqlx::FromRow, Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+// LrclibLyrics dipindah ke src/lyrics.rs (disatukan dengan sisa logika fitur lirik).
 
-pub struct LrclibLyrics {
-    pub lyrics_id: i64,
-    pub plain_lyrics: String,
-    pub synced_lyrics: Option<String>,
-}
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VisualizerLevels {

@@ -11,7 +11,7 @@ type LyricsPhase =
   | { kind: "synced"; lines: LrcLine[] }
   | { kind: "plain"; lines: string[] };
 
-export function LyricsWidget() {
+export function LyricsKaraokeWidget() {
   const currentSong = usePlayerStore((s) => s.currentSong);
   const songProgress = usePlayerStore((s) => s.songProgress);
   const [phase, setPhase] = useState<LyricsPhase>({ kind: "loading" });
@@ -30,14 +30,13 @@ export function LyricsWidget() {
     lyricsService
       .findLyricsCandidates(path)
       .then((result) => {
-        if (requestIdRef.current !== requestId) return; // lagu sudah berganti lagi sebelum respons datang
+        if (requestIdRef.current !== requestId) return;
         applyResult(result);
       })
       .catch(() => {
         if (requestIdRef.current !== requestId) return;
         setPhase({ kind: "empty" });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong?.path]);
 
   function applyResult(result: LyricsLookupResult) {
@@ -59,8 +58,6 @@ export function LyricsWidget() {
       }
     }
     if (plain && plain.trim().length > 0) {
-      // Baris kosong (jeda antar bait di teks plain) dibuang supaya tidak ada
-      // baris kosong yang ke-render sebagai blank tanpa guna.
       const lines = plain.split(/\r?\n/).filter((l) => l.trim().length > 0);
       if (lines.length > 0) {
         setPhase({ kind: "plain", lines });
@@ -72,7 +69,6 @@ export function LyricsWidget() {
 
   async function pickCandidate(candidate: LyricsCandidate) {
     if (!currentSong?.path) return;
-    // Simpan pilihan user ke cache supaya lagu ini tidak perlu dicari lagi
     await lyricsService.updateRemoteLyrics(
       currentSong.path,
       candidate.syncedLyrics ?? "",
@@ -83,7 +79,7 @@ export function LyricsWidget() {
   }
 
   return (
-    <div className="widget-lyrics">
+    <div className="widget-lyrics-karaoke">
       {phase.kind === "loading" && (
         <div className="widget-lyrics-status michie-text-secondary">Memuat lirik...</div>
       )}
@@ -94,27 +90,26 @@ export function LyricsWidget() {
 
       {phase.kind === "plain" && <PlainLyrics lines={phase.lines} />}
 
-      {phase.kind === "synced" && <SyncedLyrics lines={phase.lines} progress={songProgress} />}
+      {phase.kind === "synced" && <SyncedKaraokeLyrics lines={phase.lines} progress={songProgress} />}
 
       {phase.kind === "selecting" && (
         <CandidatePicker candidates={phase.candidates} onPick={pickCandidate} />
       )}
 
       <style>{`
-        .widget-lyrics {
+        .widget-lyrics-karaoke {
           width: 100%;
           height: 100%;
           box-sizing: border-box;
           overflow: hidden;
           user-select: none;
-        }
-
-        .widget-lyrics-status {
-          width: 100%;
-          height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 1.5rem;
+        }
+
+        .widget-lyrics-status {
           font-size: 0.95rem;
           opacity: 0.7;
           text-align: center;
@@ -124,93 +119,130 @@ export function LyricsWidget() {
   );
 }
 
-// Baris ditampilin apa adanya (semua baris, bukan cuma 2), di-scroll biasa.
-// Baris aktif = baris terakhir yang timestamp-nya sudah lewat progress lagu.
-// Container auto-scroll ke baris aktif setiap kali index-nya berubah — jadi
-// yang keliatan di layar itu langsung representasi jujur dari data lirik,
-// bukan tersamar sama animasi ticker 2-baris seperti sebelumnya.
-function SyncedLyrics({ lines, progress }: { lines: LrcLine[]; progress: number }) {
-  const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  // -1 berarti belum ada baris yang waktunya lewat (masih di intro sebelum baris pertama)
+function SyncedKaraokeLyrics({ lines, progress }: { lines: LrcLine[]; progress: number }) {
   let activeIndex = -1;
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].time <= progress) activeIndex = i;
     else break;
   }
 
-  useEffect(() => {
-    const el = lineRefs.current[activeIndex];
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [activeIndex]);
+  const currentLine = lines[activeIndex];
+  const nextLine = lines[activeIndex + 1];
+
+  const currentText = activeIndex >= 0 ? currentLine.text : "\u266A";
+  const nextText = nextLine ? nextLine.text : "";
+
+  // Mengitung persentase seberapa jauh suku kata/kata berjalan di dalam baris aktif saat ini
+  let progressPercent = 0;
+  if (currentLine) {
+    const startTime = currentLine.time;
+    // Durasi baris adalah jarak ke baris berikutnya, atau fallback 4 detik jika itu baris terakhir
+    const endTime = nextLine ? nextLine.time : startTime + 4;
+    const duration = endTime - startTime;
+    if (duration > 0) {
+      progressPercent = Math.min(100, Math.max(0, ((progress - startTime) / duration) * 100));
+    }
+  }
 
   return (
-    <div className="widget-lyrics-scroll">
-      {/* Spacer atas & bawah supaya baris pertama/terakhir tetap bisa
-          ke-center di tengah viewport saat di-scroll, bukan mentok di ujung. */}
-      <div className="widget-lyrics-spacer" aria-hidden />
-      {lines.map((line, i) => (
-        <div
-          key={i}
-          ref={(el) => {
-            lineRefs.current[i] = el;
-          }}
-          className={
-            i === activeIndex
-              ? "widget-lyrics-line widget-lyrics-line--active michie-text-secondary"
-              : "widget-lyrics-line michie-text-secondary"
-          }
-        >
-          {line.text || "\u266A"}
+    <div className="karaoke-view" key={activeIndex}>
+      {/* 1. BARIS AKTIF UTAMA (Efek Teks Terisi Berjalan) */}
+      <div className="karaoke-row-active michie-box--secondary">
+        {/* Lapisan Teks Dasar (Warna Redup) */}
+        <div className="karaoke-text-base michie-text-secondary">
+          {currentText || "\u00A0"}
         </div>
-      ))}
-      <div className="widget-lyrics-spacer" aria-hidden />
+        {/* Lapisan Teks Karaoke (Warna Menyala menyapu dari kiri ke kanan via CSS width) */}
+        <div 
+          className="karaoke-text-fill michie-text-primary"
+          style={{ width: `${progressPercent}%` }}
+        >
+          {currentText || "\u00A0"}
+        </div>
+      </div>
+
+      {/* 2. BOCORAN BARIS BERIKUTNYA (Sangat samar di bawahnya agar user bersiap) */}
+      {nextText && (
+        <div className="karaoke-row-next michie-text-secondary animate-fade-in">
+          Next: {nextText}
+        </div>
+      )}
 
       <style>{`
-        .widget-lyrics-scroll {
+        .karaoke-view {
           width: 100%;
-          height: 100%;
-          overflow-y: auto;
-          box-sizing: border-box;
           display: flex;
           flex-direction: column;
-          gap: 0.9rem;
-          padding: 0 1rem;
-          scrollbar-width: none;
-        }
-        .widget-lyrics-scroll::-webkit-scrollbar {
-          display: none;
+          gap: 1rem;
+          align-items: center;
         }
 
-        .widget-lyrics-spacer {
-          flex: 0 0 42%;
+        .karaoke-row-active {
+          position: relative;
+          width: 100%;
+          max-width: 95%;
+          padding: 1.5rem;
+          border-radius: 14px;
+          min-height: 5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 8px 24px -6px rgba(0,0,0,0.12);
+          overflow: hidden;
         }
 
-        .widget-lyrics-line {
-          text-align: center;
-          font-size: 0.95rem;
-          font-weight: 500;
-          opacity: 0.35;
-          text-shadow: none;
-          transition: opacity 0.35s ease, font-size 0.35s ease, font-weight 0.35s ease, text-shadow 0.35s ease;
-        }
-
-        .widget-lyrics-line--active {
-          font-size: 1.4rem;
+        .karaoke-text-base, .karaoke-text-fill {
+          font-size: 1.35rem;
           font-weight: 800;
-          opacity: 1;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.35);
+          line-height: 1.4;
+          text-align: center;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: clip;
+          position: absolute;
+          width: 100%;
+          padding: 0 1.5rem;
+          box-sizing: border-box;
+        }
+
+        .karaoke-text-base {
+          opacity: 0.25; /* Teks dasar dibuat pudar */
+        }
+
+        .karaoke-text-fill {
+          left: 0;
+          text-align: left;
+          padding-left: calc(50% - (100% - 3rem)/2); /* Auto center alignment trick */
+          white-space: nowrap;
+          /* Transisi pergeseran sapuan warna dibuat sangat tipis agar tidak tersendat */
+          transition: width 0.15s linear; 
+          border-right: 2px solid var(--color-primary); /* Kursor pengetikan */
+        }
+
+        .karaoke-row-next {
+          font-size: 0.85rem;
+          font-weight: 500;
+          opacity: 0.4;
+          text-align: center;
+          font-style: italic;
+          max-width: 80%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 0.4; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.4s ease forwards;
         }
       `}</style>
     </div>
   );
 }
 
-// Lirik tanpa timestamp — ditampilin utuh sebagai teks statis (semua baris),
-// dengan catatan kecil di atas biar jelas kenapa gak ada highlight yang jalan.
-// Sebelumnya cuma baris pertama yang ditampilkan, seolah itu "baris aktif"
-// yang jalan — padahal statis total, gak pernah berubah. Itu yang bikin
-// keliatan seperti "salah sinkron" padahal sebenarnya emang gak ada data waktu.
 function PlainLyrics({ lines }: { lines: string[] }) {
   return (
     <div className="widget-lyrics-plain-scroll">

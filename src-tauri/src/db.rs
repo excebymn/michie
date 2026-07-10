@@ -10,7 +10,7 @@ use tauri::{Emitter, State};
 
 use crate::types::{
     AllAlbumResults, AllArtistResults, AllGenreResults, ArtistDetailsResults, DirsTable, DoesExist,
-    GenreDetailsResults, History, LrclibLyrics, PlaylistFull, PlaylistTable, SongHistory,
+    GenreDetailsResults, History, PlaylistFull, PlaylistTable, SongHistory,
     SongTable, SongTableUpload,
 };
 use crate::{commands, AppState};
@@ -1250,54 +1250,5 @@ pub async fn get_play_history(
     }
 }
 
-pub async fn add_lyrics(
-    state: State<'_, AppState>,
-    lyrics: LrclibLyrics,
-    path: String,
-) -> Result<(), String> {
-    let _ = sqlx::query("INSERT INTO lyrics (lyrics_id, plain_lyrics, synced_lyrics, song_id) VALUES (?1, ?2, ?3, ?4)")
-        .bind(lyrics.lyrics_id)
-        .bind(lyrics.plain_lyrics)
-        .bind(lyrics.synced_lyrics)
-        .bind(path)
-        .execute(&state.pool)
-        .await;
-
-    Ok(())
-}
-
-pub async fn update_lyrics(
-    state: State<'_, AppState>,
-    lyrics: LrclibLyrics,
-    path: String,
-) -> Result<(), String> {
-    let _ = sqlx::query("UPDATE lyrics SET lyrics_id = $1, plain_lyrics = $2, synced_lyrics = $3 WHERE song_id = $4")
-        .bind(lyrics.lyrics_id)
-        .bind(lyrics.plain_lyrics)
-        .bind(lyrics.synced_lyrics)
-        .bind(path)
-        .execute(&state.pool)
-        .await;
-
-    Ok(())
-}
-
-#[tauri::command(rename_all = "snake_case")]
-pub async fn get_lyrics(
-    state: State<AppState, '_>,
-    song_id: String,
-) -> Result<LrclibLyrics, String> {
-    let res = sqlx::query_as::<_, LrclibLyrics>(
-        "SELECT lyrics_id, plain_lyrics, synced_lyrics FROM lyrics WHERE song_id = ?",
-    )
-    .bind(song_id)
-    .fetch_one(&state.pool)
-    .await;
-
-    if res.is_ok() {
-        Ok(res.unwrap())
-    } else {
-        log::info!("Song does not have lyrics in the database");
-        Err("No Lyrics".to_string())
-    }
-}
+// Fungsi-fungsi lirik (add_lyrics/update_lyrics/get_lyrics) sudah dipindah
+// ke src/lyrics.rs, disatukan dengan sisa logika fitur lirik lainnya.

@@ -19,10 +19,6 @@ const formatDuration = (seconds: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
-// Cari parent terdekat yang benar-benar scrollable (overflow-y auto/scroll
-// DAN kontennya memang lebih panjang dari kontainernya). Perlu ini karena
-// QueueRow gak tahu struktur DOM di atasnya — bisa dibungkus beberapa div
-// sebelum ketemu elemen yang benar-benar jadi scroll container.
 function findScrollParent(el: HTMLElement | null): HTMLElement | null {
   let node = el?.parentElement ?? null;
   while (node) {
@@ -38,9 +34,6 @@ function findScrollParent(el: HTMLElement | null): HTMLElement | null {
   return null;
 }
 
-// Lacak kapan terakhir kali user scroll manual (wheel/touch), per scroll
-// container. Pakai WeakMap/WeakSet supaya listener & timestamp gak
-// terdaftar dobel walau tiap QueueRow nempel ke container yang sama persis.
 const lastUserScrollAt = new WeakMap<HTMLElement, number>();
 const listenerAttached = new WeakSet<HTMLElement>();
 
@@ -52,8 +45,6 @@ function ensureUserScrollListener(container: HTMLElement) {
   container.addEventListener("touchmove", markUserScroll, { passive: true });
 }
 
-// Berapa lama jeda setelah user scroll manual sebelum auto-scroll-ke-lagu-
-// sekarang boleh jalan lagi.
 const RESUME_AFTER_MS = 3000;
 
 export function QueueRow({
@@ -66,11 +57,41 @@ export function QueueRow({
   onDropRow,
 }: QueueRowProps) {
   const [isOver, setIsOver] = useState(false);
+  // State untuk melacak apakah baris ini sedang terlihat/mendekati viewport
+  const [isVisible, setIsVisible] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll ke baris ini setiap kali dia jadi lagu yang sedang diputar,
-  // tapi hormati kalau user baru saja scroll manual — coba lagi otomatis
-  // setelah RESUME_AFTER_MS tanpa interaksi user.
+  // 1. LAZY LOADING ENGINE (IntersectionObserver)
+  useEffect(() => {
+    // Lagu yang sedang diputar WAJIB selalu ter-render agar auto-scroll tidak pincang
+    if (isCurrent) {
+      setIsVisible(true);
+      return;
+    }
+
+    const row = rowRef.current;
+    if (!row) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsVisible(entry.isIntersecting);
+        });
+      },
+      {
+        // rootMargin 200px berfungsi sebagai buffer zone (preload sebelum benar-benar tergulung ke layar)
+        rootMargin: "200px 0px 200px 0px",
+      }
+    );
+
+    observer.observe(row);
+
+    return () => {
+      observer.unobserve(row);
+    };
+  }, [isCurrent]);
+
+  // 2. AUTO-SCROLL LOGIC (Tetap dipertahankan dari kode asli)
   useEffect(() => {
     if (!isCurrent) return;
     const row = rowRef.current;
@@ -107,56 +128,67 @@ export function QueueRow({
   return (
     <div
       ref={rowRef}
-      className={`qr-row ${isCurrent ? "qr-row--current" : ""} ${isOver ? "qr-row--over" : ""}`}
-      onClick={onPlay}
+      className={`qr-row ${isCurrent ? "qr-row--current" : ""} ${isOver ? "qr-row--over" : ""} ${!isVisible ? "qr-row--unrendered" : ""}`}
+      onClick={isVisible ? onPlay : undefined}
       onDragOver={(e) => {
+        if (!isVisible) return;
         e.preventDefault();
         setIsOver(true);
       }}
       onDragLeave={() => setIsOver(false)}
       onDrop={(e) => {
+        if (!isVisible) return;
         e.preventDefault();
         setIsOver(false);
         onDropRow();
       }}
     >
-      <span
-        className="qr-grip michie-text-secondary"
-        draggable
-        onDragStart={(e) => {
-          e.stopPropagation();
-          e.dataTransfer.effectAllowed = "move";
-          onDragStartRow();
-        }}
-        onClick={(e) => e.stopPropagation()}
-        title="Seret untuk mengatur ulang"
-      >
-        <IconGrip />
-      </span>
-      <span className="qr-index michie-text-secondary">
-        {isCurrent ? <IconPlayingBars /> : index + 1}
-      </span>
-      <div className="qr-info">
-        <div className="qr-title michie-text-secondary">{song.name}</div>
-        <div className="qr-sub michie-text-secondary">
-          {song.artist || song.album_artist || "—"}
-        </div>
-      </div>
-      <span className="qr-duration michie-text-secondary">
-        {formatDuration(song.duration)}
-      </span>
-      <button
-        className="qr-remove michie-text-secondary"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        disabled={isCurrent}
-        title={isCurrent ? "Lagu sedang diputar" : "Hapus dari antrian"}
-        aria-label="Hapus dari antrian"
-      >
-        <IconRemove />
-      </button>
+      {isVisible ? (
+        <>
+          <span
+            className="qr-grip michie-text-secondary"
+            draggable
+            onDragStart={(e) => {
+              e.stopPropagation();
+              e.dataTransfer.effectAllowed = "move";
+              onDragStartRow();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            title="Seret untuk mengatur ulang"
+          >
+            <IconGrip />
+          </span>
+          <span className="qr-index michie-text-secondary">
+            {isCurrent ? <IconPlayingBars /> : index + 1}
+          </span>
+          <div className="qr-info">
+            <div className="qr-title michie-text-secondary">{song.name}</div>
+            <div className="qr-sub michie-text-secondary">
+              {song.artist || song.album_artist || "—"}
+            </div>
+          </div>
+          <span className="qr-duration michie-text-secondary">
+            {formatDuration(song.duration)}
+          </span>
+          <button
+            className="qr-remove michie-text-secondary"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+            disabled={isCurrent}
+            title={isCurrent ? "Lagu sedang diputar" : "Hapus dari antrian"}
+            aria-label="Hapus dari antrian"
+          >
+            <IconRemove />
+          </button>
+        </>
+      ) : (
+        /* Render angka index tipis saja sebagai penanda placeholder agar tidak mutasi tinggi layout */
+        <span className="qr-index michie-text-secondary" style={{ gridColumn: "2", opacity: 0.15 }}>
+          {index + 1}
+        </span>
+      )}
       <style>{`
         .qr-row {
           display: grid;
@@ -166,13 +198,18 @@ export function QueueRow({
           padding: 8px 10px;
           border-radius: 10px;
           cursor: pointer;
+          min-height: 43px; /* Mematok tinggi minimum baris agar scrollbar stabil saat swap konten */
+          box-sizing: border-box;
         }
-        .qr-row:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
+        .qr-row:hover:not(.qr-row--unrendered) { background: color-mix(in srgb, currentColor 6%, transparent); }
         .qr-row--current {
           font-weight: 600;
           background: color-mix(in srgb, currentColor 9%, transparent);
         }
         .qr-row--over { outline: 2px dashed currentColor; outline-offset: -2px; opacity: 0.85; }
+        .qr-row--unrendered {
+          cursor: default;
+        }
         .qr-grip { opacity: 0.35; display: flex; cursor: grab; }
         .qr-grip svg { width: 14px; height: 14px; }
         .qr-index { font-size: 0.78rem; opacity: 0.5; text-align: center; display: flex; align-items: center; justify-content: center; }
