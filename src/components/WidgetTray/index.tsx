@@ -199,7 +199,7 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
                 opacity: previewMode === "hover" ? 1 : 0.55,
               }}
             >
-              Muat saat hover
+              Load on hover
             </button>
             <button
               onClick={() => setPreviewMode("all")}
@@ -218,7 +218,7 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
                 opacity: previewMode === "all" ? 1 : 0.55,
               }}
             >
-              Muat semua
+              Load all
             </button>
           </div>
         </div>

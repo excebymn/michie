@@ -179,7 +179,7 @@ export function MusicPlayer() {
             <img
               src={MichieLogo}
               alt="Michie logo"
-              className="mpw-brand-logo"
+              className="mpw-brand-logo michie-circle "
             />
             <span className="mpw-brand-name michie-text-secondary">michie</span>
           </div>

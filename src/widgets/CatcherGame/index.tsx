@@ -6,27 +6,44 @@ interface FallingVinyl {
   x: number;
   y: number;
   speed: number;
+  size: number;
+}
+
+interface CatchEffect {
+  id: number;
+  x: number; // posisi persen horizontal, buat nempatin efek "+1"
 }
 
 export const VinylCatcherWidget: React.FC = () => {
   // 1. Berlangganan ke State Player Utama untuk melacak pergantian lagu
   const currentSong = usePlayerStore((state) => state.currentSong);
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const catcherRef = useRef<HTMLDivElement>(null);
 
   // State Gameplay
   const [score, setScore] = useState<number>(0);
   const [vinyls, setVinyls] = useState<FallingVinyl[]>([]);
-  const [catcherX, setCatcherX] = useState<number>(50); // Posisi dalam persen (%)
+  const [catchEffects, setCatchEffects] = useState<CatchEffect[]>([]);
+  const [catcherX, setCatcherX] = useState<number>(50); // Posisi dalam persen (%), buat render
 
-  // Ref penampung id increment unik untuk item piringan hitam
+  // Ref penampung posisi catcher terkini — dipakai di dalam game loop supaya
+  // loop-nya TIDAK perlu re-subscribe tiap catcherX berubah (dulu ini bikin
+  // spawner ke-reset tiap kali catcher digeser, makanya vinyl jarang muncul
+  // pas lagi aktif main).
+  const catcherXRef = useRef<number>(50);
+  useEffect(() => {
+    catcherXRef.current = catcherX;
+  }, [catcherX]);
+
+  // Ref penampung id increment unik untuk item piringan hitam & efek tangkap
   const nextId = useRef<number>(0);
+  const nextEffectId = useRef<number>(0);
 
   // Ambil URL cover art (mengikuti konvensi protocol app-mu)
   const coverSrc = currentSong?.cover
     ? `asset://localhost/${currentSong.cover}`
-    : currentSong?.path 
+    : currentSong?.path
     ? `asset://localhost/${currentSong.path}`
     : '';
 
@@ -34,52 +51,65 @@ export const VinylCatcherWidget: React.FC = () => {
   useEffect(() => {
     setScore(0);
     setVinyls([]);
+    setCatchEffects([]);
   }, [currentSong?.path]); // Menggunakan path unik lagu sebagai trigger perubahan
 
-  // 3. Game Loop & Spawning System (Menggunakan requestAnimationFrame & Interval)
+  // 3. Game Loop & Spawning System — sekarang cuma jalan SEKALI (mount/unmount),
+  // lepas total dari perubahan catcherX, biar spawner nggak ke-reset pas di-drag.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     let animationFrameId: number;
+    let spawnTimeoutId: ReturnType<typeof setTimeout>;
 
     // Fungsi update pergerakan piringan hitam jatuh (60fps)
     const updateGame = () => {
       setVinyls((prevVinyls) => {
         const containerHeight = container.clientHeight;
         const containerWidth = container.clientWidth;
-        
-        // Ukuran catcher & piringan dalam hitungan px aktual demi deteksi tabrakan presisi
-        const catcherWidth = 70; 
-        const catcherHeight = 15;
-        const vinylSize = 45;
 
-        // Hitung posisi X absolut catcher dari nilai persentase state
-        const catcherAbsX = (catcherX / 100) * (containerWidth - catcherWidth);
+        const catcherWidth = 70;
+        const catcherHeight = 15;
+
+        // Ambil posisi catcher terkini dari ref (bukan closure lama)
+        const catcherAbsX = (catcherXRef.current / 100) * (containerWidth - catcherWidth);
         const catcherAbsY = containerHeight - catcherHeight - 10; // 10px offset dari dasar
 
-        return prevVinyls
+        const caughtEffects: CatchEffect[] = [];
+
+        const next = prevVinyls
           .map((vinyl) => ({ ...vinyl, y: vinyl.y + vinyl.speed }))
           .filter((vinyl) => {
-            // Hitung posisi X absolut piringan hitam
-            const vinylAbsX = (vinyl.x / 100) * (containerWidth - vinylSize);
+            const vinylAbsX = (vinyl.x / 100) * (containerWidth - vinyl.size);
 
-            // Deteksi tabrakan (Collision Detection)
-            const hitX = vinylAbsX + vinylSize >= catcherAbsX && vinylAbsX <= catcherAbsX + catcherWidth;
-            const hitY = vinyl.y + vinylSize >= catcherAbsY && vinyl.y <= catcherAbsY + catcherHeight;
+            const hitX = vinylAbsX + vinyl.size >= catcherAbsX && vinylAbsX <= catcherAbsX + catcherWidth;
+            const hitY = vinyl.y + vinyl.size >= catcherAbsY && vinyl.y <= catcherAbsY + catcherHeight;
 
             if (hitX && hitY) {
-              setScore((prevScore) => prevScore + 1); // Tambah skor jika tertangkap
+              setScore((prevScore) => prevScore + 1);
+              caughtEffects.push({ id: nextEffectId.current++, x: vinyl.x });
               return false; // Hapus dari layar
             }
 
-            // Hapus jika piringan sudah lolos melewati batas bawah container
             if (vinyl.y > containerHeight) {
-              return false;
+              return false; // Lolos aja, santai — nggak ada penalti
             }
 
             return true;
           });
+
+        if (caughtEffects.length > 0) {
+          setCatchEffects((prev) => [...prev, ...caughtEffects]);
+          // Efek "+1" dibuang otomatis setelah animasinya kelar
+          caughtEffects.forEach((effect) => {
+            setTimeout(() => {
+              setCatchEffects((prev) => prev.filter((e) => e.id !== effect.id));
+            }, 600);
+          });
+        }
+
+        return next;
       });
 
       animationFrameId = requestAnimationFrame(updateGame);
@@ -87,45 +117,79 @@ export const VinylCatcherWidget: React.FC = () => {
 
     animationFrameId = requestAnimationFrame(updateGame);
 
-    // Pembuat (Spawner) piringan hitam jatuh berkala setiap 2.5 detik
-    const spawnInterval = setInterval(() => {
-      // Hanya spawn jika player sedang memutar lagu
-      const newVinyl: FallingVinyl = {
-        id: nextId.current++,
-        x: Math.random() * 90, // Posisi acak horizontal (0% - 90%)
-        y: -50,                // Mulai di atas container (sembunyi)
-        speed: 1.5 + Math.random() * 1.5, // Variasi kecepatan santai
-      };
-      setVinyls((prev) => [...prev, newVinyl]);
-    }, 2500);
+    // Spawner: interval acak (bukan tetap) + kadang muncul rombongan 2-3
+    // sekaligus, biar ritme jatuhnya kerasa hidup, bukan mekanis satu-satu.
+    const scheduleSpawn = () => {
+      const delay = 500 + Math.random() * 700; // ~0.5–1.2 detik, jauh lebih rame dari 2.5 detik
+      spawnTimeoutId = setTimeout(() => {
+        const burst = Math.random() < 0.25 ? (Math.random() < 0.4 ? 3 : 2) : 1;
+
+        const newVinyls: FallingVinyl[] = Array.from({ length: burst }).map(() => ({
+          id: nextId.current++,
+          x: Math.random() * 90,
+          y: -50 - Math.random() * 80, // start ketinggian sedikit acak biar rombongan nggak nempel rapi
+          speed: 1.6 + Math.random() * 2, // sedikit lebih variatif & gesit dari sebelumnya
+          size: 38 + Math.random() * 14, // variasi ukuran 38–52px, biar nggak seragam
+        }));
+
+        setVinyls((prev) => [...prev, ...newVinyls]);
+        scheduleSpawn();
+      }, delay);
+    };
+    scheduleSpawn();
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      clearInterval(spawnInterval);
+      clearTimeout(spawnTimeoutId);
     };
-  }, [catcherX]);
+  }, []);
 
-  // 4. Kontrol Menggeser Catcher Menggunakan Mouse
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // 4. Kontrol Menggeser Catcher Pakai Klik-Tahan (Drag)
+  const [isDragging, setIsDragging] = useState(false);
+
+  function moveCatcherTo(clientX: number) {
     const container = containerRef.current;
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left; // Posisi mouse relatif terhadap widget kotak
-    
-    // Konversi posisi mouse ke nilai persentase (0 - 100)
+    const mouseX = clientX - rect.left;
+
     let percentageX = (mouseX / rect.width) * 100;
-    
-    // Batasi pergeseran agar catcher tidak keluar tembok kanan/kiri widget
     if (percentageX < 0) percentageX = 0;
     if (percentageX > 100) percentageX = 100;
 
     setCatcherX(percentageX);
+  }
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    moveCatcherTo(e.clientX);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    moveCatcherTo(e.clientX);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleWindowMouseUp = () => setIsDragging(false);
+    const handleWindowMouseMove = (e: MouseEvent) => moveCatcherTo(e.clientX);
+
+    window.addEventListener('mouseup', handleWindowMouseUp);
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    return () => {
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+      window.removeEventListener('mousemove', handleWindowMouseMove);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDragging]);
+
   return (
-    <div 
+    <div
       ref={containerRef}
+      onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       className="michie-box"
       style={{
@@ -134,12 +198,12 @@ export const VinylCatcherWidget: React.FC = () => {
         position: 'relative',
         overflow: 'hidden',
         minHeight: '260px',
-        cursor: 'none' // Sembunyikan cursor asli agar ilusi menggeser deck vinyl terasa mulus
+        cursor: isDragging ? 'grabbing' : 'grab'
       }}
     >
       {/* Skor di Pojok Kiri Atas */}
-      <div 
-        className="michie-text-primary"
+      <div
+        className="michie-text-secondary"
         style={{
           position: 'absolute',
           top: '12px',
@@ -163,13 +227,12 @@ export const VinylCatcherWidget: React.FC = () => {
             position: 'absolute',
             left: `${vinyl.x}%`,
             top: `${vinyl.y}px`,
-            width: '45px',
-            height: '45px',
+            width: `${vinyl.size}px`,
+            height: `${vinyl.size}px`,
             overflow: 'hidden',
-            pointerEvents: 'none', // Mencegah interaksi mouse mengganggu pergeseran catcher
+            pointerEvents: 'none',
             boxShadow: '0 4px 8px rgba(0,0,0,0.25)',
-            transform: 'rotate(0deg)',
-            animation: 'spin 4s linear infinite', // Animasi piringan berputar pelan saat jatuh
+            animation: 'spin 4s linear infinite',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -177,15 +240,33 @@ export const VinylCatcherWidget: React.FC = () => {
           }}
         >
           {coverSrc ? (
-            <img 
-              src={coverSrc} 
-              alt="Vinyl Art" 
+            <img
+              src={coverSrc}
+              alt="Vinyl Art"
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
             />
           ) : (
-            /* Lapisan tengah vinyl hitam klasik jika cover kosong */
             <div className="michie-bg-secondary" style={{ width: '40%', height: '40%', borderRadius: '50%' }} />
           )}
+        </div>
+      ))}
+
+      {/* Efek "+1" pas nangkep vinyl, biar kerasa responsif */}
+      {catchEffects.map((effect) => (
+        <div
+          key={effect.id}
+          className="michie-text-primary"
+          style={{
+            position: 'absolute',
+            left: `${effect.x}%`,
+            bottom: '32px',
+            fontSize: '14px',
+            fontWeight: 800,
+            pointerEvents: 'none',
+            animation: 'floatUp 0.6s ease-out forwards'
+          }}
+        >
+          +1
         </div>
       ))}
 
@@ -196,23 +277,26 @@ export const VinylCatcherWidget: React.FC = () => {
         style={{
           position: 'absolute',
           bottom: '10px',
-          left: `calc(${catcherX}% - 35px)`, // Center alignment berdasarkan lebar catcher (70px / 2 = 35px)
+          left: `calc(${catcherX}% - 35px)`,
           width: '70px',
           height: '15px',
           borderRadius: '8px',
           borderWidth: '1.5px',
           borderStyle: 'solid',
           boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-          transition: 'transform 0.05s ease-out', // Efek elastisitas tipis saat digeser cepat
+          transition: 'transform 0.05s ease-out',
           pointerEvents: 'none'
         }}
       />
 
-      {/* Inject CSS global inline khusus untuk animasi rotasi piringan hitam */}
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @keyframes floatUp {
+          0% { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(-28px); opacity: 0; }
         }
       `}</style>
     </div>

@@ -1,0 +1,99 @@
+.equalizer-led {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+
+.equalizer-led--bypassed .equalizer-led__track {
+  opacity: 0.4;
+}
+
+.equalizer-led__bands {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  gap: 4px;
+  min-height: 0;
+}
+
+.equalizer-led__band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+
+.equalizer-led__gain-label,
+.equalizer-led__freq-label {
+  font-size: 10px;
+  opacity: 0.7;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.equalizer-led__track {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  transition: opacity 150ms ease;
+}
+
+.equalizer-led__segments {
+  display: flex;
+  flex-direction: column;
+  width: 16px;
+  height: 100%;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.equalizer-led__segment {
+  flex: 1;
+  border-radius: 2px;
+  opacity: 0.12;
+}
+
+.equalizer-led__segment--lit {
+  opacity: 1;
+}
+
+/* Input asli disembunyikan tapi tetap jadi lapisan interaksi —
+   drag/click langsung pakai perilaku native range vertikal, gak
+   perlu reimplement fisika drag sendiri. */
+.equalizer-led__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  cursor: pointer;
+}
+
+.equalizer-led__input:disabled {
+  cursor: not-allowed;
+}
+
+.equalizer-led__controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.equalizer-led__toggle,
+.equalizer-led__reset {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}

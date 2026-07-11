@@ -1,0 +1,64 @@
+.equalizer-curve {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.equalizer-curve--bypassed .equalizer-curve__svg {
+  opacity: 0.4;
+}
+
+.equalizer-curve__svg {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  transition: opacity 150ms ease;
+}
+
+.equalizer-curve__zero-line {
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0.2;
+}
+
+.equalizer-curve__path {
+  stroke: var(--color-secondary, currentColor);
+  stroke-width: 2.5;
+}
+
+.equalizer-curve__point {
+  cursor: grab;
+  touch-action: none;
+}
+
+.equalizer-curve__point:active {
+  cursor: grabbing;
+}
+
+.equalizer-curve__freq-label {
+  font-size: 9px;
+  fill: currentColor;
+  opacity: 0.6;
+  text-anchor: middle;
+}
+
+.equalizer-curve__controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.equalizer-curve__toggle,
+.equalizer-curve__reset {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
