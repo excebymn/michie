@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { onEvent } from "../../services/api";
+import { subscribeVisualizer } from "../../services/visualizerService";
 import "./visualizer.css";
 
 const BAND_COUNT = 20; // harus sama dengan BAND_COUNT di visualizer.rs
@@ -7,25 +7,17 @@ const MAX_SCALE = 9; // seberapa jauh bar bisa "memanjang" dari tinggi dasarnya
 
 export default function MirrorVisualizer() {
   const barRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const unlisteners = useRef<Array<() => void>>([]);
 
   useEffect(() => {
-    const setup = async () => {
-      const ul1 = await onEvent<{ levels: number[] }>(
-        "visualizer-levels",
-        (e) => {
-          e.payload.levels.forEach((level, i) => {
-            const el = barRefs.current[i];
-            if (!el) return;
-            const clamped = Math.max(0, Math.min(1, level));
-            el.style.transform = `scaleY(${1 + clamped * (MAX_SCALE - 1)})`;
-          });
-        },
-      );
-      unlisteners.current = [ul1].filter(Boolean) as Array<() => void>;
-    };
-    setup();
-    return () => unlisteners.current.forEach((fn) => fn());
+    const unsubscribe = subscribeVisualizer((levels) => {
+      levels.forEach((level, i) => {
+        const el = barRefs.current[i];
+        if (!el) return;
+        const clamped = Math.max(0, Math.min(1, level));
+        el.style.transform = `scaleY(${1 + clamped * (MAX_SCALE - 1)})`;
+      });
+    });
+    return unsubscribe;
   }, []);
 
   return (

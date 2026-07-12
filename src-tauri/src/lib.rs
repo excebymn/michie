@@ -16,6 +16,7 @@ use tauri_plugin_prevent_default::Flags;
 use rodio::{OutputStream, OutputStreamBuilder, Sink};
 use sqlx::{prelude::FromRow, Pool, Sqlite};
 use std::fs;
+use std::sync::atomic::AtomicUsize; // BARU — counter subscriber visualizer
 use std::time::SystemTime;
 use std::{
     path::Path,
@@ -28,14 +29,15 @@ mod commands;
 mod db;
 mod equalizer; // Fitur equalizer: DSP biquad, state, DB persist, commands — semua disatukan di sini (pola sama seperti lyrics.rs)
 mod helper;
+
 mod lyrics; // Fitur lirik: types, cache DB, fetch LRCLib, fuzzy matching, commands — semua disatukan di sini
 mod music;
+mod spectral; // BARU
 mod types;
 mod visualizer; // BARU: daftarkan module visualizer
 
 use crate::{
-    db::establish_connection, equalizer::EqualizerParams, helper::get_song_data,
-    music::MusicPlayer,
+    db::establish_connection, equalizer::EqualizerParams, helper::get_song_data, music::MusicPlayer,
 };
 
 use crate::types::GetCurrentSong;
@@ -46,6 +48,7 @@ pub struct AppState {
     is_scan_ongoing: Mutex<bool>,
     is_back_restore_ongoing: Mutex<i64>,
     equalizer_params: Arc<EqualizerParams>, // BARU
+    visualizer_subscribers: AtomicUsize, // BARU — jumlah widget frontend yang lagi subscribe ke visualizer-levels
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -122,20 +125,24 @@ pub fn run() -> Result<(), String> {
                 pool,
                 is_scan_ongoing: Mutex::new(false),
                 is_back_restore_ongoing: Mutex::new(0),
-                equalizer_params, // BARU
+                equalizer_params,                            // BARU
+                visualizer_subscribers: AtomicUsize::new(0), // BARU
             });
 
             // ---- Watcher: deteksi lagu selesai secara alami dan auto-lanjut ----
             let watcher_handle = app.handle().clone();
             std::thread::spawn(move || {
                 let mut prev_nonempty = false;
+                // Interval poll berikutnya, di-set adaptif di akhir tiap iterasi.
+                let mut next_sleep_ms: u64 = 350;
                 loop {
-                    std::thread::sleep(std::time::Duration::from_millis(350));
+                    std::thread::sleep(std::time::Duration::from_millis(next_sleep_ms));
 
                     let state = watcher_handle.state::<AppState>();
                     let mut player = state.player.lock().unwrap();
 
                     let is_active = player.is_active;
+                    let is_paused = player.check_is_paused();
                     let nonempty = player.get_sink_length() > 0;
 
                     if is_active && prev_nonempty && !nonempty {
@@ -150,32 +157,65 @@ pub fn run() -> Result<(), String> {
                             let _ = watcher_handle.emit("controls-play-pause", false);
                             prev_nonempty = false;
                         }
+                        next_sleep_ms = 350;
                         continue;
                     }
 
                     prev_nonempty = nonempty;
+                    drop(player);
+
+                    // Backoff: polling ketat (350ms) cuma perlu SELAGI lagu beneran
+                    // lagi diputar, buat nangkep edge "selesai sendiri" secepatnya.
+                    // Kalau lagi paused atau gak ada lagu aktif sama sekali, gak ada
+                    // apa-apa di sink yang bisa berubah sendiri tanpa aksi user (dan
+                    // aksi user selalu lewat command, bukan lewat thread ini) — jadi
+                    // aman buat sleep jauh lebih jarang sampai state berubah lagi.
+                    next_sleep_ms = if is_active && !is_paused { 350 } else { 2000 };
                 }
             });
 
+            // ---- Analyzer: hitung FFT & emit level tiap bar visualizer ----
             let visualizer_handle = app.handle().clone();
             std::thread::spawn(move || {
-                let mut smoothed = [0.0f32; visualizer::BAND_COUNT]; // BARU — state persisten antar-iterasi
+                let mut smoothed = [0.0f32; visualizer::BAND_COUNT]; // state persisten antar-iterasi
+                                                                     // Interval poll berikutnya, di-set adaptif di akhir tiap iterasi —
+                                                                     // cuma perlu 24fps SELAGI ada widget yang nampilin DAN lagu beneran
+                                                                     // lagi diputar. Di luar itu gak ada gunanya bangun 24x/detik.
+                let mut next_sleep_ms: u64 = 42;
 
                 loop {
-                    std::thread::sleep(std::time::Duration::from_millis(33));
+                    std::thread::sleep(std::time::Duration::from_millis(next_sleep_ms));
 
                     let state = visualizer_handle.state::<AppState>();
+
+                    // BARU: gak ada satupun widget frontend yang subscribe -> skip
+                    // total. Gak lock player, gak compute_band_levels, gak emit.
+                    if state
+                        .visualizer_subscribers
+                        .load(std::sync::atomic::Ordering::Relaxed)
+                        == 0
+                    {
+                        smoothed = [0.0; visualizer::BAND_COUNT]; // reset biar gak "lompat" dari nilai lama pas dinyalain lagi
+                                                                  // Gak ada yang nonton -> cek ulang tiap 500ms aja, bukan tiap 42ms.
+                        next_sleep_ms = 500;
+                        continue;
+                    }
+
                     let player = state.player.lock().unwrap();
 
                     if !player.is_active || player.check_is_paused() {
                         drop(player);
-                        smoothed = [0.0; visualizer::BAND_COUNT]; // BARU — reset pas pause/stop, gak nyangkut di nilai lama
+                        smoothed = [0.0; visualizer::BAND_COUNT]; // reset pas pause/stop, gak nyangkut di nilai lama
                         let _ = visualizer_handle.emit(
                             "visualizer-levels",
                             crate::types::VisualizerLevels {
                                 levels: smoothed.to_vec(),
                             },
                         );
+                        // Widget kebuka tapi lagu gak lagi jalan (paused/stopped) ->
+                        // gak ada spektrum baru buat dihitung. Slow-poll aja (250ms),
+                        // masih cukup responsif buat nurunin bar ke nol pas pause.
+                        next_sleep_ms = 250;
                         continue;
                     }
 
@@ -183,9 +223,12 @@ pub fn run() -> Result<(), String> {
                     let sample_rate = player.current_sample_rate;
                     drop(player);
 
+                    // Lagi beneran diputar + ada yang nonton -> balik ke 24fps penuh.
+                    next_sleep_ms = 42;
+
                     let raw = visualizer::compute_band_levels(&buffer, sample_rate);
 
-                    // BARU — attack cepat (naik), release lambat (turun)
+                    // attack cepat (naik), release lambat (turun)
                     const ATTACK: f32 = 0.6;
                     const RELEASE: f32 = 0.15;
                     for i in 0..visualizer::BAND_COUNT {
@@ -291,6 +334,7 @@ pub fn run() -> Result<(), String> {
             db::remove_multiple_songs_from_playlist,
             db::add_playlist_cover, // Custom Playlist artwork
             db::set_background_image,
+            db::save_widget_media, // Foto/gif/video custom buat PhotoWidget/GifWidget/VideoWidget
             commands::get_dominant_color, // Ekstraksi warna dominan album art (mode "ikuti tone album")
             // History Functions
             db::add_song_to_history,
@@ -345,6 +389,9 @@ pub fn run() -> Result<(), String> {
             equalizer::get_eq_enabled,
             equalizer::set_eq_band_gain,
             equalizer::set_eq_enabled,
+            // Visualizer Functions - BARU (gating subscriber, lihat visualizer.rs)
+            visualizer::visualizer_subscribe,
+            visualizer::visualizer_unsubscribe,
             // Event Caller Functions
             commands::update_current_song_played,
             commands::new_playlist_added,
@@ -355,6 +402,9 @@ pub fn run() -> Result<(), String> {
             lyrics::search_remote_lyrics,
             lyrics::find_lyrics_candidates,
             // Settings Functions
+            // Spectral Analysis Functions - BARU (semua logic di spectral.rs, pola sama seperti equalizer.rs)
+            spectral::get_spectral_analysis,
+            spectral::analyze_song_spectrum,
             scan_directory,
             db::get_directory,
             db::add_directory,

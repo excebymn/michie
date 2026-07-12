@@ -1,32 +1,29 @@
 import { useEffect, useRef } from "react";
-import { onEvent } from "../../services/api";
+import { subscribeVisualizer } from "../../services/visualizerService";
 import "./visualizer.css";
 
 const BAND_COUNT = 20;
 const BASE_LEN = 14; // px, panjang minimum jari-jari
 const MAX_EXTRA_LEN = 46; // px, tambahan panjang maksimum saat level tinggi
+const MAX_LEN = BASE_LEN + MAX_EXTRA_LEN; // panjang penuh elemen — FIXED, gak pernah diubah lagi
 
 export default function RadialVisualizer() {
   const barRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const unlisteners = useRef<Array<() => void>>([]);
 
   useEffect(() => {
-    const setup = async () => {
-      const ul1 = await onEvent<{ levels: number[] }>(
-        "visualizer-levels",
-        (e) => {
-          e.payload.levels.forEach((level, i) => {
-            const el = barRefs.current[i];
-            if (!el) return;
-            const clamped = Math.max(0, Math.min(1, level));
-            el.style.height = `${BASE_LEN + clamped * MAX_EXTRA_LEN}px`;
-          });
-        },
-      );
-      unlisteners.current = [ul1].filter(Boolean) as Array<() => void>;
-    };
-    setup();
-    return () => unlisteners.current.forEach((fn) => fn());
+    const unsubscribe = subscribeVisualizer((levels) => {
+      levels.forEach((level, i) => {
+        const el = barRefs.current[i];
+        if (!el) return;
+        const clamped = Math.max(0, Math.min(1, level));
+        const len = BASE_LEN + clamped * MAX_EXTRA_LEN;
+        const angle = (i * 360) / BAND_COUNT;
+        // scaleY lewat transform (compositor-only, GPU) — jauh lebih murah
+        // daripada ubah `height` (yang memicu layout/reflow tiap elemen tiap frame).
+        el.style.transform = `translate(-50%, 0) rotate(${angle}deg) scaleY(${len / MAX_LEN})`;
+      });
+    });
+    return unsubscribe;
   }, []);
 
   return (
@@ -48,10 +45,10 @@ export default function RadialVisualizer() {
               left: "50%",
               top: "50%",
               width: 5,
-              height: BASE_LEN,
-              // Statis — cuma di-set sekali, gak diubah di event handler.
-              // Pivot rotasi ada di titik tengah container (top edge elemen ini).
-              transform: `translate(-50%, 0) rotate(${angle}deg)`,
+              // Height sekarang FIXED ke panjang maksimum — variasi panjang
+              // dikerjakan lewat scaleY di transform, bukan ubah height.
+              height: MAX_LEN,
+              transform: `translate(-50%, 0) rotate(${angle}deg) scaleY(${BASE_LEN / MAX_LEN})`,
             }}
           />
         );

@@ -1,5 +1,9 @@
-import React, { useRef, useState } from "react";
-import { widgetRegistry } from "../../config/widgetRegistry";
+import React, { useMemo, useRef, useState } from "react";
+import {
+  widgetRegistry,
+  WIDGET_CATEGORY_ORDER,
+  type WidgetConfig,
+} from "../../config/widgetRegistry";
 import { slotRegistry } from "../../config/slotRegistry";
 import { TraySlotPreview } from "./TraySlotPreview";
 import { LazyWidgetPreview, type PreviewMode } from "./LazyWidgetPreview";
@@ -11,6 +15,11 @@ interface WidgetTrayProps {
   onClose: () => void;
 }
 
+interface WidgetGroup {
+  category: string;
+  widgets: WidgetConfig[];
+}
+
 export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
   // Elemen drag-image custom yang lagi aktif, disimpan biar bisa di-cleanup
   // pas drag selesai (onDragEnd). Dibikin kecil supaya nggak nutupin
@@ -20,6 +29,31 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
   // Default "hover" — cuma widget yang lagi ditunjuk kursor yang jalan,
   // paling ringan buat grid yang isinya banyak visualizer real-time.
   const [previewMode, setPreviewMode] = useState<PreviewMode>("hover");
+
+  // Kelompokkan widgetRegistry per category, lalu urutkan section-nya
+  // sesuai WIDGET_CATEGORY_ORDER. Kategori yang gak ada di daftar itu
+  // (lupa didaftarin) tetap muncul, cuma jatuh ke paling akhir.
+  const widgetGroups = useMemo<WidgetGroup[]>(() => {
+    const groups = new Map<string, WidgetConfig[]>();
+    for (const widget of widgetRegistry) {
+      const list = groups.get(widget.category) ?? [];
+      list.push(widget);
+      groups.set(widget.category, list);
+    }
+
+    const orderedCategories = [...groups.keys()].sort((a, b) => {
+      const indexA = WIDGET_CATEGORY_ORDER.indexOf(a as (typeof WIDGET_CATEGORY_ORDER)[number]);
+      const indexB = WIDGET_CATEGORY_ORDER.indexOf(b as (typeof WIDGET_CATEGORY_ORDER)[number]);
+      const safeA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA;
+      const safeB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB;
+      return safeA - safeB;
+    });
+
+    return orderedCategories.map((category) => ({
+      category,
+      widgets: groups.get(category)!,
+    }));
+  }, []);
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
@@ -226,75 +260,109 @@ export const WidgetTray: React.FC<WidgetTrayProps> = ({ onClose }) => {
         <div
           style={{
             flex: 1,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
-            gridAutoRows: "150px",
-            gap: "16px",
             overflowY: "auto",
-            alignContent: "start",
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
           }}
         >
           {widgetRegistry.length === 0 && (
-            <span
-              className="michie-text-secondary"
-              style={{ opacity: 0.6, gridColumn: "1 / -1" }}
-            >
+            <span className="michie-text-secondary" style={{ opacity: 0.6 }}>
               no featured widget yet
             </span>
           )}
 
-          {widgetRegistry.map((w) => {
-            const WidgetComponent = w.component;
-            return (
+          {widgetGroups.map((group) => (
+            <div key={group.category}>
               <div
-                key={w.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, w.id, w.label)}
-                onDragEnd={handleDragEnd}
-                className="michie-box michie-box--primary michie-text-secondary"
                 style={{
-                  position: "relative",
                   display: "flex",
-                  flexDirection: "column",
-                  borderRadius: "14px",
-                  cursor: "grab",
-                  userSelect: "none",
-                  overflow: "hidden",
-                  boxSizing: "border-box",
+                  alignItems: "baseline",
+                  gap: "8px",
+                  marginBottom: "10px",
                 }}
-                title={`Drag "${w.label}" to one of box above`}
               >
-                {/* Area preview: render komponen widget asli, di-scale supaya
-                   muat di tile kecil. pointerEvents none biar interaksi
-                   internal widget (kalau ada) nggak nyolong event drag —
-                   TAPI mode "hover" butuh mouseenter/leave di sini, makanya
-                   pointer-events-nya ditaruh "auto" khusus di level ini. */}
-                <div
+                <span
+                  className="michie-text-primary"
                   style={{
-                    flex: 1,
-                    position: "relative",
-                    overflow: "hidden",
-                    pointerEvents: previewMode === "hover" ? "auto" : "none",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.02em",
                   }}
                 >
-                  <LazyWidgetPreview component={WidgetComponent} mode={previewMode} />
-                </div>
-
+                  {group.category}
+                </span>
                 <span
                   className="michie-text-secondary"
-                  style={{
-                    fontSize: "0.72rem",
-                    textAlign: "center",
-                    padding: "6px 8px",
-                    opacity: 0.85,
-                    flexShrink: 0,
-                  }}
+                  style={{ fontSize: "0.72rem", opacity: 0.5 }}
                 >
-                  {w.label}
+                  {group.widgets.length}
                 </span>
               </div>
-            );
-          })}
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
+                  gridAutoRows: "150px",
+                  gap: "16px",
+                }}
+              >
+                {group.widgets.map((w) => {
+                  const WidgetComponent = w.component;
+                  return (
+                    <div
+                      key={w.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, w.id, w.label)}
+                      onDragEnd={handleDragEnd}
+                      className="michie-box michie-box--primary michie-text-secondary"
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        flexDirection: "column",
+                        borderRadius: "14px",
+                        cursor: "grab",
+                        userSelect: "none",
+                        overflow: "hidden",
+                        boxSizing: "border-box",
+                      }}
+                      title={`Drag "${w.label}" to one of box above`}
+                    >
+                      {/* Area preview: render komponen widget asli, di-scale supaya
+                         muat di tile kecil. pointerEvents none biar interaksi
+                         internal widget (kalau ada) nggak nyolong event drag —
+                         TAPI mode "hover" butuh mouseenter/leave di sini, makanya
+                         pointer-events-nya ditaruh "auto" khusus di level ini. */}
+                      <div
+                        style={{
+                          flex: 1,
+                          position: "relative",
+                          overflow: "hidden",
+                          pointerEvents: previewMode === "hover" ? "auto" : "none",
+                        }}
+                      >
+                        <LazyWidgetPreview component={WidgetComponent} mode={previewMode} />
+                      </div>
+
+                      <span
+                        className="michie-text-secondary"
+                        style={{
+                          fontSize: "0.72rem",
+                          textAlign: "center",
+                          padding: "6px 8px",
+                          opacity: 0.85,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {w.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

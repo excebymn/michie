@@ -43,6 +43,13 @@ body,
         transform .35s ease;
 }
 
+/* Mode ringan: kolom kiri/kanan cuma render 1 slot,
+   jadi gak perlu dibagi 2 baris lagi -> isi 1 slot itu
+   full-height sepanjang kolom (total jadi 3 area: kiri, tengah, kanan). */
+.layout--light .column {
+    grid-template-rows: 1fr;
+}
+
 .main-player {
     background: transparent;
 
@@ -114,4 +121,15 @@ body,
         pointer-events: none;
     }
 
+}
+
+.light-panel {
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }

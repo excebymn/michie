@@ -34,10 +34,42 @@ const formatDuration = (seconds: number) =>
 export const SongRow: React.FC<SongRowProps> = ({ song, onPlay }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
+  // Lazy-render engine (pola sama seperti QueueRow) — baris yang jauh dari
+  // viewport cuma jadi placeholder kosong, gak nge-mount AlbumArt/tombol/dsb.
+  // Ini yang bikin daftar ribuan lagu tetap murah walau tanpa windowing library.
+  const [isVisible, setIsVisible] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
 
   const playNext = usePlayerStore((s) => s.playNext);
   const addToQueue = usePlayerStore((s) => s.addToQueue);
+
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => setIsVisible(entry.isIntersecting));
+      },
+      {
+        // buffer 200px biar row sempat ke-render sebelum beneran masuk layar
+        rootMargin: "200px 0px 200px 0px",
+      }
+    );
+
+    observer.observe(row);
+    return () => observer.unobserve(row);
+  }, []);
+
+  // Kalau row keluar viewport, tutup menu/panel yang lagi kebuka biar gak
+  // nyangkut state terbuka pas kena scroll balik lagi.
+  useEffect(() => {
+    if (!isVisible) {
+      setMenuOpen(false);
+      setShowAddToPlaylist(false);
+    }
+  }, [isVisible]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -72,8 +104,9 @@ export const SongRow: React.FC<SongRowProps> = ({ song, onPlay }) => {
 
   return (
     <div
+      ref={rowRef}
       className="michie-song-row"
-      onDoubleClick={() => onPlay(song)}
+      onDoubleClick={isVisible ? () => onPlay(song) : undefined}
       style={{
         display: "grid",
         gridTemplateColumns: "48px 2fr 1.3fr 1.3fr 60px 32px 32px",
@@ -81,81 +114,89 @@ export const SongRow: React.FC<SongRowProps> = ({ song, onPlay }) => {
         gap: 14,
         padding: "8px 12px",
         borderRadius: 10,
-        cursor: "pointer",
+        cursor: isVisible ? "pointer" : "default",
         position: "relative",
+        minHeight: 60, // patok tinggi minimum biar posisi scroll gak lompat pas swap placeholder <-> isi
+        boxSizing: "border-box",
       }}
     >
-      <AlbumArt path={song.cover} alt={song.album} size={44} rounded={8} />
+      {!isVisible ? (
+        <span style={{ gridColumn: "1 / -1" }} />
+      ) : (
+        <>
+          <AlbumArt path={song.cover} alt={song.album} size={44} rounded={8} />
 
-      <div style={{ overflow: "hidden" }}>
-        <div
-          className="michie-text-secondary"
-          style={{ fontSize: "0.92rem", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-        >
-          {song.name}
-        </div>
-        <div
-          className="michie-text-secondary"
-          style={{ fontSize: "0.78rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-        >
-          {song.artist}
-        </div>
-      </div>
-
-      <div className="michie-text-secondary" style={{ fontSize: "0.85rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {song.album}
-      </div>
-
-      <div className="michie-text-secondary" style={{ fontSize: "0.85rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {song.genre}
-      </div>
-
-      <div className="michie-text-secondary" style={{ fontSize: "0.85rem", textAlign: "right" }}>
-        {formatDuration(song.duration)}
-      </div>
-
-      <button
-        className="michie-text-secondary sr-icon-btn"
-        onClick={handleToggleFavorite}
-        title={song.favorited ? "Batal sukai" : "Sukai"}
-        aria-label="Sukai lagu"
-      >
-        <IconHeart filled={!!song.favorited} />
-      </button>
-
-      <div ref={menuRef} style={{ position: "relative" }}>
-        <button
-          className="michie-text-secondary sr-icon-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuOpen((v) => !v);
-          }}
-          title="Opsi lainnya"
-          aria-label="Opsi lainnya"
-        >
-          <IconDots />
-        </button>
-
-        {menuOpen && (
-          <div className="sr-menu michie-box michie-box--secondary" onClick={(e) => e.stopPropagation()}>
-            <button className="sr-menu-item michie-text-secondary" onClick={() => { onPlay(song); setMenuOpen(false); }}>
-              Putar Sekarang
-            </button>
-            <button className="sr-menu-item michie-text-secondary" onClick={handlePlayNext}>
-              Putar Berikutnya
-            </button>
-            <button className="sr-menu-item michie-text-secondary" onClick={handleAddToQueue}>
-              Tambah ke Antrian
-            </button>
-            <button className="sr-menu-item michie-text-secondary" onClick={handleOpenAddToPlaylist}>
-              Tambah ke Playlist
-            </button>
+          <div style={{ overflow: "hidden" }}>
+            <div
+              className="michie-text-secondary"
+              style={{ fontSize: "0.92rem", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+            >
+              {song.name}
+            </div>
+            <div
+              className="michie-text-secondary"
+              style={{ fontSize: "0.78rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+            >
+              {song.artist}
+            </div>
           </div>
-        )}
-      </div>
 
-      {showAddToPlaylist && (
-        <AddToPlaylistMenu songs={[song]} onClose={() => setShowAddToPlaylist(false)} />
+          <div className="michie-text-secondary" style={{ fontSize: "0.85rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {song.album}
+          </div>
+
+          <div className="michie-text-secondary" style={{ fontSize: "0.85rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {song.genre}
+          </div>
+
+          <div className="michie-text-secondary" style={{ fontSize: "0.85rem", textAlign: "right" }}>
+            {formatDuration(song.duration)}
+          </div>
+
+          <button
+            className="michie-text-secondary sr-icon-btn"
+            onClick={handleToggleFavorite}
+            title={song.favorited ? "Batal sukai" : "Sukai"}
+            aria-label="Sukai lagu"
+          >
+            <IconHeart filled={!!song.favorited} />
+          </button>
+
+          <div ref={menuRef} style={{ position: "relative" }}>
+            <button
+              className="michie-text-secondary sr-icon-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen((v) => !v);
+              }}
+              title="Opsi lainnya"
+              aria-label="Opsi lainnya"
+            >
+              <IconDots />
+            </button>
+
+            {menuOpen && (
+              <div className="sr-menu michie-box michie-box--secondary" onClick={(e) => e.stopPropagation()}>
+                <button className="sr-menu-item michie-text-secondary" onClick={() => { onPlay(song); setMenuOpen(false); }}>
+                  Putar Sekarang
+                </button>
+                <button className="sr-menu-item michie-text-secondary" onClick={handlePlayNext}>
+                  Putar Berikutnya
+                </button>
+                <button className="sr-menu-item michie-text-secondary" onClick={handleAddToQueue}>
+                  Tambah ke Antrian
+                </button>
+                <button className="sr-menu-item michie-text-secondary" onClick={handleOpenAddToPlaylist}>
+                  Tambah ke Playlist
+                </button>
+              </div>
+            )}
+          </div>
+
+          {showAddToPlaylist && (
+            <AddToPlaylistMenu songs={[song]} onClose={() => setShowAddToPlaylist(false)} />
+          )}
+        </>
       )}
 
       <style>{`

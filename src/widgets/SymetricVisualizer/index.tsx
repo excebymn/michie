@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { onEvent } from "../../services/api";
+import { subscribeVisualizer } from "../../services/visualizerService";
 import "./visualizer.css";
 
 const BAR_COUNT = 20; // total bar tampil (10 kiri + 10 kanan)
@@ -10,38 +10,29 @@ const MAX_HEIGHT_PCT = 70; // % dari tinggi container
 export default function Visualizer() {
   const leftRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rightRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const unlisteners = useRef<Array<() => void>>([]);
 
   useEffect(() => {
-    const setup = async () => {
-      const ul1 = await onEvent<{ levels: number[] }>(
-        "visualizer-levels",
-        (e) => {
-          // Simetris: kedua sisi nampilin band frekuensi yang SAMA (mirror),
-          // cuma pakai separuh pertama dari 20 band yang dikirim backend.
-          for (let i = 0; i < HALF_COUNT; i++) {
-            const level = e.payload.levels[i] ?? 0;
-            const clamped = Math.max(0, Math.min(1, level));
-            const heightPct =
-              MIN_HEIGHT_PCT + clamped * (MAX_HEIGHT_PCT - MIN_HEIGHT_PCT);
+    const unsubscribe = subscribeVisualizer((levels) => {
+      // Simetris: kedua sisi nampilin band frekuensi yang SAMA (mirror),
+      // cuma pakai separuh pertama dari 20 band yang dikirim backend.
+      for (let i = 0; i < HALF_COUNT; i++) {
+        const level = levels[i] ?? 0;
+        const clamped = Math.max(0, Math.min(1, level));
+        const heightPct =
+          MIN_HEIGHT_PCT + clamped * (MAX_HEIGHT_PCT - MIN_HEIGHT_PCT);
+        // scaleY lewat transform, bukan height — hindari layout reflow tiap
+        // frame. Elemen sendiri height-nya FIXED 100% (lihat JSX di bawah).
+        const scale = heightPct / 100;
 
-            const leftEl = leftRefs.current[i];
-            if (leftEl) leftEl.style.height = `${heightPct}%`;
+        const leftEl = leftRefs.current[i];
+        if (leftEl) leftEl.style.transform = `scaleY(${scale})`;
 
-            const rightEl = rightRefs.current[i];
-            if (rightEl) rightEl.style.height = `${heightPct}%`;
-          }
-        },
-      );
+        const rightEl = rightRefs.current[i];
+        if (rightEl) rightEl.style.transform = `scaleY(${scale})`;
+      }
+    });
 
-      unlisteners.current = [ul1].filter(Boolean) as Array<() => void>;
-    };
-
-    setup();
-
-    return () => {
-      unlisteners.current.forEach((fn) => fn());
-    };
+    return unsubscribe;
   }, []);
 
   return (
@@ -64,7 +55,12 @@ export default function Visualizer() {
               leftRefs.current[i] = el;
             }}
             className="michie-box--secondary visualizer__bar"
-            style={{ flex: 1, width: 10, height: `${MIN_HEIGHT_PCT}%` }}
+            style={{
+              flex: 1,
+              width: 10,
+              height: "100%", // FIXED — panjang divariasikan lewat scaleY
+              transform: `scaleY(${MIN_HEIGHT_PCT / 100})`,
+            }}
           />
         ))}
       </div>
@@ -77,7 +73,12 @@ export default function Visualizer() {
               rightRefs.current[i] = el;
             }}
             className="michie-box--secondary visualizer__bar"
-            style={{ flex: 1, width: 10, height: `${MIN_HEIGHT_PCT}%` }}
+            style={{
+              flex: 1,
+              width: 10,
+              height: "100%", // FIXED — panjang divariasikan lewat scaleY
+              transform: `scaleY(${MIN_HEIGHT_PCT / 100})`,
+            }}
           />
         ))}
       </div>

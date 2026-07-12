@@ -1051,6 +1051,43 @@ pub async fn set_background_image(file_path: String) -> Result<String, String> {
 
     Ok(new_path)
 }
+
+// Copy foto/gif/video custom pilihan user buat widget PhotoWidget/GifWidget/
+// VideoWidget ke folder milik app, satu subfolder per jenis media (biar bisa
+// dibersihin independen tiap jenis, gak saling ganggu kalau reset satu-satu
+// suatu saat nanti). Pola sama persis seperti set_background_image: nama file
+// unik pakai timestamp (WebView cache-buster) + folder dibersihin dulu dari
+// file lama sebelum copy baru, karena cuma ada SATU media aktif per jenis
+// widget (bukan histori/multi-file).
+#[tauri::command(rename_all = "snake_case")]
+pub async fn save_widget_media(file_path: String, media_kind: String) -> Result<String, String> {
+    let media_dir = dirs::home_dir().unwrap().to_str().unwrap().to_string()
+        + "/.config/michie_player/widget_media/"
+        + &media_kind
+        + "/";
+    fs::create_dir_all(&media_dir).map_err(|e| e.to_string())?;
+
+    let file_type = Path::new(&file_path)
+        .extension()
+        .and_then(OsStr::to_str)
+        .unwrap_or("bin");
+
+    if let Ok(entries) = fs::read_dir(&media_dir) {
+        for entry in entries.flatten() {
+            let _ = fs::remove_file(entry.path());
+        }
+    }
+
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    let new_path = format!("{media_dir}{media_kind}_{timestamp}.{file_type}");
+
+    fs::copy(&file_path, &new_path).map_err(|e| e.to_string())?;
+
+    Ok(new_path)
+}
 // Queue DB Commands
 
 #[tauri::command(rename_all = "snake_case")]

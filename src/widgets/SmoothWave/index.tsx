@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { onEvent } from "../../services/api";
+import { subscribeVisualizer } from "../../services/visualizerService";
 import "./visualizer.css";
 
 const BAND_COUNT = 20;
@@ -24,36 +24,25 @@ function buildSmoothPath(points: { x: number; y: number }[]): string {
 export default function SmoothWave() {
   const pathRef = useRef<SVGPathElement | null>(null);
   const areaRef = useRef<SVGPathElement | null>(null);
-  const unlisteners = useRef<Array<() => void>>([]);
 
   useEffect(() => {
-    const setup = async () => {
-      const ul1 = await onEvent<{ levels: number[] }>(
-        "visualizer-levels",
-        (e) => {
-          const path = pathRef.current;
-          const area = areaRef.current;
-          if (!path || !area) return;
+    const unsubscribe = subscribeVisualizer((levels) => {
+      const path = pathRef.current;
+      const area = areaRef.current;
+      if (!path || !area) return;
 
-          const step = VIEW_W / (BAND_COUNT - 1);
-          const points = e.payload.levels.map((level, i) => {
-            const clamped = Math.max(0, Math.min(1, level));
-            return { x: i * step, y: VIEW_H - clamped * VIEW_H };
-          });
+      const step = VIEW_W / (BAND_COUNT - 1);
+      const points = levels.map((level, i) => {
+        const clamped = Math.max(0, Math.min(1, level));
+        return { x: i * step, y: VIEW_H - clamped * VIEW_H };
+      });
 
-          const line = buildSmoothPath(points);
-          path.setAttribute("d", line);
-          // Area di bawah kurva - path yang sama + turun ke dasar + balik ke awal
-          area.setAttribute(
-            "d",
-            `${line} L ${VIEW_W} ${VIEW_H} L 0 ${VIEW_H} Z`,
-          );
-        },
-      );
-      unlisteners.current = [ul1].filter(Boolean) as Array<() => void>;
-    };
-    setup();
-    return () => unlisteners.current.forEach((fn) => fn());
+      const line = buildSmoothPath(points);
+      path.setAttribute("d", line);
+      // Area di bawah kurva - path yang sama + turun ke dasar + balik ke awal
+      area.setAttribute("d", `${line} L ${VIEW_W} ${VIEW_H} L 0 ${VIEW_H} Z`);
+    });
+    return unsubscribe;
   }, []);
 
   return (

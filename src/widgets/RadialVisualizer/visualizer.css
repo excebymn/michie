@@ -1,4 +1,5 @@
 .radial-visualizer__bar {
   transform-origin: top center;
-  transition: height 90ms ease-out;
+  transition: transform 90ms ease-out; /* transform, bukan height — compositor-only, gak reflow */
+  will-change: transform;
 }

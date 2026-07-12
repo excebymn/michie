@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
-import { onEvent } from "../../services/api";
+import { subscribeVisualizer } from "../../services/visualizerService";
 import "./visualizer.css";
 
 const BEAT_BAND_END = 8; // band 0..7 (bass + low-mid) sebagai sumber "denyut"
@@ -10,26 +10,18 @@ const MAX_EXTRA_SCALE = 0.28; // dikurangi dari 0.55 — album art butuh jangkau
 
 export default function PulseAlbum() {
   const blobRef = useRef<HTMLDivElement | null>(null);
-  const unlisteners = useRef<Array<() => void>>([]);
   const currentSong = usePlayerStore((s) => s.currentSong);
 
   useEffect(() => {
-    const setup = async () => {
-      const ul1 = await onEvent<{ levels: number[] }>(
-        "visualizer-levels",
-        (e) => {
-          const el = blobRef.current;
-          if (!el) return;
-          const slice = e.payload.levels.slice(0, BEAT_BAND_END);
-          const avg = slice.reduce((a, b) => a + b, 0) / (slice.length || 1);
-          const clamped = Math.max(0, Math.min(1, avg));
-          el.style.transform = `scale(${1 + clamped * MAX_EXTRA_SCALE})`;
-        },
-      );
-      unlisteners.current = [ul1].filter(Boolean) as Array<() => void>;
-    };
-    setup();
-    return () => unlisteners.current.forEach((fn) => fn());
+    const unsubscribe = subscribeVisualizer((levels) => {
+      const el = blobRef.current;
+      if (!el) return;
+      const slice = levels.slice(0, BEAT_BAND_END);
+      const avg = slice.reduce((a, b) => a + b, 0) / (slice.length || 1);
+      const clamped = Math.max(0, Math.min(1, avg));
+      el.style.transform = `scale(${1 + clamped * MAX_EXTRA_SCALE})`;
+    });
+    return unsubscribe;
   }, []);
 
   const coverUrl = currentSong?.cover

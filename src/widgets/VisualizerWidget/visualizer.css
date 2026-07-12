@@ -1,6 +1,7 @@
 .visualizer__bar {
   transform-origin: bottom;
-  transition: height 90ms ease-out; /* smoothing kecil biar gak "patah-patah" antar frame FFT */
+  transition: transform 90ms ease-out; /* transform, bukan height — compositor-only, gak reflow */
+  will-change: transform;
 }
 
 .visualizer__bar--active {
@@ -8,7 +9,7 @@
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 @keyframes visualizer-bounce {
