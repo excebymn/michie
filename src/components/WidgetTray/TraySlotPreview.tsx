@@ -78,15 +78,15 @@ export function TraySlotPreview({ slot }: TraySlotPreviewProps) {
             lineHeight: 1.2,
           }}
         >
-          {widget ? widget.label : "Empty"}
+          {widget ? widget.label : "Kosong"}
         </span>
 
         {widget && (
           <button
             className="michie-circle michie-circle--secondary michie-text-primary"
             onClick={() => clearSlot(slot.id)}
-            title="Remove widget from this slot"
-            aria-label="Remove widget from this slot"
+            title="Lepas widget dari slot ini"
+            aria-label="Lepas widget dari slot ini"
             style={{
               position: "absolute",
               top: "6px",

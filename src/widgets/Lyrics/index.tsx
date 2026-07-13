@@ -12,11 +12,11 @@ export function LyricsWidget() {
   return (
     <div className="widget-lyrics">
       {phase.kind === "loading" && (
-        <div className="widget-lyrics-status michie-text-secondary">Loading lyrics...</div>
+        <div className="widget-lyrics-status michie-text-secondary">Memuat lirik...</div>
       )}
 
       {phase.kind === "empty" && (
-        <div className="widget-lyrics-status michie-text-secondary">Lyrics not found</div>
+        <div className="widget-lyrics-status michie-text-secondary">Lirik tidak ditemukan</div>
       )}
 
       {phase.kind === "plain" && <PlainLyrics lines={phase.lines} />}

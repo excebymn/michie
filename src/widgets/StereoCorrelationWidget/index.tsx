@@ -56,7 +56,7 @@ export function StereoCorrelationWidget() {
     return (
       <div className="michie-box" style={{ padding: 16 }}>
         <p className="michie-text-secondary" style={{ margin: 0 }}>
-          No song is currently playing.
+          Tidak ada lagu yang sedang diputar.
         </p>
       </div>
     );
@@ -64,6 +64,7 @@ export function StereoCorrelationWidget() {
 
   return (
     <div
+      className="michie-box"
       style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -82,7 +83,7 @@ export function StereoCorrelationWidget() {
             opacity: scanning ? 0.7 : 1,
           }}
         >
-          {scanning ? "Analyzing..." : stereo ? "Rescan" : "Scan"}
+          {scanning ? "Menganalisis..." : stereo ? "Scan Ulang" : "Scan"}
         </button>
       </div>
 
@@ -90,13 +91,14 @@ export function StereoCorrelationWidget() {
 
       {!stereo && !scanning && !error && (
         <p className="michie-text-secondary" style={{ margin: 0, fontSize: 13 }}>
-          No data yet. Press "Scan" to inspect how wide and coherent this song's stereo image is.
+          Belum ada data. Tekan "Scan" untuk memeriksa seberapa lebar/koheren stereo image
+          lagu ini.
         </p>
       )}
 
       {stereo?.mono && (
         <p className="michie-text-secondary" style={{ margin: 0, fontSize: 13 }}>
-          This file is mono — there is no stereo information to display.
+          File ini mono — tidak ada informasi stereo untuk ditampilkan.
         </p>
       )}
 
@@ -104,9 +106,9 @@ export function StereoCorrelationWidget() {
         <>
           <canvas ref={canvasRef} style={{ width: "100%", height: 80, borderRadius: 4, display: "block" }} />
           <div className="michie-text-secondary" style={{ fontSize: 12 }}>
-            Average correlation: {stereo.average_correlation?.toFixed(2)}
+            Rata-rata korelasi: {stereo.average_correlation?.toFixed(2)}
             {typeof stereo.average_correlation === "number" && stereo.average_correlation < 0.3 && (
-              <> — wide stereo, or possible phase issues</>
+              <> — stereo lebar, atau ada indikasi masalah fase</>
             )}
           </div>
         </>

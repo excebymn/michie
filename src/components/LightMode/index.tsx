@@ -6,12 +6,12 @@ export function LightModePanel() {
 
   return (
     <div className="lmp-root">
-      <h2 className="lmp-title">Light mode</h2>
+      <h2 className="lmp-title">Mode ringan</h2>
       <p className="lmp-desc michie-text-secondary">
-        When active, the left and right columns each show only one custom widget
-        instead of two, so fewer widgets run on the main screen. Queue, library,
-        playlist, source, and appearance can still be opened normally from this
-        menu and remain unaffected.
+        Saat aktif, kolom kiri dan kanan cuma menampilkan satu widget custom
+        masing-masing (bukan dua), jadi lebih sedikit widget yang jalan di
+        layar utama. Queue, library, playlist, source, dan appearance tetap
+        bisa dibuka seperti biasa lewat menu ini — tidak terpengaruh.
       </p>
 
       <button
@@ -34,7 +34,7 @@ export function LightModePanel() {
           />
         </span>
         <span className="lmp-toggle-label michie-text-secondary">
-          {isLightMode ? "On" : "Off"}
+          {isLightMode ? "Aktif" : "Nonaktif"}
         </span>
       </button>
 

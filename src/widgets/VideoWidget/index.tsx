@@ -89,7 +89,7 @@ export default function VideoWidget() {
             opacity: 0.75,
           }}
         >
-          {isPicking ? "opening..." : "+ choose video"}
+          {isPicking ? "membuka..." : "+ pilih video"}
         </button>
       )}
 
@@ -127,8 +127,8 @@ export default function VideoWidget() {
         <button
           onClick={handlePick}
           disabled={isPicking}
-          title="Change video"
-          aria-label="Change video"
+          title="Ganti video"
+          aria-label="Ganti video"
           className="michie-circle michie-circle--secondary michie-text-primary"
           style={{
             position: "absolute",

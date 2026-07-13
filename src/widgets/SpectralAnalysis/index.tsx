@@ -23,7 +23,7 @@ function Metric({ label, value, warn }: MetricProps) {
         {label}
       </div>
       <div
-        className="michie-text-secondary"
+        className="michie-text-primary"
         style={{ fontSize: 16, fontWeight: 600, color: warn ? "#e0a030" : undefined }}
       >
         {value}
@@ -54,7 +54,7 @@ export function SpectralAnalysisWidget() {
     return (
       <div className="michie-box" style={{ padding: 16 }}>
         <p className="michie-text-secondary" style={{ margin: 0 }}>
-          No song is currently playing.
+          Tidak ada lagu yang sedang diputar.
         </p>
       </div>
     );
@@ -62,7 +62,7 @@ export function SpectralAnalysisWidget() {
 
   return (
     <div
-      className=""
+      className="michie-box"
       style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -81,7 +81,7 @@ export function SpectralAnalysisWidget() {
             opacity: loading ? 0.7 : 1,
           }}
         >
-          {loading ? "Analyzing..." : analysis ? "Rescan" : "Scan"}
+          {loading ? "Menganalisis..." : analysis ? "Scan Ulang" : "Scan"}
         </button>
       </div>
 
@@ -89,7 +89,7 @@ export function SpectralAnalysisWidget() {
 
       {!analysis && checked && !loading && !error && (
         <p className="michie-text-secondary" style={{ margin: 0, fontSize: 13 }}>
-          This song has not been analyzed yet. Press "Scan" to inspect the frequency response and file quality.
+          Lagu ini belum dianalisis. Tekan "Scan" untuk memeriksa frekuensi &amp; kualitas file.
         </p>
       )}
 
@@ -112,12 +112,12 @@ export function SpectralAnalysisWidget() {
       {analysis?.likely_transcoded && (
         <div className="michie-box michie-box--secondary" style={{ padding: 10 }}>
           <strong className="michie-text-secondary" style={{ fontSize: 13 }}>
-            ⚠ This may not be genuine lossless audio
+            ⚠ Kemungkinan bukan lossless asli
           </strong>
           <p style={{ margin: "4px 0 0", fontSize: 12 }}>
-            High frequencies are sharply cut around {formatHz(analysis.spectral_cutoff_hz)} —
-            a common pattern for files transcoded from lossy sources (mp3/aac) and then repackaged
-            as lossless. Check the "Spectrogram" widget to view this pattern visually.
+            Frekuensi tinggi terpotong tajam di sekitar {formatHz(analysis.spectral_cutoff_hz)} —
+            pola khas file yang di-transcode dari sumber lossy (mp3/aac) lalu dikemas ulang
+            sebagai format lossless. Cek widget "Spectrogram" untuk lihat pola ini secara visual.
           </p>
         </div>
       )}

@@ -14,7 +14,7 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({ isScanning, current,
   return (
     <div style={{ marginTop: 4, marginBottom: 4 }}>
       <div style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: 6 }}>
-        Scanning library... ({current}/{length})
+        Memindai library... ({current}/{length})
       </div>
       <div
         style={{

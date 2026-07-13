@@ -63,7 +63,7 @@ export function WaveformWidget() {
     return (
       <div className="michie-box" style={{ padding: 16 }}>
         <p className="michie-text-secondary" style={{ margin: 0 }}>
-          No song is currently playing.
+          Tidak ada lagu yang sedang diputar.
         </p>
       </div>
     );
@@ -71,6 +71,7 @@ export function WaveformWidget() {
 
   return (
     <div
+      className="michie-box"
       style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -89,7 +90,7 @@ export function WaveformWidget() {
             opacity: scanning ? 0.7 : 1,
           }}
         >
-          {scanning ? "Analyzing..." : waveform ? "Rescan" : "Scan"}
+          {scanning ? "Menganalisis..." : waveform ? "Scan Ulang" : "Scan"}
         </button>
       </div>
 
@@ -97,7 +98,8 @@ export function WaveformWidget() {
 
       {!waveform && !scanning && !error && (
         <p className="michie-text-secondary" style={{ margin: 0, fontSize: 13 }}>
-          No data yet. Press "Scan" to calculate the waveform and volume levels throughout the song.
+          Belum ada data. Tekan "Scan" untuk menghitung bentuk gelombang &amp; level volume
+          sepanjang lagu.
         </p>
       )}
 

@@ -248,7 +248,7 @@ export function ProgressSlider({ duration }: ProgressSliderProps) {
         aria-valuemin={0}
         aria-valuemax={duration || 0}
         aria-valuenow={songProgress}
-        aria-label="Song progress"
+        aria-label="Progress lagu"
         onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}
       >

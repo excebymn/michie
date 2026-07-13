@@ -50,6 +50,7 @@ export function SpectrumCurveWidget() {
 
   return (
     <div
+      className="michie-box"
       style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
