@@ -25,6 +25,16 @@ body,
         minmax(320px, 1fr)
         minmax(320px, 1fr);
 
+    /* WAJIB eksplisit: tanpa ini, satu-satunya baris grid jadi implicit
+       "auto" yang di-size berdasarkan konten TERTINGGI di antara kiri/
+       tengah/kanan (karena ketiga kolom berbagi baris yang sama). Widget
+       dengan intrinsic size besar (foto/gif/video/vinyl) bakal "menarik"
+       baris itu melebihi 100vh, dan karena satu baris, kolom lain
+       (termasuk yang kosong) ikut ke-stretch ke tinggi tsb. Dengan 1fr
+       di sini, baris dipaksa selalu pas 100% tinggi container, nggak
+       peduli seberapa besar konten anaknya. */
+    grid-template-rows: 1fr;
+    min-height: 0;
 
     transition: grid-template-columns .35s ease;
 }
@@ -35,6 +45,11 @@ body,
     gap: 14px;
 
     min-width: 0;
+    /* Grid item defaultnya punya min-height: auto (= min-content), yang
+       artinya kolom ini tetap bisa "dipaksa" melebar sama intrinsic size
+       konten di dalamnya walau .layout sudah 1fr. min-height: 0 di sini
+       yang benar-benar mencegah itu -- pasangan wajib dari .layout di atas. */
+    min-height: 0;
 
     overflow: hidden;
 
@@ -74,6 +89,9 @@ body,
     display: flex;
     justify-content: center;
     align-items: center;
+
+    min-height: 0;
+    overflow: hidden;
 
     color: #999;
     font-size: 18px;
