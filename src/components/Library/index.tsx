@@ -6,10 +6,10 @@ import { ArtistsTab } from './ArtistsTab';
 import { GenresTab } from './GenresTab';
 
 const TABS = [
-  { id: 'songs', label: 'Lagu' },
-  { id: 'albums', label: 'Album' },
-  { id: 'artists', label: 'Artis' },
-  { id: 'genres', label: 'Genre' },
+  { id: 'songs', label: 'Songs' },
+  { id: 'albums', label: 'Albums' },
+  { id: 'artists', label: 'Artists' },
+  { id: 'genres', label: 'Genres' },
 ];
 
 export const LibraryView: React.FC = () => {

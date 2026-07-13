@@ -11,11 +11,11 @@ export function LyricsKaraokeWidget() {
   return (
     <div className="widget-lyrics-karaoke">
       {phase.kind === "loading" && (
-        <div className="widget-lyrics-status michie-text-secondary">Memuat lirik...</div>
+        <div className="widget-lyrics-status michie-text-secondary">Loading lyrics...</div>
       )}
 
       {phase.kind === "empty" && (
-        <div className="widget-lyrics-status michie-text-secondary">Lirik tidak ditemukan</div>
+        <div className="widget-lyrics-status michie-text-secondary">Lyrics not found</div>
       )}
 
       {phase.kind === "plain" && <PlainLyrics lines={phase.lines} />}

@@ -122,7 +122,7 @@ function FormatBadge({ song }: { song: Songs | null }) {
     <div
       className="mpw-format-badge"
       ref={containerRef}
-      title="Format & kualitas audio file yang sedang diputar"
+      title="Format and quality of the audio file currently playing"
     >
       <span
         ref={textRef}
@@ -193,8 +193,8 @@ export function PlayerControls() {
             className={`mpw-btn-icon ${currentSong?.favorited ? "active" : ""}`}
             onClick={handleToggleFavorite}
             disabled={!currentSong}
-            title="Suka"
-            aria-label="Sukai lagu ini"
+            title="Favorite"
+            aria-label="Favorite this song"
           >
             <span className="mpw-icon">
               <IconHeart filled={!!currentSong?.favorited} />

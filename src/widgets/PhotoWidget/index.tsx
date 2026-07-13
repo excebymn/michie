@@ -68,7 +68,7 @@ export default function PhotoWidget() {
             opacity: 0.75,
           }}
         >
-          {isPicking ? "membuka..." : "+ pilih foto"}
+          {isPicking ? "opening..." : "+ choose photo"}
         </button>
       )}
 
@@ -76,8 +76,8 @@ export default function PhotoWidget() {
         <button
           onClick={handlePick}
           disabled={isPicking}
-          title="Ganti foto"
-          aria-label="Ganti foto"
+          title="Change photo"
+          aria-label="Change photo"
           className="michie-circle michie-circle--secondary michie-text-primary"
           style={{
             position: "absolute",

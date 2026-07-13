@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
 import { useAppStore } from "../../stores/appStore";
+import { useLayoutStore } from "../../stores/layoutStore";
 import { playerService } from "../../services/playerService";
 import { appService } from "../../services/appService";
 import { AlbumArt } from "./AlbumArt";
@@ -14,6 +15,7 @@ import {
   extractDominantColor,
   deriveSecondaryFor,
 } from "../../services/appearanceService";
+import { IconMini } from "./Icons";
 
 function IconMenu() {
   return (
@@ -64,6 +66,9 @@ export function MusicPlayer() {
   } = usePlayerStore();
 
   const currentSong = usePlayerStore((s) => s.currentSong);
+
+  const isMiniMode = useLayoutStore((s) => s.isMiniMode);
+  const toggleMiniMode = useLayoutStore((s) => s.toggleMiniMode);
 
   const [duration, setDuration] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
@@ -171,47 +176,93 @@ export function MusicPlayer() {
     };
   }, [currentSong?.path, paletteId, applyAlbumTone]);
 
+  // Header (brand + tombol aksi) dipakai dua tempat: statis di atas art saat
+  // mode normal, atau di-overlay ke dalam AlbumArt saat mode mini — jadi
+  // didefinisikan sekali di sini, bukan diduplikasi di dua tempat.
+  const headerContent = (
+    <div className="mpw-header">
+      <div className="mpw-brand">
+        <img
+          src={MichieLogo}
+          alt="Michie logo"
+          className="mpw-brand-logo michie-circle "
+        />
+        <span className="mpw-brand-name michie-text-secondary">michie</span>
+      </div>
+
+      <div className="mpw-header-actions">
+        <button
+          className="mpw-btn-menu michie-circle michie-circle--secondary"
+          onClick={() => setShowWidgetTray(true)}
+          title="Widget Tray"
+          aria-label="Open widget tray"
+        >
+          <span className="mpw-icon-menu michie-text-primary">
+            <IconWidgetGrid />
+          </span>
+        </button>
+
+        <button
+          className="mpw-btn-menu michie-circle michie-circle--secondary"
+          onClick={() => toggleMiniMode()}
+          title={isMiniMode ? "Exit mini mode" : "Mini mode"}
+          aria-label="Toggle mini mode"
+        >
+          <span className="mpw-icon-menu michie-text-primary">
+            <IconMini active={isMiniMode} />
+          </span>
+        </button>
+
+        <button
+          className="mpw-btn-menu michie-circle michie-circle--secondary"
+          onClick={() => setShowSettings(true)}
+          title="Settings"
+          aria-label="Settings panel"
+        >
+          <span className="mpw-icon-menu michie-text-primary">
+            <IconMenu />
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <div className="mpw-root michie-box michie-box--primary">
-        <div className="mpw-header">
-          <div className="mpw-brand">
-            <img
-              src={MichieLogo}
-              alt="Michie logo"
-              className="mpw-brand-logo michie-circle "
+      <div
+        className={`mpw-root michie-box michie-box--primary ${isMiniMode ? "mpw-root--mini" : ""
+          }`}
+      >
+        {/* Mode normal: header statis di atas art, mengikuti flow biasa. */}
+        {!isMiniMode && headerContent}
+        <div className="fixed">
+          <div className="container">
+            <AlbumArt
+              mini={isMiniMode}
+              header={isMiniMode ? headerContent : undefined}
+              footer={
+                isMiniMode ? (
+                  <div className="mpw-mini-controls">
+                    <ProgressSlider duration={duration} />
+                    <PlayerControls />
+                  </div>
+                ) : undefined
+              }
             />
-            <span className="mpw-brand-name michie-text-secondary">michie</span>
-          </div>
-
-          <div className="mpw-header-actions">
-            <button
-              className="mpw-btn-menu michie-circle michie-circle--secondary"
-              onClick={() => setShowWidgetTray(true)}
-              title="Widget Tray"
-              aria-label="Buka wadah widget"
-            >
-              <span className="mpw-icon-menu michie-text-primary">
-                <IconWidgetGrid />
-              </span>
-            </button>
-
-            <button
-              className="mpw-btn-menu michie-circle michie-circle--secondary"
-              onClick={() => setShowSettings(true)}
-              title="Settings"
-              aria-label="Settings panel"
-            >
-              <span className="mpw-icon-menu michie-text-primary">
-                <IconMenu />
-              </span>
-            </button>
-          </div>
         </div>
+            {/* Mode normal: slider & kontrol berdiri sendiri di bawah art, seperti semula. */}
+            {!isMiniMode && (
+              <>
+              <div className="container">
+                <ProgressSlider duration={duration} />
+                </div>
+                <div className="container">
+                <PlayerControls />
+                </div>
+              </>
+            )}
+          </div>
 
-        <AlbumArt />
-        <ProgressSlider duration={duration} />
-        <PlayerControls />
       </div>
 
       {showSettings && (
@@ -223,6 +274,17 @@ export function MusicPlayer() {
       )}
 
       <style>{`
+.container{
+padding : 5px
+}
+.fixed{
+  flex: 1;               /* mengisi sisa ruang setelah header */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* ini yang membuat kontennya di tengah */
+
+
+}
 .mpw-root {
   display: flex;
   flex-direction: column;
@@ -233,6 +295,13 @@ export function MusicPlayer() {
   min-height: 0;
   box-sizing: border-box;
 }
+/* Mode mini: window sudah dikecilkan pas ke ukuran art (lihat layoutStore/
+   windowService), jadi nggak butuh padding/gap luar lagi — art harus benar-benar
+   penuhi window, bukan cuma "mendekati" penuh. */
+.mpw-root--mini {
+  padding: 0;
+  gap: 0;
+}
 .mpw-header { display: flex; align-items: center; justify-content: space-between; }
 .mpw-brand { display: flex; align-items: center; gap: 8px; user-select: none; }
 .mpw-brand-logo { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 16px; line-height: 1; }
@@ -242,6 +311,15 @@ export function MusicPlayer() {
 .mpw-btn-menu:active { transform: scale(0.95); }
 .mpw-icon-menu { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; }
 .mpw-icon-menu svg { display: block; width: 100%; height: 100%; }
+
+/* Kontrol overlay di mode mini: progress slider + player controls ditumpuk
+   vertikal rapat di footer AlbumArt (lihat AlbumArt.tsx untuk scrim & override
+   kontras michie-* di dalam overlay). */
+.mpw-mini-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
       `}</style>
     </>
   );

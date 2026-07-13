@@ -46,7 +46,7 @@ export const DirectoryItem: React.FC<DirectoryItemProps> = ({ path, onRemove, di
           flexShrink: 0,
           opacity: disabled ? 0.4 : 1,
         }}
-        aria-label={`Hapus folder ${path}`}
+        aria-label={`Remove folder ${path}`}
       >
         ✕
       </button>
