@@ -69,8 +69,8 @@ export function QueueControls() {
         <button
           className={`qc-btn michie-text-primary ${repeatMode > 0 ? "active" : ""}`}
           onClick={cycleRepeat}
-          title={["dont repeat", "repeat all", "repeat this one"][repeatMode]}
-          aria-label="Ulangi"
+          title={["Don't repeat", "Repeat all", "Repeat this one"][repeatMode]}
+          aria-label="Repeat"
         >
           <IconRepeat />
           {repeatMode === 2 && <span className="qc-badge">1</span>}

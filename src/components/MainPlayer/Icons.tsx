@@ -97,3 +97,27 @@ export const IconTrash = () => (
     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
   </svg>
 );
+
+// Toggle mode mini player: panah "compress" (mengarah ke 4 sudut dalam) saat
+// masih mode normal — mengajak masuk ke mini. Panah "expand" (mengarah keluar)
+// saat sudah di mode mini — mengajak balik ke normal. Pola sama seperti
+// IconVolume di atas: satu icon, dua state lewat prop, bukan dua komponen terpisah.
+export const IconMini = ({ active }: { active: boolean }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {active ? (
+      <>
+        <polyline points="4 14 4 20 10 20" />
+        <polyline points="20 10 20 4 14 4" />
+        <line x1="4" y1="20" x2="10" y2="14" />
+        <line x1="20" y1="4" x2="14" y2="10" />
+      </>
+    ) : (
+      <>
+        <polyline points="9 3 9 9 3 9" />
+        <polyline points="15 21 15 15 21 15" />
+        <line x1="3" y1="3" x2="9" y2="9" />
+        <line x1="21" y1="21" x2="15" y2="15" />
+      </>
+    )}
+  </svg>
+);

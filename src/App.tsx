@@ -73,7 +73,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="app-shell app-root michie-box">
+      <div className="app-shell app-root">
         <MainLayout />
       </div>
     </BrowserRouter>

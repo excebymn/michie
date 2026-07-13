@@ -59,8 +59,8 @@ export function AddToPlaylistMenu({ songs, onClose }: AddToPlaylistMenuProps) {
     <div className="atp-overlay" onClick={onClose}>
       <div className="atp-panel michie-box michie-box--secondary" onClick={(e) => e.stopPropagation()}>
         <div className="atp-header">
-          <span className="atp-title michie-text-secondary">Tambah ke Playlist</span>
-          <button className="atp-close michie-text-secondary" onClick={onClose} aria-label="Tutup">
+          <span className="atp-title michie-text-secondary">Add to playlist</span>
+          <button className="atp-close michie-text-secondary" onClick={onClose} aria-label="Close">
             <IconX />
           </button>
         </div>
@@ -68,7 +68,7 @@ export function AddToPlaylistMenu({ songs, onClose }: AddToPlaylistMenuProps) {
         <button className="atp-row" onClick={handleToggleLiked} disabled={busyId === "liked"}>
           <span className="atp-icon michie-text-secondary"><IconHeart filled={isLiked} /></span>
           <span className="atp-label michie-text-secondary">
-            {songs.length === 1 && isLiked ? "Hapus dari Lagu Disukai" : "Lagu Disukai"}
+            {songs.length === 1 && isLiked ? "Remove from liked songs" : "Liked songs"}
           </span>
         </button>
 
@@ -76,7 +76,7 @@ export function AddToPlaylistMenu({ songs, onClose }: AddToPlaylistMenuProps) {
 
         <div className="atp-list">
           {playlistList.length === 0 ? (
-            <div className="atp-empty michie-text-secondary">Belum ada playlist.</div>
+            <div className="atp-empty michie-text-secondary">No playlists yet.</div>
           ) : (
             playlistList.map((p) => (
               <button key={p.id} className="atp-row" onClick={() => handleAddToExisting(p.id)} disabled={busyId === p.id}>
@@ -93,7 +93,7 @@ export function AddToPlaylistMenu({ songs, onClose }: AddToPlaylistMenuProps) {
           <div className="atp-create">
             <input
               className="atp-input michie-text-secondary"
-              placeholder="Nama playlist baru"
+              placeholder="New playlist name"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               autoFocus
@@ -106,7 +106,7 @@ export function AddToPlaylistMenu({ songs, onClose }: AddToPlaylistMenuProps) {
         ) : (
           <button className="atp-row" onClick={() => setCreating(true)}>
             <span className="atp-icon michie-text-secondary"><IconPlus /></span>
-            <span className="atp-label michie-text-secondary">Playlist Baru</span>
+            <span className="atp-label michie-text-secondary">New playlist</span>
           </button>
         )}
       </div>

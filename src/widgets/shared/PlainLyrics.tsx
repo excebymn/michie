@@ -1,10 +1,10 @@
-// Lirik tanpa timestamp — ditampilin utuh sebagai teks statis (semua baris),
-// dengan catatan kecil di atas biar jelas kenapa gak ada highlight yang jalan.
+// Lyrics without timestamps — displayed as static text (all lines),
+// with a small note above to make it clear why no running highlight is shown.
 export function PlainLyrics({ lines }: { lines: string[] }) {
   return (
     <div className="widget-lyrics-plain-scroll">
       <div className="widget-lyrics-plain-note michie-text-secondary">
-        Lirik tidak memiliki timestamp
+        This lyric has no timestamps
       </div>
       {lines.map((line, i) => (
         <div key={i} className="widget-lyrics-plain-line michie-text-primary">

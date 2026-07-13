@@ -186,7 +186,7 @@ export default function GifWidget() {
             opacity: 0.75,
           }}
         >
-          {isPicking ? "membuka..." : "+ pilih gif"}
+          {isPicking ? "opening..." : "+ choose gif"}
         </button>
       )}
 
@@ -211,8 +211,8 @@ export default function GifWidget() {
         <button
           onClick={handlePick}
           disabled={isPicking}
-          title="Ganti gif"
-          aria-label="Ganti gif"
+          title="Change gif"
+          aria-label="Change gif"
           className="michie-circle michie-circle--secondary michie-text-primary"
           style={{
             position: "absolute",

@@ -9,7 +9,7 @@ export function CandidatePicker({
 }) {
   return (
     <div className="widget-lyrics-picker">
-      <div className="widget-lyrics-picker-title michie-text-secondary">Pilih lirik yang cocok</div>
+      <div className="widget-lyrics-picker-title michie-text-secondary">Choose the matching lyrics</div>
       <div className="widget-lyrics-picker-list">
         {candidates.map((c) => (
           <button
@@ -18,7 +18,7 @@ export function CandidatePicker({
             onClick={() => onPick(c)}
           >
             <span className="widget-lyrics-picker-item-main michie-text-primary">
-              {c.trackName ?? "Tanpa judul"} — {c.artistName ?? "Tanpa artis"}
+              {c.trackName ?? "Untitled"} — {c.artistName ?? "Unknown artist"}
             </span>
             <span className="widget-lyrics-picker-item-sub michie-text-secondary">
               {c.albumName ?? ""} · {Math.round(c.confidence)}%

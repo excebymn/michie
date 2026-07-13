@@ -154,7 +154,7 @@ export function QueueRow({
               onDragStartRow();
             }}
             onClick={(e) => e.stopPropagation()}
-            title="Seret untuk mengatur ulang"
+            title="Drag to reorder"
           >
             <IconGrip />
           </span>
@@ -177,8 +177,8 @@ export function QueueRow({
               onRemove();
             }}
             disabled={isCurrent}
-            title={isCurrent ? "Lagu sedang diputar" : "Hapus dari antrian"}
-            aria-label="Hapus dari antrian"
+            title={isCurrent ? "Currently playing" : "Remove from queue"}
+            aria-label="Remove from queue"
           >
             <IconRemove />
           </button>

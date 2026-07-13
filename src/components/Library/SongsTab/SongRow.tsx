@@ -156,8 +156,8 @@ export const SongRow: React.FC<SongRowProps> = ({ song, onPlay }) => {
           <button
             className="michie-text-secondary sr-icon-btn"
             onClick={handleToggleFavorite}
-            title={song.favorited ? "Batal sukai" : "Sukai"}
-            aria-label="Sukai lagu"
+            title={song.favorited ? "Unfavorite" : "Favorite"}
+            aria-label="Favorite song"
           >
             <IconHeart filled={!!song.favorited} />
           </button>
@@ -169,8 +169,8 @@ export const SongRow: React.FC<SongRowProps> = ({ song, onPlay }) => {
                 e.stopPropagation();
                 setMenuOpen((v) => !v);
               }}
-              title="Opsi lainnya"
-              aria-label="Opsi lainnya"
+              title="More options"
+              aria-label="More options"
             >
               <IconDots />
             </button>
@@ -178,16 +178,16 @@ export const SongRow: React.FC<SongRowProps> = ({ song, onPlay }) => {
             {menuOpen && (
               <div className="sr-menu michie-box michie-box--secondary" onClick={(e) => e.stopPropagation()}>
                 <button className="sr-menu-item michie-text-secondary" onClick={() => { onPlay(song); setMenuOpen(false); }}>
-                  Putar Sekarang
+                  Play now
                 </button>
                 <button className="sr-menu-item michie-text-secondary" onClick={handlePlayNext}>
-                  Putar Berikutnya
+                  Play next
                 </button>
                 <button className="sr-menu-item michie-text-secondary" onClick={handleAddToQueue}>
-                  Tambah ke Antrian
+                  Add to queue
                 </button>
                 <button className="sr-menu-item michie-text-secondary" onClick={handleOpenAddToPlaylist}>
-                  Tambah ke Playlist
+                  Add to playlist
                 </button>
               </div>
             )}
