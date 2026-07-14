@@ -20,6 +20,7 @@ import paperCss from "../styles/themes/paper.css?url";
 import pixelCss from "../styles/themes/pixel.css?url";
 import amoledCss from "../styles/themes/amoled.css?url";
 import denimCss from "../styles/themes/denim.css?url";
+import newspaper from "../styles/themes/newspaper.css?url";
 
 export const themeRegistry: ThemeDefinition[] = [
   // Tema utama
@@ -38,4 +39,5 @@ export const themeRegistry: ThemeDefinition[] = [
   { id: "amoled", label: "AMOLED", cssUrl: amoledCss },
   { id: "denim", label: "Denim", cssUrl: denimCss },
   { id: "wood", label: "Wood", cssUrl: woodCss },
+    { id: "newspaper", label: "Newspaper", cssUrl: newspaper },
 ];

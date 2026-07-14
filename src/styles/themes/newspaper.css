@@ -1,0 +1,137 @@
+/* ==========================================================================
+   MICHIE THEME: NEWSPAPER
+   Sudut tajam, garis tegas ala kolom koran, bayangan keras tanpa blur,
+   border ganda ("rule line") khas cetak surat kabar, + grain kertas.
+   Palette diputuskan sendiri oleh tema (paper/ink), tidak ikut
+   --color-primary/--color-secondary global.
+   ========================================================================== */
+
+:root {
+  --michie-news-paper: #f3eedd;      /* putih agak kekuningan, warna kertas koran */
+  --michie-news-paper-shade: #e9e2cc; /* sedikit lebih gelap, untuk hover/variasi */
+
+  --michie-news-ink: #17140f;         /* hitam tinta, dipakai sebagai bg secondary & garis */
+  --michie-news-ink-shade: #221e17;
+
+  --michie-news-rule: rgba(23, 20, 15, 0.55);   /* garis "rule line" di atas kertas */
+  --michie-news-rule-on-ink: rgba(243, 238, 221, 0.35); /* garis di atas tinta */
+
+  --michie-news-shadow-offset: 3px;
+
+  /* noise grayscale (fractal turbulence), kontras dinaikkan lewat
+     feComponentTransfer supaya beneran kelihatan sebagai butiran, bukan
+     abu-abu rata; murni tekstur, bukan warna */
+  --michie-news-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feComponentTransfer><feFuncR type='linear' slope='3.2' intercept='-1.1'/><feFuncG type='linear' slope='3.2' intercept='-1.1'/><feFuncB type='linear' slope='3.2' intercept='-1.1'/></feComponentTransfer><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+}
+
+/* ==========================================================================
+   BOX (Card / Panel)
+   ========================================================================== */
+
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  border: 2px solid var(--michie-news-ink);
+  box-shadow: var(--michie-news-shadow-offset) var(--michie-news-shadow-offset) 0 var(--michie-news-ink);
+}
+
+/* garis tipis kedua di dalam, meniru "rule line" cetak koran */
+.michie-box::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--michie-news-rule);
+  pointer-events: none;
+}
+
+/* lapisan grain kertas, murni tekstur */
+.michie-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--michie-news-grain);
+  background-repeat: repeat;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.michie-box--primary {
+  background: var(--michie-news-paper);
+}
+
+.michie-box--secondary {
+  background: var(--michie-news-ink);
+}
+
+.michie-box--secondary::after {
+  border-color: var(--michie-news-rule-on-ink);
+}
+
+/* ==========================================================================
+   CIRCLE (FAB / Avatar / Toggle)
+   ========================================================================== */
+
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--michie-news-ink);
+  box-shadow: var(--michie-news-shadow-offset) var(--michie-news-shadow-offset) 0 var(--michie-news-ink);
+}
+
+/* cincin putus-putus di dalam, kesan cap/stempel pos */
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 1px dashed var(--michie-news-rule);
+  pointer-events: none;
+}
+
+.michie-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--michie-news-grain);
+  background-repeat: repeat;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.michie-circle--primary {
+  background: var(--michie-news-paper);
+}
+
+.michie-circle--secondary {
+  background: var(--michie-news-ink);
+}
+
+.michie-circle--secondary::after {
+  border-color: var(--michie-news-rule-on-ink);
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+/* Times New Roman kalau kebetulan ada di OS user, tapi andalannya "Tinos":
+   font open-source dari Fontsource (npm install @fontsource/tinos), metric-
+   compatible dengan Times New Roman, ikut ter-bundle ke app jadi jalan
+   offline di semua OS tanpa perlu font system apa pun. */
+.michie-text-primary,
+.michie-text-secondary {
+  font-family: "Times New Roman", "Tinos", "Times", serif;
+}
+
+.michie-text-primary {
+  color: var(--michie-news-ink);
+  font-weight: 700;
+}
+
+.michie-text-secondary {
+  color: var(--michie-news-ink-shade);
+  font-weight: 400;
+}
