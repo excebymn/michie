@@ -7,8 +7,6 @@
 // Tauri Plugins
 use tauri::State;
 use tauri::{Builder, Emitter, Manager};
-#[cfg(windows)]
-use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
 use tauri_plugin_log::{log, Target, TargetKind};
 use tauri_plugin_prevent_default::Flags;
 
@@ -31,6 +29,7 @@ mod equalizer; // Fitur equalizer: DSP biquad, state, DB persist, commands — s
 mod helper;
 
 mod lyrics; // Fitur lirik: types, cache DB, fetch LRCLib, fuzzy matching, commands — semua disatukan di sini
+mod media_controls; // BARU: integrasi OS-level media controls (MPRIS/SMTC/Now Playing), lihat media_controls.rs
 mod music;
 mod spectral; // BARU
 mod types;
@@ -49,6 +48,7 @@ pub struct AppState {
     is_back_restore_ongoing: Mutex<i64>,
     equalizer_params: Arc<EqualizerParams>, // BARU
     visualizer_subscribers: AtomicUsize, // BARU — jumlah widget frontend yang lagi subscribe ke visualizer-levels
+    now_playing: Arc<media_controls::NowPlaying>, // BARU — integrasi OS-level media controls (MPRIS/SMTC/Now Playing)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -120,6 +120,12 @@ pub fn run() -> Result<(), String> {
             },
         )
         .setup(|app: &mut tauri::App| {
+            // BARU: init media controls cross-platform SEBELUM app.manage,
+            // supaya bisa langsung dimasukkan ke AppState. Harus di main
+            // thread (di sini) karena butuh window handle (Windows) dan
+            // event loop utama (macOS).
+            let now_playing = Arc::new(media_controls::NowPlaying::init(app)?);
+
             app.manage(AppState {
                 player,
                 pool,
@@ -127,6 +133,7 @@ pub fn run() -> Result<(), String> {
                 is_back_restore_ongoing: Mutex::new(0),
                 equalizer_params,                            // BARU
                 visualizer_subscribers: AtomicUsize::new(0), // BARU
+                now_playing,                                 // BARU
             });
 
             // ---- Watcher: deteksi lagu selesai secara alami dan auto-lanjut ----
@@ -149,11 +156,18 @@ pub fn run() -> Result<(), String> {
                         // Edge terdeteksi: tadinya ada isi di sink, sekarang kosong -> lagu barusan selesai sendiri
                         if let Some(song) = player.advance_after_finish() {
                             drop(player);
+                            let ap_state = watcher_handle.state::<AppState>();
+                            ap_state.now_playing.update_song(&song); // BARU
+                            ap_state.now_playing.set_playback(true); // BARU
                             let _ =
                                 watcher_handle.emit("get-current-song", GetCurrentSong { q: song });
                             prev_nonempty = true;
                         } else {
                             drop(player);
+                            watcher_handle
+                                .state::<AppState>()
+                                .now_playing
+                                .set_playback(false); // BARU
                             let _ = watcher_handle.emit("controls-play-pause", false);
                             prev_nonempty = false;
                         }
@@ -250,54 +264,11 @@ pub fn run() -> Result<(), String> {
                 }
             });
 
-            #[cfg(windows)]
-            {
-                app.handle().plugin(
-                    tauri_plugin_global_shortcut::Builder::new()
-                        .with_shortcuts(["MediaPlayPause", "MediaTrackNext", "MediaTrackPrevious"])?
-                        .with_handler(move |_app, shortcut, event| {
-                            if event.state == ShortcutState::Pressed {
-                                let app_clone = _app.state::<AppState>().clone();
-                                let mut player = app_clone.player.lock().unwrap();
-
-                                if shortcut.matches(Modifiers::FN, Code::MediaPlayPause) {
-                                    if player.check_is_paused() {
-                                        player.play_song();
-                                        let _ = _app.emit("controls-play-pause", true);
-                                    } else {
-                                        player.pause_song();
-                                        let _ = _app.emit("controls-play-pause", false);
-                                    }
-                                }
-                                if shortcut.matches(Modifiers::FN, Code::MediaTrackNext) {
-                                    if player.check_is_loaded() {
-                                        player.next_song();
-                                        let q = player.get_current_song();
-                                        if q.is_ok() {
-                                            let _ = _app.emit(
-                                                "get-current-song",
-                                                GetCurrentSong { q: q.unwrap() },
-                                            );
-                                        }
-                                    }
-                                }
-                                if shortcut.matches(Modifiers::FN, Code::MediaTrackPrevious) {
-                                    if player.check_is_loaded() {
-                                        player.previous_song();
-                                        let q = player.get_current_song();
-                                        if q.is_ok() {
-                                            let _ = _app.emit(
-                                                "get-current-song",
-                                                GetCurrentSong { q: q.unwrap() },
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                        })
-                        .build(),
-                )?;
-            }
+            // Blok media-key handler khusus Windows yang lama (tauri_plugin_global_shortcut)
+            // sudah dilepas dari sini — digantikan `media_controls::NowPlaying` yang
+            // diinisialisasi di atas, karena souvlaki menangani tombol media Play/
+            // Pause/Next/Previous secara cross-platform (Windows SMTC, macOS Now
+            // Playing, Linux MPRIS), bukan cuma Windows.
 
             Ok(())
         })

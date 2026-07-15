@@ -1,0 +1,135 @@
+/* ==========================================================================
+   MICHIE THEME: ART DECO
+   Garis geometris emas, simetris, sudut potong (stepped corners),
+   motif kipas/sunburst khas gaya 1920-an. Emas adalah identitas tetap
+   tema ini (aksen, bukan warna permukaan) - permukaan tetap ikut
+   --color-primary/--color-secondary global.
+   ========================================================================== */
+
+:root {
+  --michie-deco-gold: #c9a24a;
+  --michie-deco-gold-soft: rgba(201, 162, 74, 0.35);
+  --michie-deco-dark-line: rgba(0, 0, 0, 0.55);
+  --michie-deco-clip: 14px; /* besar potongan sudut */
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  clip-path: polygon(
+    var(--michie-deco-clip) 0,
+    calc(100% - var(--michie-deco-clip)) 0,
+    100% var(--michie-deco-clip),
+    100% calc(100% - var(--michie-deco-clip)),
+    calc(100% - var(--michie-deco-clip)) 100%,
+    var(--michie-deco-clip) 100%,
+    0 calc(100% - var(--michie-deco-clip)),
+    0 var(--michie-deco-clip)
+  );
+  border: 2px solid var(--michie-deco-gold);
+  box-shadow: inset 0 0 0 4px transparent;
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+}
+
+/* garis emas kedua di dalam, sedikit lebih tipis, jarak dari tepi */
+.michie-box::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  clip-path: polygon(
+    calc(var(--michie-deco-clip) - 4px) 0,
+    calc(100% - (var(--michie-deco-clip) - 4px)) 0,
+    100% calc(var(--michie-deco-clip) - 4px),
+    100% calc(100% - (var(--michie-deco-clip) - 4px)),
+    calc(100% - (var(--michie-deco-clip) - 4px)) 100%,
+    calc(var(--michie-deco-clip) - 4px) 100%,
+    0 calc(100% - (var(--michie-deco-clip) - 4px)),
+    0 calc(var(--michie-deco-clip) - 4px)
+  );
+  border: 1px solid var(--michie-deco-gold-soft);
+  pointer-events: none;
+}
+
+/* motif kipas/sunburst di pojok kiri-atas, garis vector statis */
+.michie-box::after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 70px;
+  height: 70px;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='70' height='70'><g stroke='rgba(201,162,74,0.8)' stroke-width='1.4' fill='none'><path d='M20 70 A50 50 0 0 1 70 20'/><path d='M30 70 A40 40 0 0 1 70 30'/><path d='M40 70 A30 30 0 0 1 70 40'/><path d='M50 70 A20 20 0 0 1 70 50'/></g></svg>");
+  background-repeat: no-repeat;
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--michie-deco-gold);
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+}
+
+.michie-circle::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--michie-deco-gold-soft);
+  pointer-events: none;
+}
+
+/* rays memancar dari tengah, motif sunburst deco klasik */
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background: repeating-conic-gradient(
+    var(--michie-deco-gold-soft) 0deg 4deg,
+    transparent 4deg 18deg
+  );
+  mix-blend-mode: overlay;
+}
+
+/* ---------- TYPOGRAPHY ---------- */
+/* Deco asli biasanya pakai geometric caps (mis. font "Poiret One"), tapi
+   di sini dibuat tanpa install font tambahan: caps + letter-spacing lebar
+   dari font sistem sudah cukup menangkap kesan geometris-nya. */
+.michie-text-primary,
+.michie-text-secondary {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.michie-text-primary {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--michie-deco-gold);
+}
+
+.michie-text-secondary {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  opacity: 0.8;
+}

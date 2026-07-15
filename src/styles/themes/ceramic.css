@@ -1,0 +1,122 @@
+/* ==========================================================================
+   MICHIE THEME: CERAMIC / PORCELAIN
+   Glossy glaze, sudut membulat, garis crackle (crazing) halus khas
+   porselen tua, highlight cahaya lembut memantul di permukaan.
+   Palette tetap ikut --color-primary/--color-secondary global (glasir
+   bisa warna apa saja, efek permukaan yang bikin kesan "keramik").
+   ========================================================================== */
+
+:root {
+  --michie-ceramic-radius-box: 1.25rem;
+  --michie-ceramic-shadow: rgba(60, 45, 35, 0.14);
+  --michie-ceramic-crackle: rgba(0, 0, 0, 0.05);
+  --michie-ceramic-crackle-soft: rgba(0, 0, 0, 0.03);
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--michie-ceramic-radius-box);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 6px 16px var(--michie-ceramic-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.michie-box--primary {
+  background: var(--color-primary);
+}
+
+.michie-box--secondary {
+  background: var(--color-secondary);
+}
+
+/* highlight glasir memantul, pojok kiri-atas */
+.michie-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 140% 90% at 22% 12%,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.15) 35%,
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* garis crackle/crazing tipis - vector path biasa, bukan filter,
+   supaya render konsisten di semua webview */
+.michie-box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.6;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><g fill='none' stroke='rgba(0,0,0,0.35)' stroke-width='0.6'><path d='M12 8 L48 22 L40 55 L70 40'/><path d='M70 40 L100 60 L92 100'/><path d='M40 55 L55 90 L30 120'/><path d='M100 60 L140 50 L160 80'/><path d='M92 100 L120 130 L110 165'/><path d='M30 120 L10 150 L35 190'/><path d='M160 80 L190 100 L200 140'/><path d='M110 165 L150 180 L140 210'/><path d='M35 190 L70 200 L60 220'/></g></svg>");
+  background-repeat: repeat;
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 12px var(--michie-ceramic-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.michie-circle--primary {
+  background: var(--color-primary);
+}
+
+.michie-circle--secondary {
+  background: var(--color-secondary);
+}
+
+.michie-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 30% 25%,
+    rgba(255, 255, 255, 0.65) 0%,
+    rgba(255, 255, 255, 0.2) 30%,
+    transparent 60%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><g fill='none' stroke='rgba(0,0,0,0.35)' stroke-width='0.6'><path d='M12 8 L48 22 L40 55 L70 40'/><path d='M70 40 L100 60 L92 100'/><path d='M40 55 L55 90 L30 120'/><path d='M100 60 L140 50 L160 80'/><path d='M92 100 L120 130 L110 165'/></g></svg>");
+  background-repeat: repeat;
+}
+
+/* ---------- TYPOGRAPHY ---------- */
+/* ui-serif adalah generic font family CSS (native, resolve ke serif
+   bawaan OS masing-masing) - elegan ala porselen tanpa perlu install
+   font pack apa pun, aman offline di semua platform */
+.michie-text-primary,
+.michie-text-secondary {
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+}
+
+.michie-text-primary {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.michie-text-secondary {
+  font-weight: 400;
+  opacity: 0.75;
+}

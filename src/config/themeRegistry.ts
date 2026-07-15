@@ -21,6 +21,9 @@ import pixelCss from "../styles/themes/pixel.css?url";
 import amoledCss from "../styles/themes/amoled.css?url";
 import denimCss from "../styles/themes/denim.css?url";
 import newspaper from "../styles/themes/newspaper.css?url";
+import ceramic from "../styles/themes/ceramic.css?url";
+import artdeco from "../styles/themes/artdeco.css?url";
+import sephia from "../styles/themes/sephia.css?url";
 
 export const themeRegistry: ThemeDefinition[] = [
   // Tema utama
@@ -39,5 +42,8 @@ export const themeRegistry: ThemeDefinition[] = [
   { id: "amoled", label: "AMOLED", cssUrl: amoledCss },
   { id: "denim", label: "Denim", cssUrl: denimCss },
   { id: "wood", label: "Wood", cssUrl: woodCss },
-    { id: "newspaper", label: "Newspaper", cssUrl: newspaper },
+  { id: "newspaper", label: "Newspaper", cssUrl: newspaper },
+  { id: "ceramic", label: "Ceramic", cssUrl: ceramic },
+  { id: "artdeco", label: "Art Deco", cssUrl: artdeco },
+  { id: "sephia", label: "Sephia", cssUrl: sephia },
 ];

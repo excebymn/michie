@@ -437,12 +437,14 @@ pub async fn play_selection(
 #[tauri::command]
 pub fn player_play(state: State<AppState, '_>) -> Result<(), String> {
     state.player.lock().unwrap().play_song();
+    state.now_playing.set_playback(true); // BARU — sinkron ke media controls OS
     Ok(())
 }
 
 #[tauri::command]
 pub fn player_pause(state: State<AppState, '_>) -> Result<(), String> {
     state.player.lock().unwrap().pause_song();
+    state.now_playing.set_playback(false); // BARU — sinkron ke media controls OS
     Ok(())
 }
 
@@ -490,13 +492,27 @@ pub fn player_set_seek(state: State<AppState, '_>, pos: u64) -> Result<(), Strin
 
 #[tauri::command]
 pub fn player_next_song(state: State<AppState, '_>) -> Result<(), String> {
-    state.player.lock().unwrap().next_song();
+    let mut player = state.player.lock().unwrap();
+    player.next_song();
+    // BARU — sinkron metadata & status ke media controls OS
+    if let Ok(song) = player.get_current_song() {
+        drop(player);
+        state.now_playing.update_song(&song);
+        state.now_playing.set_playback(true);
+    }
     Ok(())
 }
 
 #[tauri::command]
 pub fn player_previous_song(state: State<AppState, '_>) -> Result<(), String> {
-    state.player.lock().unwrap().previous_song();
+    let mut player = state.player.lock().unwrap();
+    player.previous_song();
+    // BARU — sinkron metadata & status ke media controls OS
+    if let Ok(song) = player.get_current_song() {
+        drop(player);
+        state.now_playing.update_song(&song);
+        state.now_playing.set_playback(true);
+    }
     Ok(())
 }
 
@@ -519,6 +535,8 @@ pub fn update_current_song_played(state: State<AppState, '_>, app: tauri::AppHan
 
     if q.is_ok() {
         let res = q.unwrap();
+        state.now_playing.update_song(&res); // BARU — sinkron ke media controls OS
+        state.now_playing.set_playback(true); // BARU
         app.emit("get-current-song", GetCurrentSong { q: res })
             .unwrap();
     } else {

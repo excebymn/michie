@@ -18,10 +18,11 @@
 
   --michie-news-shadow-offset: 3px;
 
-  /* noise grayscale (fractal turbulence), kontras dinaikkan lewat
-     feComponentTransfer supaya beneran kelihatan sebagai butiran, bukan
-     abu-abu rata; murni tekstur, bukan warna */
-  --michie-news-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feComponentTransfer><feFuncR type='linear' slope='3.2' intercept='-1.1'/><feFuncG type='linear' slope='3.2' intercept='-1.1'/><feFuncB type='linear' slope='3.2' intercept='-1.1'/></feComponentTransfer><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+  /* noise butiran tinta, sudah di-render jadi PNG (bukan live SVG filter)
+     supaya kompatibel di semua webview - beberapa versi WebKitGTK punya
+     masalah render feTurbulence/feComponentTransfer di dalam data URI SVG.
+     File: newspaper-grain.png, taruh sejajar dengan newspaper.css. */
+  --michie-news-grain: url("../textures/newspaper-grain.png");
 }
 
 /* ==========================================================================
@@ -52,8 +53,6 @@
   inset: 0;
   background-image: var(--michie-news-grain);
   background-repeat: repeat;
-  opacity: 0.16;
-  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
@@ -97,8 +96,6 @@
   inset: 0;
   background-image: var(--michie-news-grain);
   background-repeat: repeat;
-  opacity: 0.16;
-  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
@@ -127,7 +124,7 @@
 }
 
 .michie-text-primary {
-  color: var(--michie-news-ink);
+  color: var(--michie-news-paper);
   font-weight: 700;
 }
 

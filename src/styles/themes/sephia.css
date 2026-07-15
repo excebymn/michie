@@ -1,0 +1,112 @@
+/* ==========================================================================
+   MICHIE THEME: SEPIA PHOTOGRAPH
+   Kertas foto tua kecoklatan, vignette lembut di tepi, goresan/scratch
+   halus khas film lawas. Palette kecoklatan adalah identitas tetap tema
+   ini (mirip amoled) - tidak ikut --color-primary/--color-secondary.
+   ========================================================================== */
+
+:root {
+  --michie-sepia-paper: #e8d9bd;      /* kertas foto krem kecoklatan */
+  --michie-sepia-paper-shade: #d9c6a4;
+  --michie-sepia-ink: #4a3826;        /* coklat tua, teks & border */
+  --michie-sepia-ink-soft: #6e5a42;
+  --michie-sepia-vignette: rgba(58, 41, 24, 0.35);
+}
+
+/* ---------- BOX (Card / Panel) ---------- */
+.michie-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  border: 1px solid var(--michie-sepia-ink-soft);
+  box-shadow: 0 3px 10px rgba(58, 41, 24, 0.25);
+}
+
+.michie-box--primary {
+  background: var(--michie-sepia-paper);
+}
+
+.michie-box--secondary {
+  background: var(--michie-sepia-paper-shade);
+}
+
+/* vignette lembut di tepi, kesan foto lawas */
+.michie-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    var(--michie-sepia-vignette) 100%
+  );
+  pointer-events: none;
+}
+
+/* goresan/scratch tipis, garis vector statis - bukan filter */
+.michie-box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><g stroke='rgba(74,56,38,0.5)' stroke-width='0.5'><line x1='18' y1='0' x2='15' y2='240'/><line x1='120' y1='10' x2='123' y2='230'/><line x1='200' y1='0' x2='198' y2='120'/></g><g stroke='rgba(255,255,255,0.25)' stroke-width='0.4'><line x1='60' y1='0' x2='62' y2='240'/><line x1='170' y1='30' x2='168' y2='240'/></g></svg>");
+  background-repeat: repeat;
+}
+
+/* ---------- CIRCLE (FAB / Avatar / Toggle) ---------- */
+.michie-circle {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid var(--michie-sepia-ink-soft);
+  box-shadow: 0 3px 10px rgba(58, 41, 24, 0.25);
+}
+
+.michie-circle--primary {
+  background: var(--michie-sepia-paper);
+}
+
+.michie-circle--secondary {
+  background: var(--michie-sepia-paper-shade);
+}
+
+.michie-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    transparent 50%,
+    var(--michie-sepia-vignette) 100%
+  );
+  pointer-events: none;
+}
+
+.michie-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><g stroke='rgba(74,56,38,0.5)' stroke-width='0.5'><line x1='30' y1='0' x2='28' y2='120'/><line x1='80' y1='10' x2='82' y2='110'/></g></svg>");
+  background-repeat: repeat;
+}
+
+/* ---------- TYPOGRAPHY ---------- */
+/* serif klasik bawaan OS, elegan ala keterangan foto lama, tanpa perlu
+   install font pack (ui-serif = generic keyword, resolve otomatis) */
+.michie-text-primary,
+.michie-text-secondary {
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  color: var(--michie-sepia-ink);
+}
+
+.michie-text-primary {
+  font-weight: 600;
+}
+
+.michie-text-secondary {
+  font-style: italic;
+  color: var(--michie-sepia-ink-soft);
+}

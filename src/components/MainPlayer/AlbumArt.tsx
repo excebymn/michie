@@ -66,14 +66,19 @@ export function AlbumArt({ mini = false, header, footer }: AlbumArtProps) {
           <p className="mpw-info-title michie-text-secondary">
             {currentSong?.name ?? "No song selected"}
           </p>
-          <p className="mpw-info-sub michie-text-secondary">
-            {currentSong?.artist ?? currentSong?.album_artist ?? "—"}
-            {currentSong?.album ? ` · ${currentSong.album}` : ""}
-          </p>
+          <div className="container">
+            <p className="mpw-info-sub michie-text-secondary">
+              {currentSong?.artist ?? currentSong?.album_artist ?? "—"}
+              {currentSong?.album ? ` · ${currentSong.album}` : ""}
+            </p>
+          </div>
         </div>
       )}
 
       <style>{`
+      .container{
+      padding-top : 5px
+      }
         .mpw-art {
           position: relative;
           width: 100%;

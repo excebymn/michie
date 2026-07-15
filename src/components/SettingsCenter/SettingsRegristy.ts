@@ -18,5 +18,5 @@ export const settingsRegistry: SettingsPanelConfig[] = [
   { id: 'library', label: 'Music library', component: LibraryView },
   { id: 'playlists', label: 'Playlists', component: PlaylistsView },
   { id: 'appearance', label: 'Appearance', component: AppearancePanel },
-  { id: 'light-mode', label: 'Mode ringan', component: LightModePanel },
+  { id: 'work-mode', label: 'Work mode', component: LightModePanel },
 ];

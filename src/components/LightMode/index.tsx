@@ -6,12 +6,9 @@ export function LightModePanel() {
 
   return (
     <div className="lmp-root">
-      <h2 className="lmp-title">Light mode</h2>
+      <h2 className="lmp-title">Work mode</h2>
       <p className="lmp-desc michie-text-secondary">
-        When active, the left and right columns each show only one custom widget
-        instead of two, so fewer widgets run on the main screen. Queue, library,
-        playlist, source, and appearance can still be opened normally from this
-        menu and remain unaffected.
+        Focus on what matters. Work Mode hides decorative widgets and keeps only the essentials on screen. It's perfect for studying, working, gaming, or reducing unnecessary resource usage.
       </p>
 
       <button
