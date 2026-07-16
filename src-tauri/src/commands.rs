@@ -2,7 +2,7 @@
 use crate::{
     db::{self, create_playlist, get_playlist},
     helper::{self},
-    types::{DirsTable, DoesExist, GetCurrentSong, GetPlaylistList, PlaylistFull, SongTable},
+    types::{DoesExist, GetCurrentSong, GetPlaylistList, PlaylistFull, SongTable},
     AppState,
 };
 

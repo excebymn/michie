@@ -3,7 +3,6 @@ use sqlx::sqlite::SqlitePool;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
-use tauri_plugin_log::log;
 // SQLITE Libraries
 use sqlx::{sqlite::SqliteQueryResult, Executor, Pool, Sqlite};
 use tauri::{Emitter, State};

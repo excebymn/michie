@@ -34,7 +34,12 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": ["$APPDATA/db/**", "$RESOURCE/**", "$HOME/.config/**", "/src/images/**"],
+          "allow": [
+            "$APPDATA/db/**",
+            "$RESOURCE/**",
+            "$HOME/.config/**",
+            "/src/images/**"
+          ],
           "deny": ["$APPDATA/db/*.stronghold"]
         }
       }
@@ -42,9 +47,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi", "rpm", "appimage", "deb"],
+    "targets": ["nsis", "rpm", "appimage", "deb"],
     "category": "Music",
-    "copyright": "copyright",    
+    "copyright": "copyright",
     "shortDescription": "A beautiful music player made with Tauri and React",
     "icon": [
       "icons/icon.png",
