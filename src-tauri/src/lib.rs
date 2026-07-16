@@ -25,6 +25,7 @@ use tokio::runtime::Runtime;
 // Import files
 mod commands;
 mod db;
+mod discord; // BARU: integrasi Discord Rich Presence, lihat discord.rs
 mod equalizer; // Fitur equalizer: DSP biquad, state, DB persist, commands — semua disatukan di sini (pola sama seperti lyrics.rs)
 mod helper;
 
@@ -49,6 +50,7 @@ pub struct AppState {
     equalizer_params: Arc<EqualizerParams>, // BARU
     visualizer_subscribers: AtomicUsize, // BARU — jumlah widget frontend yang lagi subscribe ke visualizer-levels
     now_playing: Arc<media_controls::NowPlaying>, // BARU — integrasi OS-level media controls (MPRIS/SMTC/Now Playing)
+    discord_rp: Arc<discord::DiscordPresence>, // BARU — integrasi Discord Rich Presence
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -126,6 +128,27 @@ pub fn run() -> Result<(), String> {
             // event loop utama (macOS).
             let now_playing = Arc::new(media_controls::NowPlaying::init(app)?);
 
+            // BARU: init Discord Rich Presence + restore status toggle dari DB
+            // (kalau sebelumnya di-nyalain user, otomatis konek lagi tiap app
+            // dibuka, tidak perlu di-toggle ulang manual tiap restart).
+            let discord_rp = discord::DiscordPresence::new();
+            {
+                let pool_clone = pool.clone();
+                let rt = Runtime::new().unwrap();
+                let was_enabled: bool = rt.block_on(async {
+                    sqlx::query_as::<_, (bool,)>(
+                        "SELECT discord_rp_enabled FROM settings WHERE id = 1",
+                    )
+                    .fetch_one(&pool_clone)
+                    .await
+                    .map(|r| r.0)
+                    .unwrap_or(false)
+                });
+                if was_enabled {
+                    discord_rp.clone().enable();
+                }
+            }
+
             app.manage(AppState {
                 player,
                 pool,
@@ -134,6 +157,7 @@ pub fn run() -> Result<(), String> {
                 equalizer_params,                            // BARU
                 visualizer_subscribers: AtomicUsize::new(0), // BARU
                 now_playing,                                 // BARU
+                discord_rp,                                  // BARU
             });
 
             // ---- Watcher: deteksi lagu selesai secara alami dan auto-lanjut ----
@@ -159,15 +183,15 @@ pub fn run() -> Result<(), String> {
                             let ap_state = watcher_handle.state::<AppState>();
                             ap_state.now_playing.update_song(&song); // BARU
                             ap_state.now_playing.set_playback(true); // BARU
+                            ap_state.discord_rp.update_song(&song, 0); // BARU
                             let _ =
                                 watcher_handle.emit("get-current-song", GetCurrentSong { q: song });
                             prev_nonempty = true;
                         } else {
                             drop(player);
-                            watcher_handle
-                                .state::<AppState>()
-                                .now_playing
-                                .set_playback(false); // BARU
+                            let ap_state = watcher_handle.state::<AppState>();
+                            ap_state.now_playing.set_playback(false); // BARU
+                            ap_state.discord_rp.clear_status(); // BARU — queue habis, bersihin status tapi koneksi tetap hidup
                             let _ = watcher_handle.emit("controls-play-pause", false);
                             prev_nonempty = false;
                         }
@@ -382,6 +406,9 @@ pub fn run() -> Result<(), String> {
             db::remove_directory,
             db::get_settings,
             db::set_theme,
+            // BARU — Integrations: Discord Rich Presence
+            discord::get_discord_rp_enabled,
+            discord::set_discord_rp_enabled,
             commands::create_backup,
             commands::check_for_backup,
             commands::check_for_backup_restore,

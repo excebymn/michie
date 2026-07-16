@@ -436,15 +436,23 @@ pub async fn play_selection(
 
 #[tauri::command]
 pub fn player_play(state: State<AppState, '_>) -> Result<(), String> {
-    state.player.lock().unwrap().play_song();
+    let player = state.player.lock().unwrap();
+    player.play_song();
+    let position = player.get_current_position();
+    drop(player);
     state.now_playing.set_playback(true); // BARU — sinkron ke media controls OS
+    state.discord_rp.set_playback(true, position); // BARU — sinkron ke Discord Rich Presence
     Ok(())
 }
 
 #[tauri::command]
 pub fn player_pause(state: State<AppState, '_>) -> Result<(), String> {
-    state.player.lock().unwrap().pause_song();
+    let player = state.player.lock().unwrap();
+    player.pause_song();
+    let position = player.get_current_position();
+    drop(player);
     state.now_playing.set_playback(false); // BARU — sinkron ke media controls OS
+    state.discord_rp.set_playback(false, position); // BARU — sinkron ke Discord Rich Presence
     Ok(())
 }
 
@@ -494,11 +502,12 @@ pub fn player_set_seek(state: State<AppState, '_>, pos: u64) -> Result<(), Strin
 pub fn player_next_song(state: State<AppState, '_>) -> Result<(), String> {
     let mut player = state.player.lock().unwrap();
     player.next_song();
-    // BARU — sinkron metadata & status ke media controls OS
+    // BARU — sinkron metadata & status ke media controls OS + Discord
     if let Ok(song) = player.get_current_song() {
         drop(player);
         state.now_playing.update_song(&song);
         state.now_playing.set_playback(true);
+        state.discord_rp.update_song(&song, 0);
     }
     Ok(())
 }
@@ -507,11 +516,12 @@ pub fn player_next_song(state: State<AppState, '_>) -> Result<(), String> {
 pub fn player_previous_song(state: State<AppState, '_>) -> Result<(), String> {
     let mut player = state.player.lock().unwrap();
     player.previous_song();
-    // BARU — sinkron metadata & status ke media controls OS
+    // BARU — sinkron metadata & status ke media controls OS + Discord
     if let Ok(song) = player.get_current_song() {
         drop(player);
         state.now_playing.update_song(&song);
         state.now_playing.set_playback(true);
+        state.discord_rp.update_song(&song, 0);
     }
     Ok(())
 }
@@ -535,8 +545,10 @@ pub fn update_current_song_played(state: State<AppState, '_>, app: tauri::AppHan
 
     if q.is_ok() {
         let res = q.unwrap();
+        let position = state.player.lock().unwrap().get_current_position();
         state.now_playing.update_song(&res); // BARU — sinkron ke media controls OS
         state.now_playing.set_playback(true); // BARU
+        state.discord_rp.update_song(&res, position); // BARU — sinkron ke Discord Rich Presence
         app.emit("get-current-song", GetCurrentSong { q: res })
             .unwrap();
     } else {

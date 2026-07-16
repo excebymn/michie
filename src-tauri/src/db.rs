@@ -241,11 +241,20 @@ pub async fn get_settings(state: State<AppState, '_>) -> Result<String, String> 
 
 #[tauri::command(rename_all = "snake_case")]
 pub async fn set_theme(state: State<AppState, '_>, theme_color: String) -> Result<(), String> {
-    let _ = sqlx::query("INSERT OR REPLACE INTO settings (id, theme) VALUES (?1, ?2)")
-        .bind(1)
-        .bind(theme_color)
-        .execute(&state.pool)
-        .await;
+    // DIPERBAIKI: sebelumnya pakai "INSERT OR REPLACE INTO settings (id, theme)
+    // VALUES (?1, ?2)" — di SQLite, OR REPLACE itu artinya DELETE lalu INSERT
+    // ulang baris id=1, jadi kolom lain di baris yang sama (mis.
+    // discord_rp_enabled) ikut ke-reset ke default tiap kali user ganti tema.
+    // Pola ON CONFLICT DO UPDATE di bawah cuma nyentuh kolom `theme`, kolom
+    // lain di baris yang sama tidak ikut terpengaruh.
+    let _ = sqlx::query(
+        "INSERT INTO settings (id, theme) VALUES (?1, ?2)
+         ON CONFLICT(id) DO UPDATE SET theme = excluded.theme",
+    )
+    .bind(1)
+    .bind(theme_color)
+    .execute(&state.pool)
+    .await;
 
     Ok(())
 }

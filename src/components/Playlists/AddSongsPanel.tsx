@@ -56,7 +56,7 @@ export function AddSongsPanel({ playlistId, existingPaths, onClose, onAdded }: A
     <div className="asp-root michie-box michie-box--secondary">
       <div className="asp-header">
         <input
-          className="asp-search michie-text-secondary"
+          className="asp-search michie-text-primary"
           placeholder="Search for a song to add..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}

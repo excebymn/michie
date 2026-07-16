@@ -1,0 +1,208 @@
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+
+  background-color: var(--app-background);
+  background-image: var(--app-background-image);
+  background-size: cover;
+  background-position: center;
+
+  opacity: 1;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-screen--exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ===== Vinyl rig ===== */
+
+.loading-screen__rig {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Piringan vinyl: materi fisik (plastik hitam), bukan permukaan chrome UI —
+   sengaja fixed color, bukan var(--color-*), sama seperti album art yang
+   juga konten bukan elemen tema. */
+.loading-screen__disc {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle at center,
+    #17171a 0px,
+    #17171a 2px,
+    #232326 2px,
+    #232326 4px
+  );
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  animation: loading-screen-spin 2.6s linear infinite;
+}
+
+.loading-screen--exit .loading-screen__disc {
+  animation-play-state: paused;
+}
+
+.loading-screen__label {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Shrikhand", cursive;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.loading-screen__spindle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0a0a0a;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.loading-screen__tonearm {
+  position: absolute;
+  top: -6px;
+  right: 6px;
+  width: 8px;
+  height: 96px;
+  border-radius: 4px;
+  transform-origin: top center;
+  animation:
+    loading-screen-tonearm-drop 1.1s cubic-bezier(0.34, 1.4, 0.4, 1) forwards,
+    loading-screen-tonearm-idle 3.4s ease-in-out 1.1s infinite;
+}
+
+.loading-screen__tonearm::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+@keyframes loading-screen-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-screen-tonearm-drop {
+  0% {
+    transform: rotate(-32deg);
+  }
+  100% {
+    transform: rotate(-6deg);
+  }
+}
+
+@keyframes loading-screen-tonearm-idle {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+
+/* ===== Wordmark ===== */
+
+.loading-screen__wordmark {
+  display: flex;
+  font-family: "Shrikhand", cursive;
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+
+.loading-screen__wordmark span {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: loading-screen-letter-in 0.5s ease forwards;
+}
+
+@keyframes loading-screen-letter-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Equalizer ===== */
+
+.loading-screen__eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 22px;
+}
+
+.loading-screen__eq span {
+  width: 4px;
+  border-radius: 2px;
+  animation: loading-screen-eq-bounce 1s ease-in-out infinite;
+}
+
+@keyframes loading-screen-eq-bounce {
+  0%,
+  100% {
+    height: 6px;
+  }
+  50% {
+    height: 22px;
+  }
+}
+
+/* ===== Status text ===== */
+
+.loading-screen__status {
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  min-height: 16px;
+}
+
+/* ===== Reduced motion ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen__disc,
+  .loading-screen__tonearm,
+  .loading-screen__eq span,
+  .loading-screen__wordmark span {
+    animation: none !important;
+  }
+  .loading-screen__disc {
+    opacity: 0.9;
+  }
+  .loading-screen__wordmark span {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { settingsRegistry } from "./SettingsRegristy";
+import { settingsRegistry } from "./SettingsRegistry";
 
 // Breakpoint window "sempit". Ini ngukur lebar viewport app, bukan cuma HP —
 // jadi kalau window app di-resize kecil di desktop pun tetap kepicu.

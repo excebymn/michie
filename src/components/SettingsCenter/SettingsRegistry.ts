@@ -5,6 +5,9 @@ import { AppearancePanel } from '../Appearance';
 import { QueueView } from '../Queue';
 import { PlaylistsView } from '../Playlists';
 import { LightModePanel } from '../LightMode';
+import { IntegrationsPanel } from '../Integrations';
+import { ShortcutsPanel } from '../Shortcuts';
+import { AboutPanel } from '../About';
 
 export interface SettingsPanelConfig {
   id: string;
@@ -14,9 +17,12 @@ export interface SettingsPanelConfig {
 
 export const settingsRegistry: SettingsPanelConfig[] = [
   { id: 'queue', label: 'Queue', component: QueueView },
-  { id: 'source', label: 'Local source', component: SourcePicker },
-  { id: 'library', label: 'Music library', component: LibraryView },
+  { id: 'source', label: 'Source', component: SourcePicker },
+  { id: 'library', label: 'Library', component: LibraryView },
   { id: 'playlists', label: 'Playlists', component: PlaylistsView },
   { id: 'appearance', label: 'Appearance', component: AppearancePanel },
+  { id: 'shortcuts', label: 'Shortcuts', component: ShortcutsPanel },
   { id: 'work-mode', label: 'Work mode', component: LightModePanel },
+  { id: 'integrations', label: 'Integrations', component: IntegrationsPanel },
+  { id: 'about', label: 'About', component: AboutPanel },
 ];

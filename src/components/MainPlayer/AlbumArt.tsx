@@ -66,32 +66,40 @@ export function AlbumArt({ mini = false, header, footer }: AlbumArtProps) {
           <p className="mpw-info-title michie-text-secondary">
             {currentSong?.name ?? "No song selected"}
           </p>
-          <div className="container">
-            <p className="mpw-info-sub michie-text-secondary">
-              {currentSong?.artist ?? currentSong?.album_artist ?? "—"}
-              {currentSong?.album ? ` · ${currentSong.album}` : ""}
-            </p>
-          </div>
+          <p className="mpw-info-sub michie-text-secondary">
+            {currentSong?.artist ?? currentSong?.album_artist ?? "—"}
+            {currentSong?.album ? ` · ${currentSong.album}` : ""}
+          </p>
         </div>
       )}
 
       <style>{`
-      .container{
-      padding-top : 5px
-      }
         .mpw-art {
           position: relative;
           width: 100%;
           aspect-ratio: 1;
+          /* Batasi tinggi maksimum relatif terhadap TINGGI SLOT (cqh), bukan cuma
+             lebar. Sebelumnya art selalu jadi kotak selebar penuh apapun tinggi
+             slot-nya — kalau slot dipendekkan, art tetap maksa persegi lebar-penuh
+             dan mendorong progress bar + controls keluar (itu yang kelihatan
+             "kepotong" di widget sempit). Dengan max-height ini, art ikut
+             mengecil begitu tinggi slot terbatas, ruang untuk kontrol tetap ada. */
+          max-height: 55cqh;
+          max-width: 55cqh;
+          margin-inline: auto;
           overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 1;
+          min-height: 0;
         }
         .mpw-art--mini {
           aspect-ratio: unset;
           flex: 1;
           border-radius: 0;
+          max-height: none;
+          max-width: none;
         }
         .mpw-art-img {
           width: 100%;
@@ -99,7 +107,7 @@ export function AlbumArt({ mini = false, header, footer }: AlbumArtProps) {
           object-fit: cover;
         }
         .mpw-art-placeholder {
-          font-size: 48px;
+          font-size: clamp(20px, 14cqh, 48px);
           user-select: none;
         }
 
@@ -147,10 +155,16 @@ export function AlbumArt({ mini = false, header, footer }: AlbumArtProps) {
           padding: 12px 14px;
         }
 
-        .mpw-info { text-align: center; }
+        .mpw-info {
+          text-align: center;
+          width: 100%;
+          min-width: 0;
+        }
         .mpw-info-title {
           margin: 0;
-          font-size: 0.95rem;
+          /* clamp berbasis cqw: judul ikut mengecil sesuai lebar slot, bukan
+             cuma dipotong ellipsis di ukuran tetap. */
+          font-size: clamp(0.72rem, 3.4cqw, 0.95rem);
           font-weight: 600;
           white-space: nowrap;
           overflow: hidden;
@@ -158,7 +172,7 @@ export function AlbumArt({ mini = false, header, footer }: AlbumArtProps) {
         }
         .mpw-info-sub {
           margin: 3px 0 0;
-          font-size: 0.78rem;
+          font-size: clamp(0.62rem, 2.6cqw, 0.78rem);
           opacity: 0.55;
           white-space: nowrap;
           overflow: hidden;

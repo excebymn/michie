@@ -26,6 +26,7 @@
 // yang ter-install.
 // ============================================================================
 
+#[cfg(target_os = "windows")]
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use souvlaki::{
     MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, MediaPosition,
@@ -34,6 +35,7 @@ use souvlaki::{
 use std::sync::Mutex;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_log::log;
 
 use crate::types::{GetCurrentSong, SongTable};
 use crate::AppState;
@@ -65,8 +67,15 @@ impl NowPlaying {
                 }
             }
         };
+        // Di non-Windows, `window` cuma dipakai buat mastiin window utama
+        // sudah ada (lewat `.ok_or_else` di atas) - hwnd-nya sendiri tidak
+        // dipakai, jadi sengaja "dibuang" di sini biar tidak ada warning
+        // unused variable.
         #[cfg(not(target_os = "windows"))]
-        let hwnd: Option<*mut std::ffi::c_void> = None;
+        let hwnd: Option<*mut std::ffi::c_void> = {
+            let _ = &window;
+            None
+        };
 
         let config = PlatformConfig {
             dbus_name: "michie_player",
@@ -148,7 +157,7 @@ fn handle_media_event(app: &AppHandle, event: MediaControlEvent) {
             let _ = app.emit("controls-play-pause", false);
         }
         MediaControlEvent::Toggle => {
-            let mut player = state.player.lock().unwrap();
+            let player = state.player.lock().unwrap();
             let now_playing_flag = player.check_is_paused();
             if now_playing_flag {
                 player.play_song();

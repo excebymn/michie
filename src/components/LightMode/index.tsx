@@ -6,7 +6,7 @@ export function LightModePanel() {
 
   return (
     <div className="lmp-root">
-      <h2 className="lmp-title">Work mode</h2>
+      <h2 className="lmp-title michie-text-secondary">Work mode</h2>
       <p className="lmp-desc michie-text-secondary">
         Focus on what matters. Work Mode hides decorative widgets and keeps only the essentials on screen. It's perfect for studying, working, gaming, or reducing unnecessary resource usage.
       </p>

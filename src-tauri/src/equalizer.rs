@@ -194,11 +194,11 @@ where
     }
 
     fn maybe_refresh_coeffs(&mut self) {
-        let gen = self.params.generation.load(Ordering::Relaxed);
-        if gen != self.last_seen_generation {
+        let current_gen = self.params.generation.load(Ordering::Relaxed);
+        if current_gen != self.last_seen_generation {
             let gains = self.params.get_gains();
             self.coeffs = Self::compute_coeffs(&gains, self.sample_rate as f32);
-            self.last_seen_generation = gen;
+            self.last_seen_generation = current_gen;
         }
     }
 

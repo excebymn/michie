@@ -1,0 +1,116 @@
+.about-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.about-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.about-tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.about-section-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.about-section-fallback {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  padding: 8px 0;
+}
+
+/* Contact section */
+.about-contact-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 14px;
+  outline: 2px solid var(--color-primary);
+}
+
+.about-contact-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.about-contact-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  opacity: 0.85;
+  max-width: 520px;
+}
+
+.about-contact-link {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease-out;
+}
+
+.about-contact-link:hover {
+  transform: scale(1.03);
+}
+
+.about-contact-link:active {
+  transform: scale(0.98);
+}
+
+/* Features section */
+.about-feature-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.about-feature-item {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Tech stack section */
+.about-version-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.about-version-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.about-tech-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.about-tech-item {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

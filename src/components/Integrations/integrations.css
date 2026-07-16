@@ -1,0 +1,47 @@
+.integrations-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+}
+
+.integrations-item {
+  border-radius: 14px;
+    padding : 10px;
+}
+
+.integrations-toggle {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.integrations-toggle:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.integrations-toggle--on {
+  background: var(--color-primary);
+}
+
+.integrations-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  transition: transform 150ms ease-out;
+}
+
+.integrations-toggle--on .integrations-toggle-knob {
+  transform: translateX(20px);
+}

@@ -1,6 +1,6 @@
 [package]
 name = "michie"
-version = "0.1.0-alpha.1"
+version = "1.0.0-beta"
 description = "The music player that you wanna marry"
 authors = ["excebymn"]
 edition = "2024"
@@ -56,3 +56,6 @@ tauri-plugin-single-instance = "2"
 tauri-plugin-global-shortcut = "2"
 souvlaki = "0.7"
 raw-window-handle = "0.6"
+# BARU: Discord Rich Presence — cross-platform lewat IPC socket Discord (named
+# pipe di Windows, unix socket di macOS/Linux).
+discord-rich-presence = "1.1"
