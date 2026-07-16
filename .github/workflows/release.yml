@@ -61,6 +61,5 @@ jobs:
 
             Please report issues on GitHub if you find one.
           prerelease: true
-          draft: false
+          releaseDraft: false
           includeUpdaterJson: false
-          args: --bundles nsis,rpm,appimage,deb,dmg
