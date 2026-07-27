@@ -14,13 +14,16 @@ type BackgroundType = 'color' | 'image' | 'primary' | 'secondary';
 
 interface AppearanceState {
   themeId: string;
-  paletteId: string; // nama palette dari registry, atau 'album-tone'
+  paletteId: string; // nama palette dari registry, 'album-tone', atau 'custom'
+  customPrimary: string; // hex primary terakhir yang di-input user untuk palette custom
+  customSecondary: string; // hex secondary terakhir yang di-input user untuk palette custom
   backgroundType: BackgroundType;
   backgroundValue: string; // hex kalau color, path lokal kalau image, diabaikan kalau primary/secondary
   setTheme: (id: string) => void;
   setPalette: (id: string) => void;
   setAlbumTonePalette: () => void;
   applyAlbumTone: (primaryHex: string, secondaryHex: string) => void;
+  setCustomPalette: (primaryHex: string, secondaryHex: string) => void;
   setBackgroundColor: (hex: string) => void;
   setBackgroundImage: (filePath: string) => void;
   setBackgroundPaletteRef: (which: 'primary' | 'secondary') => void;
@@ -32,6 +35,8 @@ export const useAppearanceStore = create<AppearanceState>()(
     (set, get) => ({
       themeId: 'glass',
       paletteId: 'sunset',
+      customPrimary: '#004741',
+      customSecondary: '#f0ede4',
       backgroundType: 'color',
       backgroundValue: '#101010',
 
@@ -49,6 +54,18 @@ export const useAppearanceStore = create<AppearanceState>()(
 
       applyAlbumTone: (primaryHex, secondaryHex) => {
         applyRawPalette(primaryHex, secondaryHex);
+      },
+
+      // Mode khusus: user input sendiri 2 warna (hex) untuk primary/secondary.
+      // Disimpan terpisah dari paletteRegistry supaya persist lintas restart
+      // tanpa perlu nambah entry permanen ke registry.
+      setCustomPalette: (primaryHex, secondaryHex) => {
+        applyRawPalette(primaryHex, secondaryHex);
+        set({
+          paletteId: 'custom',
+          customPrimary: primaryHex,
+          customSecondary: secondaryHex,
+        });
       },
 
       setBackgroundColor: (hex) => {
@@ -69,12 +86,14 @@ export const useAppearanceStore = create<AppearanceState>()(
       // persist cuma nyimpen data, gak re-run side effect (link href/css var)
       // makanya perlu dipanggil manual sekali pas app start
       hydrate: () => {
-        const { themeId, paletteId, backgroundType, backgroundValue } = get();
+        const { themeId, paletteId, customPrimary, customSecondary, backgroundType, backgroundValue } = get();
         applyTheme(themeId);
 
         // Kalau mode "ikut album art", biarkan efek di MainPlayer yang menerapkan
         // warna begitu currentSong ke-restore (supaya sinkron dengan lagu yang aktif).
-        if (paletteId !== 'album-tone') {
+        if (paletteId === 'custom') {
+          applyRawPalette(customPrimary, customSecondary);
+        } else if (paletteId !== 'album-tone') {
           applyPalette(paletteId);
         }
 

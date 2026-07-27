@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
 import { useAppStore } from "../../stores/appStore";
 import { useShortcutsStore } from "../../stores/shortcutStore";
+import { useWindowModeStore } from "../../stores/windowModeStore";
 import { playerService } from "../../services/playerService";
 import { appService } from "../../services/appService";
 import { eventToCombo, isTypingTarget } from "../../utils/KeyCombo";
@@ -10,6 +11,7 @@ import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
 import { SettingsCenter } from "../SettingsCenter";
 import { WidgetTray } from "../WidgetTray";
+import { WindowControls } from "./windowControls";
 import MichieLogo from "../../images/logo.svg";
 import { useAppearanceStore } from "../../stores/appearanceStore";
 import {
@@ -66,6 +68,7 @@ export function MusicPlayer() {
   } = usePlayerStore();
 
   const currentSong = usePlayerStore((s) => s.currentSong);
+  const compactMode = useWindowModeStore((s) => s.compactMode);
 
   const [duration, setDuration] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
@@ -267,9 +270,17 @@ export function MusicPlayer() {
 
   return (
     <>
-      <div className="mpw-root michie-box michie-box--primary">
-        <div className="mpw-header">
-          <div className="mpw-brand michie-box michie-box--secondary">
+      <div
+        className={
+          "mpw-root michie-box michie-box--primary" +
+          (compactMode ? " mpw-root--compact" : "")
+        }
+      >
+        <div className="mpw-header" data-tauri-drag-region>
+          <div
+            className="mpw-brand michie-box michie-box--secondary"
+            data-tauri-drag-region
+          >
             <img
               src={MichieLogo}
               alt="Michie logo"
@@ -300,13 +311,15 @@ export function MusicPlayer() {
                 <IconMenu />
               </span>
             </button>
+
+            <WindowControls />
           </div>
         </div>
         <div className="container">
           <div className="son-of-container">
             <AlbumArt />
           </div>
-          <div className="son-of-container">
+          <div className="son-of-container son-of-container--progress">
             <ProgressSlider duration={duration} />
           </div>
           <div className="son-of-container">
@@ -356,6 +369,7 @@ export function MusicPlayer() {
   min-width: 0;
   min-height: 0; /* WAJIB: tanpa ini flex-column tidak pernah mengecil di bawah tinggi konten alaminya */
   width: 100%;
+  transition: flex-direction 0.2s ease;
 }
   .son-of-container{
   padding : 7px;
@@ -393,6 +407,27 @@ export function MusicPlayer() {
    (fungsi) tetap ada semua — cuma teks dekoratif yang hilang. */
 @container mpw-player (max-width: 200px) {
   .mpw-brand-name { display: none; }
+}
+
+/* ---- Compact Mode ----
+   Layout-only: window/slot TIDAK di-resize sama sekali, cuma isi di
+   dalam yang di-collapse jadi baris horizontal ringkas (album art +
+   controls), ProgressSlider disembunyikan. Aman dipakai di WM apa pun
+   (termasuk tiling seperti Hyprland) karena tidak minta apa-apa ke OS. */
+.mpw-root--compact .container {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 4px;
+}
+.mpw-root--compact .son-of-container {
+  width: auto;
+  padding: 4px;
+}
+.mpw-root--compact .son-of-container--progress {
+  display: none;
+}
+.mpw-root--compact .mpw-brand-name {
+  display: none;
 }
       `}</style>
     </>

@@ -91,3 +91,66 @@
   opacity: 0.65;
   margin: 0;
 }
+
+.appearance-palette-swatch--custom {
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.appearance-palette-groups {
+  margin-top: 2px;
+}
+
+.appearance-palette-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-top: 25px;
+}
+
+.appearance-palette-group-hint {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  margin: 0;
+}
+
+.appearance-palette-custom-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.appearance-custom-palette-inputs {
+  margin-top: 2px;
+}
+
+.appearance-custom-hex-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.appearance-hex-text-input {
+  width: 110px;
+  font-family: monospace;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.appearance-hex-text-input--error {
+  border-color: #e5484d;
+}
+
+.appearance-hex-error-hint {
+  font-size: 0.75rem;
+  color: #e5484d;
+  margin: 0;
+}

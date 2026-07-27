@@ -9,12 +9,13 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  # Windows & macOS tidak kena bug EGL/Wayland ini (beda webview engine),
+  # jadi tetap pakai tauri-action seperti biasa: build + bikin release + upload jadi satu step.
+  release-others:
     strategy:
       fail-fast: false
       matrix:
         platform:
-          - ubuntu-24.04
           - windows-latest
           - macos-latest
 
@@ -30,24 +31,14 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-24.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libasound2-dev
-
       - name: Install frontend dependencies
         run: npm install
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Michie ${{ github.ref_name }}
@@ -63,3 +54,83 @@ jobs:
           prerelease: true
           releaseDraft: false
           includeUpdaterJson: false
+
+  # Linux: build manual (bukan lewat tauri-action) supaya kita bisa "operasi" AppImage-nya
+  # sebelum diupload -- buang libwayland-* yang ke-bundle linuxdeploy, yang bentrok sama
+  # Mesa/driver GPU host dan bikin webview gagal init EGL (EGL_BAD_PARAMETER) di banyak
+  # compositor Wayland (niri, sway, KDE, dst). deb & rpm tidak kena masalah ini karena
+  # keduanya pakai library sistem (lewat dependency apt/dnf), bukan lib yang dibundel.
+  release-linux:
+    needs: release-others
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libasound2-dev \
+            fuse
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Install tauri-cli
+        run: npm install -g @tauri-apps/cli
+
+      - name: Build (deb, rpm, appimage)
+        run: tauri build --bundles deb,rpm,appimage
+
+      - name: Strip bundled libwayland-* from AppImage (fix EGL_BAD_PARAMETER on Wayland)
+        run: |
+          set -e
+          BUNDLE_DIR="src-tauri/target/release/bundle/appimage"
+          APPIMAGE_PATH=$(find "$BUNDLE_DIR" -maxdepth 1 -name "*.AppImage" | head -n1)
+          echo "Ditemukan: $APPIMAGE_PATH"
+
+          # Ambil appimagetool buat repack
+          wget -q -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+
+          # Extract AppImage lama
+          chmod +x "$APPIMAGE_PATH"
+          "$APPIMAGE_PATH" --appimage-extract
+          mv squashfs-root AppDir
+
+          # Buang lib wayland yang dibundel -- biarkan dynamic linker fallback ke lib sistem host
+          rm -f AppDir/usr/lib/libwayland-client.so.0 \
+                AppDir/usr/lib/libwayland-cursor.so.0 \
+                AppDir/usr/lib/libwayland-egl.so.1 \
+                AppDir/usr/lib/libwayland-egl.so.1.bak \
+                AppDir/usr/lib/libwayland-server.so.0
+
+          # Repack jadi AppImage baru dengan nama file yang sama (replace)
+          rm "$APPIMAGE_PATH"
+          ./appimagetool AppDir "$APPIMAGE_PATH"
+          chmod +x "$APPIMAGE_PATH"
+          echo "AppImage sudah di-patch: $APPIMAGE_PATH"
+
+      - name: Upload assets to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          prerelease: true
+          draft: false
+          files: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/rpm/*.rpm

@@ -1,6 +1,6 @@
 [package]
 name = "michie"
-version = "1.0.0-beta4"
+version = "1.0.0-beta5"
 description = "The music player that you wanna marry"
 authors = ["excebymn"]
 edition = "2024"
