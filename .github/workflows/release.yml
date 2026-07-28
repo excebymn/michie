@@ -98,11 +98,17 @@ jobs:
         run: npm install -g @tauri-apps/cli
 
       - name: Build (deb, rpm, appimage)
-        # SENGAJA tanpa env TAURI_SIGNING_PRIVATE_KEY di step ini: signature yang
-        # dihasilkan tauri build di titik ini bakal langsung basi begitu AppImage
-        # di-patch di step selanjutnya (isi file berubah = signature lama gak valid
-        # lagi). Signing yang benar ada di step "Sign patched AppImage" di bawah,
-        # SETELAH strip wayland selesai.
+        # TAURI_SIGNING_PRIVATE_KEY WAJIB diisi di sini walau signature-nya bakal
+        # basi habis AppImage di-patch di step berikutnya. Alasannya: begitu
+        # tauri.conf.json punya plugins.updater.pubkey terisi, `tauri build`
+        # otomatis coba sign appimage-nya -- kalau env ini kosong, build langsung
+        # ERROR ("public key has been found, but no private key"), bukan cuma
+        # skip signing. Jadi env ini di sini cuma buat lolos build; signature
+        # yang bener/final dibuat ulang di step "Sign patched AppImage" di bawah,
+        # SETELAH strip wayland selesai (lihat komentar di step itu).
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: tauri build --bundles deb,rpm,appimage
 
       - name: Strip bundled libwayland-* from AppImage (fix EGL_BAD_PARAMETER on Wayland)
