@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
 function getGreeting(hour: number) {
-  if (hour >= 4 && hour < 11) return "Selamat pagi";
-  if (hour >= 11 && hour < 15) return "Selamat siang";
-  if (hour >= 15 && hour < 18) return "Selamat sore";
-  return "Selamat malam";
+  if (hour >= 4 && hour < 11) return "good morning";
+  if (hour >= 11 && hour < 15) return "good afternoon";
+  if (hour >= 15 && hour < 18) return "good evening";
+  return "good night";
 }
 
 export function ClockWidgetGreeting() {

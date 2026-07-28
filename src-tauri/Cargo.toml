@@ -5,30 +5,33 @@ description = "The music player that you wanna marry"
 authors = ["excebymn"]
 edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "michie_player_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.6.3", features = [] }
 
 [dependencies]
-tauri = { version = "2.9.2", features = ["protocol-asset"] }
-tauri-plugin-opener = "2"
+tauri = { version = "2.10", features = ["protocol-asset"] }
+
+tauri-plugin-opener = "2.5"
+tauri-plugin-updater = "2.10"
+tauri-plugin-process = "2.3"
+tauri-plugin-dialog = "2.6"
+tauri-plugin-log = "2.8"
+tauri-plugin-sql = { version = "2.3", features = ["sqlite"] }
+tauri-plugin-prevent-default = "4.0.3"
+
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = "0.4.42"
 sqlx = { version = "0.8.6", features = ["sqlite", "migrate"] }
 dirs = "6.0.0"
 tokio = "1.48.0"
-rodio = {version="0.21.1", features = [ "symphonia-all"] }
+rodio = { version = "0.21.1", features = ["symphonia-all"] }
 serde_with = "3.15.1"
-tauri-plugin-sql = { version = "2.3.1", features = ["sqlite"] }
+
 zip = "7.0.0"
 lofty = "0.22.4"
 m3u8-rs = "6.0.0"
@@ -36,26 +39,18 @@ jwalk = "0.8.1"
 flume = "0.12.0"
 threadpool = "1.8.1"
 reqwest = { version = "0.13.1", features = ["json"] }
-tauri-plugin-prevent-default = "4.0.3"
-tauri-plugin-dialog = "2"
-tauri-plugin-log = "2"
-fern = { version = "0.7.1", features = ["colored", "date-based"] } 
+
+fern = { version = "0.7.1", features = ["colored", "date-based"] }
 color-thief = "0.2"
 image = "0.24"
 strsim = "0.11"
 urlencoding = "2.1"
 rustfft = "6.2.0"
 
-
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-single-instance = "2"
-# BARU: cross-platform media controls (MPRIS Linux / SMTC Windows / Now Playing macOS).
-# Gantikan tauri-plugin-global-shortcut untuk urusan tombol media - kalau setelah
-# ini grep membuktikan tauri-plugin-global-shortcut sudah tidak dipakai di file
-# manapun lagi, baris ini bisa dihapus juga.
-tauri-plugin-global-shortcut = "2"
+tauri-plugin-single-instance = "2.3"
+tauri-plugin-global-shortcut = "2.3"
+
 souvlaki = "0.7"
 raw-window-handle = "0.6"
-# BARU: Discord Rich Presence — cross-platform lewat IPC socket Discord (named
-# pipe di Windows, unix socket di macOS/Linux).
 discord-rich-presence = "1.1"

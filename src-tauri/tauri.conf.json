@@ -26,7 +26,9 @@
       "csp": {
         "default-src": "'self' customprotocol: asset:",
         "connect-src": "ipc: http://ipc.localhost",
-        "font-src": ["https://fonts.gstatic.com"],
+        "font-src": [
+          "https://fonts.gstatic.com"
+        ],
         "img-src": "'self' asset: http://asset.localhost blob: data:",
         "style-src": "'unsafe-inline' 'self' https://fonts.googleapis.com",
         "media-src": "'self' asset: http://asset.localhost"
@@ -41,17 +43,25 @@
             "$HOME/.config/**",
             "/src/images/**"
           ],
-          "deny": ["$APPDATA/db/*.stronghold"]
+          "deny": [
+            "$APPDATA/db/*.stronghold"
+          ]
         }
       }
     }
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "rpm", "appimage", "deb"],
+    "targets": [
+      "nsis",
+      "rpm",
+      "appimage",
+      "deb"
+    ],
     "category": "Music",
     "copyright": "copyright",
     "shortDescription": "A beautiful music player made with Tauri and React",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/icon.png",
       "icons/32x32.png",
@@ -95,6 +105,14 @@
         "bundleMediaFramework": true,
         "files": {}
       }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ4MEZDRTk5ODQxMUEwNEMKUldSTW9CR0VtYzRQU083dDZQWXNhalZyemV6TmNPeGJUelVaclNvSXR5WkdmNFdlc3ZXY1NFYVgK%",
+      "endpoints": [
+        "https://github.com/excebymn/michie/releases/latest/download/latest.json"
+      ]
     }
   }
 }

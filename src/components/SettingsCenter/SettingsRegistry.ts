@@ -8,6 +8,8 @@ import { LightModePanel } from '../LightMode';
 import { IntegrationsPanel } from '../Integrations';
 import { ShortcutsPanel } from '../Shortcuts';
 import { AboutPanel } from '../About';
+import { ManualPanel } from '../Manual';
+import { VersionPanel } from '../Version';
 
 export interface SettingsPanelConfig {
   id: string;
@@ -25,4 +27,6 @@ export const settingsRegistry: SettingsPanelConfig[] = [
   { id: 'work-mode', label: 'Work mode', component: LightModePanel },
   { id: 'integrations', label: 'Integrations', component: IntegrationsPanel },
   { id: 'about', label: 'About', component: AboutPanel },
+  { id: 'manual', label: 'Manual', component: ManualPanel },
+  { id: 'version', label: 'Version', component: VersionPanel },
 ];

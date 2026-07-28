@@ -25,6 +25,7 @@ interface AppState {
   scanCurrent: number;
   scanLength: number;
   backupRestoreStatus: number;
+  hasSeenManual: boolean;
   loadTheme: () => Promise<void>;
   refreshLibrary: () => Promise<void>;
   rescanLibrary: () => Promise<void>;
@@ -37,6 +38,7 @@ interface AppState {
   setScanProgress: (current: number, length: number) => void;
   setBackupRestoreStatus: (status: number) => void;
   setSongFavorited: (path: string, favorited: boolean) => void;
+  markManualSeen: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -53,6 +55,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   scanCurrent: 0,
   scanLength: 0,
   backupRestoreStatus: 0,
+  // Default true, biar popup Manual gak sempat "kelip" muncul sebelum
+  // loadInitialData selesai ngecek nilai aslinya dari DB.
+  hasSeenManual: true,
 
   loadTheme: async () => {
     const storedTheme = await appService.getSettings();
@@ -99,6 +104,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     await appService.scanForDeleted();
     const versionAvailable = await appService.checkForNewVersion();
     set({ newVersionAvailable: versionAvailable });
+    // BARU — cek apakah user sudah pernah lihat popup Manual/cara pakai
+    const hasSeenManual = await settingsService.getManualSeen();
+    set({ hasSeenManual });
   },
 
   refreshPlaylists: async () => {
@@ -135,4 +143,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         s.path === path ? { ...s, favorited } : s,
       ),
     })),
+
+  // BARU — dipanggil saat user menutup popup Manual pertama kali (atau
+  // membuka panel Manual di SettingsCenter): simpan permanen ke DB supaya
+  // popup gak muncul lagi tiap app dibuka.
+  markManualSeen: async () => {
+    await settingsService.setManualSeen(true);
+    set({ hasSeenManual: true });
+  },
 }));

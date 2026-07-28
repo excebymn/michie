@@ -1,0 +1,35 @@
+/* version-panel.css
+   Tambahan kecil khusus panel Version — taruh di tempat yang sama kayak
+   base.css/glass.css di-import (mis. entrypoint CSS global kamu).
+
+   Kenapa perlu: label yang duduk LANGSUNG di atas background app (bukan di
+   dalam .michie-box) gak boleh pakai warna yang bisa collide sama
+   --app-background di palette tertentu (ini penyebab "changelog" invisible
+   di screenshot — michie-text-primary/var(--color-primary) kebetulan mepet
+   sama warna hijau app-root). Class ini pastikan tetap kebaca apapun
+   kombinasi palette-nya, tanpa perlu utak-atik base.css/glass.css yang
+   dipakai bareng komponen lain. */
+
+.version-panel {
+  width: 100%;
+}
+
+/* Card & entry changelog stretch penuh, bukan shrink-wrap ke lebar konten */
+.version-panel > section,
+.version-panel .version-panel-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Label section yang duduk di atas background app langsung (bukan di dalam
+   card) -- dijamin kontras karena TIDAK ikut var(--color-primary) yang
+   berpotensi deket sama --app-background. */
+.version-panel-label {
+  color: var(--color-secondary);
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+}

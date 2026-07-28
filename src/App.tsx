@@ -6,6 +6,7 @@ import { useAppStore, usePlayerStore } from "./stores";
 import { useAppearanceStore } from "./stores/appearanceStore";
 import MainLayout from "./layout";
 import LoadingScreen from "./components/LoadingScreen";
+import { ManualPopup } from "./components/Manual/manualPopup";
 
 // Waktu minimum overlay tampil, biar animasi vinyl gak kepotong kalau
 // kebetulan loadInitialData/loadPlayerState selesai super cepat.
@@ -19,6 +20,8 @@ function App() {
   const refreshPlaylists = useAppStore((state) => state.refreshPlaylists);
   const setScanning = useAppStore((state) => state.setScanning);
   const setScanProgress = useAppStore((state) => state.setScanProgress);
+  const hasSeenManual = useAppStore((state) => state.hasSeenManual);
+  const markManualSeen = useAppStore((state) => state.markManualSeen);
   const loadPlayerState = usePlayerStore((state) => state.loadPlayerState);
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
   const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
@@ -116,6 +119,12 @@ function App() {
       <div className="app-shell app-root">
         <MainLayout />
         {showLoadingScreen && <LoadingScreen exiting={isExiting} />}
+        {/* BARU — popup Manual/cara pakai, otomatis muncul sekali sampai
+            user menutupnya (ditandai permanen lewat markManualSeen). Baru
+            dirender setelah loading screen beres biar gak numpuk animasi. */}
+        {!showLoadingScreen && !hasSeenManual && (
+          <ManualPopup onClose={markManualSeen} />
+        )}
       </div>
     </BrowserRouter>
   );

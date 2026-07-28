@@ -12,6 +12,7 @@ import { PlayerControls } from "./PlayerControls";
 import { SettingsCenter } from "../SettingsCenter";
 import { WidgetTray } from "../WidgetTray";
 import { WindowControls } from "./windowControls";
+import { VolumeButton } from "./VolumeButton";
 import MichieLogo from "../../images/logo.svg";
 import { useAppearanceStore } from "../../stores/appearanceStore";
 import {
@@ -290,6 +291,8 @@ export function MusicPlayer() {
           </div>
 
           <div className="mpw-header-actions">
+            <VolumeButton />
+
             <button
               className="mpw-btn-menu michie-circle michie-circle--secondary"
               onClick={() => setShowWidgetTray(true)}

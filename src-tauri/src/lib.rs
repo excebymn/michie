@@ -7,12 +7,12 @@
 // Tauri Plugins
 use tauri::State;
 use tauri::{Builder, Emitter, Manager};
-use tauri_plugin_log::{log, Target, TargetKind};
+use tauri_plugin_log::{Target, TargetKind, log};
 use tauri_plugin_prevent_default::Flags;
 
 // Rust Libraries
 use rodio::{OutputStream, OutputStreamBuilder, Sink};
-use sqlx::{prelude::FromRow, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, prelude::FromRow};
 use std::fs;
 use std::sync::atomic::AtomicUsize; // BARU — counter subscriber visualizer
 use std::time::SystemTime;
@@ -28,6 +28,7 @@ mod db;
 mod discord; // BARU: integrasi Discord Rich Presence, lihat discord.rs
 mod equalizer; // Fitur equalizer: DSP biquad, state, DB persist, commands — semua disatukan di sini (pola sama seperti lyrics.rs)
 mod helper;
+mod updater; // BARU: cleanup app-specific sebelum relaunch update
 
 mod lyrics; // Fitur lirik: types, cache DB, fetch LRCLib, fuzzy matching, commands — semua disatukan di sini
 mod media_controls; // BARU: integrasi OS-level media controls (MPRIS/SMTC/Now Playing), lihat media_controls.rs
@@ -47,10 +48,10 @@ pub struct AppState {
     pool: Pool<Sqlite>,
     is_scan_ongoing: Mutex<bool>,
     is_back_restore_ongoing: Mutex<i64>,
-    equalizer_params: Arc<EqualizerParams>, // BARU
+    equalizer_params: Arc<EqualizerParams>,       // BARU
     visualizer_subscribers: AtomicUsize, // BARU — jumlah widget frontend yang lagi subscribe ke visualizer-levels
     now_playing: Arc<media_controls::NowPlaying>, // BARU — integrasi OS-level media controls (MPRIS/SMTC/Now Playing)
-    discord_rp: Arc<discord::DiscordPresence>, // BARU — integrasi Discord Rich Presence
+    discord_rp: Arc<discord::DiscordPresence>,    // BARU — integrasi Discord Rich Presence
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -107,6 +108,8 @@ pub fn run() -> Result<(), String> {
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build()) // BARU
+        .plugin(tauri_plugin_process::init()) // BARU: dipakai buat relaunch() setelah install update
         .plugin(
             // Allow native context menu in dev mode
             if cfg!(dev) {
@@ -216,9 +219,9 @@ pub fn run() -> Result<(), String> {
             let visualizer_handle = app.handle().clone();
             std::thread::spawn(move || {
                 let mut smoothed = [0.0f32; visualizer::BAND_COUNT]; // state persisten antar-iterasi
-                                                                     // Interval poll berikutnya, di-set adaptif di akhir tiap iterasi —
-                                                                     // cuma perlu 24fps SELAGI ada widget yang nampilin DAN lagu beneran
-                                                                     // lagi diputar. Di luar itu gak ada gunanya bangun 24x/detik.
+                // Interval poll berikutnya, di-set adaptif di akhir tiap iterasi —
+                // cuma perlu 24fps SELAGI ada widget yang nampilin DAN lagu beneran
+                // lagi diputar. Di luar itu gak ada gunanya bangun 24x/detik.
                 let mut next_sleep_ms: u64 = 42;
 
                 loop {
@@ -234,7 +237,7 @@ pub fn run() -> Result<(), String> {
                         == 0
                     {
                         smoothed = [0.0; visualizer::BAND_COUNT]; // reset biar gak "lompat" dari nilai lama pas dinyalain lagi
-                                                                  // Gak ada yang nonton -> cek ulang tiap 500ms aja, bukan tiap 42ms.
+                        // Gak ada yang nonton -> cek ulang tiap 500ms aja, bukan tiap 42ms.
                         next_sleep_ms = 500;
                         continue;
                     }
@@ -297,7 +300,8 @@ pub fn run() -> Result<(), String> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::check_for_new_version,
+            // commands::check_for_new_version, // DEPRECATED: digantikan tauri-plugin-updater (lihat updater.rs). Cek dulu gak dipakai di frontend manapun sebelum hapus permanen.
+            updater::pre_update_cleanup, // BARU
             // Song Functions - SQLite
             db::get_songs_with_limit,
             db::get_all_songs,
@@ -406,6 +410,9 @@ pub fn run() -> Result<(), String> {
             db::remove_directory,
             db::get_settings,
             db::set_theme,
+            // BARU — Manual/onboarding: flag "sudah pernah lihat popup cara pakai"
+            db::get_manual_seen,
+            db::set_manual_seen,
             // BARU — Integrations: Discord Rich Presence
             discord::get_discord_rp_enabled,
             discord::set_discord_rp_enabled,
@@ -610,7 +617,13 @@ async fn scan_directory(
     let _ = db::remove_songs(&state.pool).await.unwrap();
 
     // println!("Scan has finished = {:?} added - {:?} updated - {:?} errors", &num_added, &num_updated, &num_error);
-    log::info!("Music Scan - Results ---> Total Scanned: {:?} --  Added: {:?}, Updated: {:?}, Errors: {:?}", &num_scanned, &num_added, &num_updated, &num_error);
+    log::info!(
+        "Music Scan - Results ---> Total Scanned: {:?} --  Added: {:?}, Updated: {:?}, Errors: {:?}",
+        &num_scanned,
+        &num_added,
+        &num_updated,
+        &num_error
+    );
 
     // At the end, will return the number of successes and failures
     Ok(ScanResults {

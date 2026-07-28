@@ -4,15 +4,15 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 // SQLITE Libraries
-use sqlx::{sqlite::SqliteQueryResult, Executor, Pool, Sqlite};
+use sqlx::{Executor, Pool, Sqlite, sqlite::SqliteQueryResult};
 use tauri::{Emitter, State};
 
 use crate::types::{
     AllAlbumResults, AllArtistResults, AllGenreResults, ArtistDetailsResults, DirsTable, DoesExist,
-    GenreDetailsResults, History, PlaylistFull, PlaylistTable, SongHistory,
-    SongTable, SongTableUpload,
+    GenreDetailsResults, History, PlaylistFull, PlaylistTable, SongHistory, SongTable,
+    SongTableUpload,
 };
-use crate::{commands, AppState};
+use crate::{AppState, commands};
 
 // ---------------------------------------- Initilize Database and Check if Database exists ----------------------------------------
 
@@ -252,6 +252,29 @@ pub async fn set_theme(state: State<AppState, '_>, theme_color: String) -> Resul
     )
     .bind(1)
     .bind(theme_color)
+    .execute(&state.pool)
+    .await;
+
+    Ok(())
+}
+#[tauri::command(rename_all = "snake_case")]
+pub async fn get_manual_seen(state: State<AppState, '_>) -> Result<bool, String> {
+    let res: Result<(bool,), sqlx::Error> =
+        sqlx::query_as("SELECT has_seen_manual FROM settings LIMIT 1")
+            .fetch_one(&state.pool)
+            .await;
+
+    Ok(res.map(|r| r.0).unwrap_or(false))
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn set_manual_seen(state: State<AppState, '_>, seen: bool) -> Result<(), String> {
+    let _ = sqlx::query(
+        "INSERT INTO settings (id, has_seen_manual) VALUES (?1, ?2)
+         ON CONFLICT(id) DO UPDATE SET has_seen_manual = excluded.has_seen_manual",
+    )
+    .bind(1)
+    .bind(seen)
     .execute(&state.pool)
     .await;
 

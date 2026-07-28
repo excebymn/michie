@@ -19,4 +19,7 @@ export const settingsService = {
   importPlaylistFile: async (filePath: string) => await invoke<void>("import_playlist", { file_path: filePath }),
   exportPlaylistFile: async (folderPath: string, playlistId: number) =>
     await invoke<void>("export_playlist", { save_file_location: folderPath, playlist_id: playlistId }),
+  // BARU — Manual/onboarding: flag "sudah pernah lihat popup cara pakai"
+  getManualSeen: async () => await invoke<boolean>("get_manual_seen"),
+  setManualSeen: async (seen: boolean) => await invoke<void>("set_manual_seen", { seen }),
 };

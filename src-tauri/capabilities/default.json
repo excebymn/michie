@@ -23,6 +23,8 @@
     "global-shortcut:allow-unregister-all",
     "dialog:default",
     "log:default",
-    "dialog:allow-open"
+    "dialog:allow-open",
+    "updater:default",
+    "process:allow-restart"
   ]
 }

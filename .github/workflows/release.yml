@@ -53,7 +53,12 @@ jobs:
             Please report issues on GitHub if you find one.
           prerelease: true
           releaseDraft: false
-          includeUpdaterJson: false
+          # BARU: diubah dari false -> true. Ini yang bikin tauri-action generate
+          # latest.json (manifest yang dibaca tauri-plugin-updater di app) dan
+          # upload-nya ke release ini. Windows + macOS matrix jalan paralel dan
+          # tauri-action sendiri yang urus penggabungan aman ke latest.json yang
+          # sama (built-in buat kasus matrix multi-platform kayak gini).
+          includeUpdaterJson: true
 
   # Linux: build manual (bukan lewat tauri-action) supaya kita bisa "operasi" AppImage-nya
   # sebelum diupload -- buang libwayland-* yang ke-bundle linuxdeploy, yang bentrok sama
@@ -93,6 +98,11 @@ jobs:
         run: npm install -g @tauri-apps/cli
 
       - name: Build (deb, rpm, appimage)
+        # SENGAJA tanpa env TAURI_SIGNING_PRIVATE_KEY di step ini: signature yang
+        # dihasilkan tauri build di titik ini bakal langsung basi begitu AppImage
+        # di-patch di step selanjutnya (isi file berubah = signature lama gak valid
+        # lagi). Signing yang benar ada di step "Sign patched AppImage" di bawah,
+        # SETELAH strip wayland selesai.
         run: tauri build --bundles deb,rpm,appimage
 
       - name: Strip bundled libwayland-* from AppImage (fix EGL_BAD_PARAMETER on Wayland)
@@ -124,6 +134,22 @@ jobs:
           chmod +x "$APPIMAGE_PATH"
           echo "AppImage sudah di-patch: $APPIMAGE_PATH"
 
+          # Simpan path-nya buat dipakai step-step selanjutnya di job ini
+          echo "APPIMAGE_PATH=$APPIMAGE_PATH" >> "$GITHUB_ENV"
+
+      # BARU: re-sign AppImage yang SUDAH di-patch. Ini WAJIB dan urutannya
+      # harus setelah strip, bukan sebelumnya -- signature dihitung dari byte
+      # file, jadi kalau di-sign sebelum patch, hasilnya gak akan cocok lagi
+      # sama file yang beneran diupload/diinstall user.
+      - name: Sign patched AppImage
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -e
+          npx tauri signer sign -k "$TAURI_SIGNING_PRIVATE_KEY" -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "$APPIMAGE_PATH"
+          echo "APPIMAGE_SIG=$(cat "$APPIMAGE_PATH.sig")" >> "$GITHUB_ENV"
+
       - name: Upload assets to release
         uses: softprops/action-gh-release@v2
         with:
@@ -134,3 +160,27 @@ jobs:
             src-tauri/target/release/bundle/appimage/*.AppImage
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/rpm/*.rpm
+
+      # BARU: gabungkan entry Linux ke latest.json yang sudah dibuat job
+      # release-others (job ini "needs: release-others" jadi manifest itu
+      # dijamin sudah ada). rpm/deb sengaja TIDAK dimasukkan -- tauri-plugin-updater
+      # cuma bisa auto-update lewat AppImage di Linux, bukan rpm/deb.
+      - name: Merge Linux entry into latest.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TAG="${{ github.ref_name }}"
+          REPO="${{ github.repository }}"
+
+          gh release download "$TAG" -R "$REPO" -p "latest.json" --clobber
+
+          FILENAME=$(basename "$APPIMAGE_PATH")
+          URL="https://github.com/$REPO/releases/download/$TAG/$FILENAME"
+
+          jq --arg sig "$APPIMAGE_SIG" --arg url "$URL" \
+            '.platforms["linux-x86_64"] = {"signature": $sig, "url": $url}' \
+            latest.json > latest.json.new
+          mv latest.json.new latest.json
+
+          gh release upload "$TAG" latest.json -R "$REPO" --clobber

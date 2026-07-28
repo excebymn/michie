@@ -853,7 +853,7 @@ pub async fn check_for_new_version(app: tauri::AppHandle) -> Result<bool, bool> 
     let url_client = Client::builder().build().unwrap();
 
     let first_res = url_client
-        .get("https://raw.githubusercontent.com/VulshokBersrker/michie/main/package.json")
+        .get("https://raw.githubusercontent.com/excebymn/michie/main/package.json")
         .send()
         .await;
 
