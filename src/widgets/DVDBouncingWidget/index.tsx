@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlayerStore } from '../../stores/playerStore'; // Relatif dari src/widgets/
+import { toAssetUrl } from '../../utils/assetURL';
 import "./styles.css"
 
 interface Position {
@@ -22,9 +23,7 @@ export const DVDBouncingWidget: React.FC = () => {
   const [isPrimaryTint, setIsPrimaryTint] = useState<boolean>(true);
 
   // Integrasi asset protocol berdasarkan path lagu asli
-const coverSrc = currentSong?.cover
-  ? `asset://localhost/${currentSong.cover}`
-  : "";
+  const coverSrc = toAssetUrl(currentSong?.cover) ?? "";
 
   useEffect(() => {
     const container = containerRef.current;

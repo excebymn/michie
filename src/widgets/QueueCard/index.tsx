@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { Music } from "lucide-react";
 import { usePlayerStore } from "../../stores/playerStore";
+import { toAssetUrl } from "../../utils/assetURL";
 
 import "./queueViewer.css";
 
@@ -35,6 +36,7 @@ export function QueueCard() {
     <div className="queue-viewer">
       {cards.map(({ offset, index, song }) => {
         const visible = offset >= 0 && offset < VISIBLE_COUNT;
+        const artSrc = toAssetUrl(song.cover);
 
         const style: CSSProperties = {
           transform: `translateX(${offset * STEP_PERCENT}%)`,
@@ -45,9 +47,9 @@ export function QueueCard() {
 
         return (
           <div key={index} className="queue-card" style={style}>
-            {song.cover ? (
+            {artSrc ? (
               <img
-                src={`asset://localhost/${song.cover}`}
+                src={artSrc}
                 alt={song.album ?? "Album Art"}
                 className="queue-card-art"
                 draggable={false}

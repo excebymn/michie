@@ -1,5 +1,6 @@
 import type { Playlists } from "../../globalValues";
 import { IconMusicNote, IconHeart } from "./Icons";
+import { toAssetUrl } from "../../utils/assetURL";
 
 interface PlaylistCardProps {
   playlist: Playlists | "liked";
@@ -10,14 +11,15 @@ export function PlaylistCard({ playlist, onClick }: PlaylistCardProps) {
   const isLiked = playlist === "liked";
   const name = isLiked ? "Liked Songs" : playlist.name;
   const cover = isLiked ? "" : playlist.image;
+  const coverSrc = toAssetUrl(cover);
 
   return (
     <button className="pc-card" onClick={onClick}>
       <div className={`pc-cover michie-box ${isLiked ? "pc-cover--liked" : "michie-box--secondary"}`}>
         {isLiked ? (
           <IconHeart filled />
-        ) : cover ? (
-          <img src={`asset://localhost/${cover}`} alt={name} className="pc-cover-img" />
+        ) : coverSrc ? (
+          <img src={coverSrc} alt={name} className="pc-cover-img" />
         ) : (
           <IconMusicNote />
         )}

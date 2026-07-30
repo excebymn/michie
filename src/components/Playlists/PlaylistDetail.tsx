@@ -8,6 +8,7 @@ import { useAppStore } from "../../stores/appStore";
 import type { PlaylistFull, Songs, SongsFull } from "../../globalValues";
 import { AddSongsPanel } from "./AddSongsPanel";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { toAssetUrl } from "../../utils/assetURL";
 import {
   IconPencil,
   IconImage,
@@ -43,6 +44,7 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
   const [showAddSongs, setShowAddSongs] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const songs: Songs[] = isLiked ? likedSongs : (playlist?.songs ?? []);
+  const coverSrc = toAssetUrl(playlist?.image);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -148,10 +150,10 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
         >
           {isLiked ? (
             <IconHeart filled />
-          ) : playlist?.image ? (
+          ) : coverSrc ? (
             <img
-              src={`asset://localhost/${playlist.image}`}
-              alt={playlist.name}
+              src={coverSrc}
+              alt={playlist?.name}
               className="pd-cover-img"
             />
           ) : (

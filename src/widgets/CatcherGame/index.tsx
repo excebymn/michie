@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlayerStore } from '../../stores/playerStore';
+import { toAssetUrl } from '../../utils/assetURL';
 
 interface FallingVinyl {
   id: number;
@@ -41,11 +42,7 @@ export const VinylCatcherWidget: React.FC = () => {
   const nextEffectId = useRef<number>(0);
 
   // Ambil URL cover art (mengikuti konvensi protocol app-mu)
-  const coverSrc = currentSong?.cover
-    ? `asset://localhost/${currentSong.cover}`
-    : currentSong?.path
-    ? `asset://localhost/${currentSong.path}`
-    : '';
+  const coverSrc = toAssetUrl(currentSong?.cover) ?? toAssetUrl(currentSong?.path) ?? '';
 
   // 2. Mekanik Reset Skor Otomatis saat Lagu Berganti
   useEffect(() => {

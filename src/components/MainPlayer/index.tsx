@@ -6,6 +6,7 @@ import { useWindowModeStore } from "../../stores/windowModeStore";
 import { playerService } from "../../services/playerService";
 import { appService } from "../../services/appService";
 import { eventToCombo, isTypingTarget } from "../../utils/KeyCombo";
+import { toAssetUrl } from "../../utils/assetURL";
 import { AlbumArt } from "./AlbumArt";
 import { ProgressSlider } from "./ProgressSlider";
 import { PlayerControls } from "./PlayerControls";
@@ -256,8 +257,10 @@ export function MusicPlayer() {
     if (paletteId !== "album-tone") return;
     if (!currentSong?.cover) return;
 
+    const assetUrl = toAssetUrl(currentSong.cover);
+    if (!assetUrl) return;
+
     let cancelled = false;
-    const assetUrl = `asset://localhost/${currentSong.cover}`;
 
     extractDominantColor(assetUrl).then((primaryHex) => {
       if (cancelled || !primaryHex) return;

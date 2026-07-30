@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
+import { toAssetUrl } from "../../utils/assetURL";
 
 interface AlbumArtProps {
   mini?: boolean;
@@ -29,16 +30,17 @@ export function AlbumArt({ mini = false, header, footer }: AlbumArtProps) {
     setArtFailed(false);
   }, [currentSong?.cover]);
 
-  const showArt = !!currentSong?.cover && !artFailed;
+  const artSrc = toAssetUrl(currentSong?.cover);
+  const showArt = !!artSrc && !artFailed;
 
   return (
     <>
       <div className={`mpw-art michie-box michie-box--secondary ${mini ? "mpw-art--mini" : ""}`}>
         {showArt ? (
           <img
-            key={currentSong.cover}
-            src={`asset://localhost/${currentSong.cover}`}
-            alt={currentSong.album ?? "Album art"}
+            key={currentSong?.cover}
+            src={artSrc}
+            alt={currentSong?.album ?? "Album art"}
             className="mpw-art-img"
             onError={() => setArtFailed(true)}
           />

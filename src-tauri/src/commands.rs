@@ -22,7 +22,6 @@ use tauri_plugin_log::log;
 
 // Misc Libraries
 use m3u8_rs::{MediaPlaylist, MediaSegment, Playlist};
-use reqwest::Client;
 use zip::{write::SimpleFileOptions, ZipArchive, ZipWriter};
 
 // -------------------------- Media Player Commands --------------------------
@@ -847,57 +846,6 @@ pub async fn import_playlist(
     Ok(true)
 }
 
-// Check for new version of the app based on the package.json-version value in the github repo
-#[tauri::command]
-pub async fn check_for_new_version(app: tauri::AppHandle) -> Result<bool, bool> {
-    let url_client = Client::builder().build().unwrap();
-
-    let first_res = url_client
-        .get("https://raw.githubusercontent.com/excebymn/michie/main/package.json")
-        .send()
-        .await;
-
-    let current_version = app.package_info().version.to_string();
-
-    let response_text = match first_res {
-        Ok(resp) => match resp.text().await {
-            Ok(text) => text,
-            Err(err) => {
-                log::error!(
-                    "Check New For Version - Error reading response text: {:?}",
-                    err
-                );
-                return Ok(false);
-            }
-        },
-        Err(err) => {
-            log::error!(
-                "Check New For Version - Error on remote fetch of package.json: {:?}",
-                err
-            );
-            return Ok(false);
-        }
-    };
-
-    let result = match serde_json::from_str::<serde_json::Value>(&response_text) {
-        Ok(value) => value,
-        Err(err) => {
-            log::error!("Check New For Version - Invalid JSON response: {:?}", err);
-            return Ok(false);
-        }
-    };
-
-    if let Some(map) = result.as_object() {
-        for (key, value) in map {
-            if key.contains("version") {
-                let version = value.as_str().unwrap_or(&value.to_string()).to_string();
-                return Ok(current_version != version);
-            }
-        }
-    }
-
-    Ok(false)
-}
 #[tauri::command]
 pub fn get_dominant_color(path: String) -> Result<String, String> {
     crate::helper::extract_dominant_color(&path)

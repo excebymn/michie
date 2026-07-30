@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlayerStore } from '../../stores/playerStore';
+import { toAssetUrl } from '../../utils/assetURL';
 
 const PADDLE_WIDTH = 50;
 const PADDLE_HEIGHT = 8;
@@ -23,11 +24,7 @@ export const PongWidget: React.FC = () => {
   const ballRef = useRef({ x: 50, y: 50, vx: 0.55, vy: 0.7 });
   const scoreRef = useRef(0);
 
-  const coverSrc = currentSong?.cover
-    ? `asset://localhost/${currentSong.cover}`
-    : currentSong?.path
-    ? `asset://localhost/${currentSong.path}`
-    : '';
+  const coverSrc = toAssetUrl(currentSong?.cover) ?? toAssetUrl(currentSong?.path) ?? '';
 
   function resetRally(servingDown: boolean) {
     ballRef.current = {

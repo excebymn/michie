@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlayerStore } from '../../stores/playerStore';
+import { toAssetUrl } from '../../utils/assetURL';
 
 interface Pipe {
   id: number;
@@ -35,11 +36,7 @@ export const FlappyBirdWidget: React.FC = () => {
   const scoreRef = useRef(0);
   const nextId = useRef(0);
 
-  const coverSrc = currentSong?.cover
-    ? `asset://localhost/${currentSong.cover}`
-    : currentSong?.path
-    ? `asset://localhost/${currentSong.path}`
-    : '';
+  const coverSrc = toAssetUrl(currentSong?.cover) ?? toAssetUrl(currentSong?.path) ?? '';
 
   function resetGame(containerHeight: number) {
     birdYRef.current = containerHeight / 2;

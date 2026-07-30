@@ -300,7 +300,6 @@ pub fn run() -> Result<(), String> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            // commands::check_for_new_version, // DEPRECATED: digantikan tauri-plugin-updater (lihat updater.rs). Cek dulu gak dipakai di frontend manapun sebelum hapus permanen.
             updater::pre_update_cleanup, // BARU
             // Song Functions - SQLite
             db::get_songs_with_limit,

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { usePlayerStore } from "../../stores/playerStore";
 import { subscribeVisualizer } from "../../services/visualizerService";
+import { toAssetUrl } from "../../utils/assetURL";
 import "./visualizer.css";
 
 const BEAT_BAND_END = 8; // band 0..7 (bass + low-mid) sebagai sumber "denyut"
@@ -24,9 +25,7 @@ export default function PulseAlbum() {
     return unsubscribe;
   }, []);
 
-  const coverUrl = currentSong?.cover
-    ? `asset://localhost/${currentSong.cover}`
-    : null;
+  const coverUrl = toAssetUrl(currentSong?.cover);
 
   return (
     <div

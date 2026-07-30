@@ -1,5 +1,6 @@
 // src/widgets/VintageTV/index.tsx
 import { usePlayerStore } from "../../stores/playerStore";
+import { toAssetUrl } from "../../utils/assetURL";
 import "./vintagetv.css";
 
 export default function VintageTV() {
@@ -7,9 +8,7 @@ export default function VintageTV() {
   const currentSong = usePlayerStore((s) => s.currentSong);
 
   // Menggunakan konvensi Tauri asset URL untuk memuat file lokal
-  const coverUrl = currentSong?.cover
-    ? `asset://localhost/${currentSong.cover}`
-    : null;
+  const coverUrl = toAssetUrl(currentSong?.cover);
 
   return (
     <div className="michie-box tv-widget">

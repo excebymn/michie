@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlayerStore } from '../../stores/playerStore';
+import { toAssetUrl } from '../../utils/assetURL';
 
 const GRID_SIZE = 3;
 const TILE_COUNT = GRID_SIZE * GRID_SIZE;
@@ -51,11 +52,7 @@ export const CoverArtPuzzleWidget: React.FC = () => {
 
   const reshuffleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const coverSrc = currentSong?.cover
-    ? `asset://localhost/${currentSong.cover}`
-    : currentSong?.path
-    ? `asset://localhost/${currentSong.path}`
-    : '';
+  const coverSrc = toAssetUrl(currentSong?.cover) ?? toAssetUrl(currentSong?.path) ?? '';
 
   // Ganti lagu -> puzzle baru dari cover yang baru, skor solve direset,
   // dan batalkan timer reshuffle lama kalau ada yang masih nunggu.
