@@ -35,7 +35,17 @@ export function TraySlotPreview({ slot }: TraySlotPreviewProps) {
   };
 
   return (
-    <div className="michie-box michie-box--primary " style={{padding : "20px"}}>
+    <div
+      className="michie-box michie-box--primary"
+      style={{
+        padding: "10px",
+        width: "100%",
+        height: "100%",
+        boxSizing: "border-box",
+        display: "flex",
+        minHeight: 0,
+      }}
+    >
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -50,12 +60,13 @@ export function TraySlotPreview({ slot }: TraySlotPreviewProps) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          width: "170px",
-          height: "110px",
+          width: "100%",
+          height: "100%",
+          minHeight: 0,
           borderRadius: "14px",
           boxSizing: "border-box",
-          padding: "30px",
-          flexShrink: 0,
+          padding: "12px",
+          overflow: "hidden",
         }}
         title={
           widget

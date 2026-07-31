@@ -64,6 +64,10 @@
     "copyright": "copyright",
     "shortDescription": "A beautiful music player made with Tauri and React",
     "createUpdaterArtifacts": true,
+    "externalBin": [
+      "binaries/ffmpeg",
+      "binaries/ffprobe"
+    ],
     "icon": [
       "icons/icon.png",
       "icons/32x32.png",
@@ -74,46 +78,14 @@
       "icons/icon.png"
     ],
     "fileAssociations": [
-      {
-        "ext": [
-          "mp3"
-        ]
-      },
-      {
-        "ext": [
-          "m4a"
-        ]
-      },
-      {
-        "ext": [
-          "flac"
-        ]
-      },
-      {
-        "ext": [
-          "wav"
-        ]
-      },
-      {
-        "ext": [
-          "ogg"
-        ]
-      },
-      {
-        "ext": [
-          "opus"
-        ]
-      },
-      {
-        "ext": [
-          "aac"
-        ]
-      },
-      {
-        "ext": [
-          "aiff"
-        ]
-      }
+      { "ext": ["mp3"] },
+      { "ext": ["m4a"] },
+      { "ext": ["flac"] },
+      { "ext": ["wav"] },
+      { "ext": ["ogg"] },
+      { "ext": ["opus"] },
+      { "ext": ["aac"] },
+      { "ext": ["aiff"] }
     ],
     "windows": {
       "allowDowngrades": true,

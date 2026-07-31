@@ -4,7 +4,7 @@ import { LibraryView } from '../Library';
 import { AppearancePanel } from '../Appearance';
 import { QueueView } from '../Queue';
 import { PlaylistsView } from '../Playlists';
-import { LightModePanel } from '../LightMode';
+import { ModePanel } from '../Modes';
 import { IntegrationsPanel } from '../Integrations';
 import { ShortcutsPanel } from '../Shortcuts';
 import { AboutPanel } from '../About';
@@ -24,7 +24,7 @@ export const settingsRegistry: SettingsPanelConfig[] = [
   { id: 'playlists', label: 'Playlists', component: PlaylistsView },
   { id: 'appearance', label: 'Appearance', component: AppearancePanel },
   { id: 'shortcuts', label: 'Shortcuts', component: ShortcutsPanel },
-  { id: 'work-mode', label: 'Work mode', component: LightModePanel },
+  { id: 'mode', label: 'Modes', component: ModePanel },
   { id: 'integrations', label: 'Integrations', component: IntegrationsPanel },
   { id: 'about', label: 'About', component: AboutPanel },
   { id: 'manual', label: 'Manual', component: ManualPanel },

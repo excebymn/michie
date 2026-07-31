@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useWindowModeStore } from "../../stores/windowModeStore";
 import {
   IconWindowDots,
   IconMinimize,
   IconMaximize,
   IconRestore,
   IconClose,
-  IconPin,
   IconFullscreen,
-  IconCompactMode,
-  IconMiniPlayer,
 } from "./Icons";
 
 const appWindow = getCurrentWindow();
@@ -30,17 +26,10 @@ export function WindowControls() {
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [isAlwaysOnTop, setIsAlwaysOnTop] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
-
-  const compactMode = useWindowModeStore((s) => s.compactMode);
-  const toggleCompactMode = useWindowModeStore((s) => s.toggleCompactMode);
-  const toggleMiniPlayerMode = useWindowModeStore(
-    (s) => s.toggleMiniPlayerMode,
-  );
 
   // Sinkron status maximize/fullscreen — termasuk kalau berubah dari luar
   // (drag ke edge layar, shortcut OS, dsb), bukan cuma dari tombol ini.
@@ -125,17 +114,6 @@ export function WindowControls() {
       },
     },
     {
-      id: "always-on-top",
-      label: isAlwaysOnTop ? "Lepas Always on Top" : "Always on Top",
-      icon: <IconPin />,
-      active: isAlwaysOnTop,
-      onClick: async () => {
-        const next = !isAlwaysOnTop;
-        await appWindow.setAlwaysOnTop(next);
-        setIsAlwaysOnTop(next);
-      },
-    },
-    {
       id: "fullscreen",
       label: isFullscreen ? "Keluar Fullscreen" : "Fullscreen",
       icon: <IconFullscreen active={isFullscreen} />,
@@ -145,20 +123,6 @@ export function WindowControls() {
         await appWindow.setFullscreen(next);
         setIsFullscreen(next);
       },
-    },
-    {
-      id: "compact",
-      label: compactMode ? "Keluar Compact Mode" : "Compact Mode",
-      icon: <IconCompactMode active={compactMode} />,
-      active: compactMode,
-      onClick: () => toggleCompactMode(),
-    },
-    {
-      id: "mini-player",
-      label: "Mini Player (segera hadir)",
-      icon: <IconMiniPlayer />,
-      soon: true,
-      onClick: () => toggleMiniPlayerMode(), // baru toggle flag, lihat komentar di store
     },
     {
       id: "close",

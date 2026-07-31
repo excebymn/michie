@@ -3,6 +3,7 @@ import { usePlayerStore } from "../../stores/playerStore";
 import { useAppStore } from "../../stores/appStore";
 import { useShortcutsStore } from "../../stores/shortcutStore";
 import { useWindowModeStore } from "../../stores/windowModeStore";
+import { useModeStore } from "../../stores/modeStore";
 import { playerService } from "../../services/playerService";
 import { appService } from "../../services/appService";
 import { eventToCombo, isTypingTarget } from "../../utils/KeyCombo";
@@ -71,6 +72,10 @@ export function MusicPlayer() {
 
   const currentSong = usePlayerStore((s) => s.currentSong);
   const compactMode = useWindowModeStore((s) => s.compactMode);
+  // Di Work Mode, LeftColumn/RightColumn sudah gantiin widget slot dengan
+  // Queue/Library (lihat layout/LeftColumn.tsx & RightColumn.tsx) — jadi
+  // tombol widget tray gak ada gunanya lagi di mode ini, sembunyikan.
+  const isWorkMode = useModeStore((s) => s.mode === "work");
 
   const [duration, setDuration] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
@@ -296,16 +301,18 @@ export function MusicPlayer() {
           <div className="mpw-header-actions">
             <VolumeButton />
 
-            <button
-              className="mpw-btn-menu michie-circle michie-circle--secondary"
-              onClick={() => setShowWidgetTray(true)}
-              title="Widget Tray"
-              aria-label="Buka wadah widget"
-            >
-              <span className="mpw-icon-menu michie-text-primary">
-                <IconWidgetGrid />
-              </span>
-            </button>
+            {!isWorkMode && (
+              <button
+                className="mpw-btn-menu michie-circle michie-circle--secondary"
+                onClick={() => setShowWidgetTray(true)}
+                title="Widget Tray"
+                aria-label="Buka wadah widget"
+              >
+                <span className="mpw-icon-menu michie-text-primary">
+                  <IconWidgetGrid />
+                </span>
+              </button>
+            )}
 
             <button
               className="mpw-btn-menu michie-circle michie-circle--secondary"

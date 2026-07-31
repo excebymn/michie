@@ -35,6 +35,7 @@ mod media_controls; // BARU: integrasi OS-level media controls (MPRIS/SMTC/Now P
 mod music;
 mod spectral; // BARU
 mod types;
+mod video; // BARU: backend Video Player Mode — dirs/library/scan/subtitle, sengaja terpisah total dari music.rs, lihat video.rs
 mod visualizer; // BARU: daftarkan module visualizer
 
 use crate::{
@@ -57,6 +58,7 @@ pub struct AppState {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> Result<(), String> {
     db::init();
+    video::init(); // BARU: siapin folder subtitles, lihat video.rs
 
     let stream_handle: OutputStream =
         OutputStreamBuilder::open_default_stream().expect("open default audio stream");
@@ -110,6 +112,8 @@ pub fn run() -> Result<(), String> {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build()) // BARU
         .plugin(tauri_plugin_process::init()) // BARU: dipakai buat relaunch() setelah install update
+        .plugin(tauri_plugin_process::init()) // BARU: dipakai buat relaunch() setelah install update
+        .plugin(tauri_plugin_shell::init()) // BARU: dipakai buat jalanin sidecar ffmpeg/ffprobe (video transcode)
         .plugin(
             // Allow native context menu in dev mode
             if cfg!(dev) {
@@ -162,6 +166,29 @@ pub fn run() -> Result<(), String> {
                 now_playing,                                 // BARU
                 discord_rp,                                  // BARU
             });
+
+            // BARU: buka scope asset protocol buat semua folder video yang
+            // sudah terdaftar dari sesi sebelumnya - tanpa ini, video dari
+            // folder yang sudah pernah ditambahkan bakal gagal diputar lagi
+            // tiap app dibuka ulang. Lihat catatan panjang di
+            // allow_directory_for_asset_protocol() di video.rs.
+            {
+                let state_for_scope = app.state::<AppState>();
+                let pool_clone = state_for_scope.pool.clone();
+                let app_handle = app.handle().clone();
+                let rt = Runtime::new().unwrap();
+                let video_dirs: Vec<(String,)> = rt.block_on(async {
+                    sqlx::query_as("SELECT dir_path FROM video_dirs")
+                        .fetch_all(&pool_clone)
+                        .await
+                        .unwrap_or_default()
+                });
+                for (dir_path,) in video_dirs {
+                    let _ = app_handle
+                        .asset_protocol_scope()
+                        .allow_directory(&dir_path, true);
+                }
+            }
 
             // ---- Watcher: deteksi lagu selesai secara alami dan auto-lanjut ----
             let watcher_handle = app.handle().clone();
@@ -423,7 +450,20 @@ pub fn run() -> Result<(), String> {
             commands::import_playlist,
             commands::export_playlist,
             db::reset_database,
-            scan_for_deleted
+            scan_for_deleted,
+            // Video Player Mode Functions - BARU (semua logic di video.rs, pola sama seperti equalizer.rs)
+            video::add_video_directory,
+            video::get_video_directory,
+            video::remove_video_directory,
+            video::get_all_videos,
+            video::delete_video,
+            video::set_video_subtitle,
+            video::clear_video_subtitle,
+            video::scan_video_directory,
+            video::scan_video_for_deleted,
+            video::scan_video_directory,
+            video::scan_video_for_deleted,
+            video::prepare_video_playback
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
