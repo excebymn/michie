@@ -64,10 +64,6 @@
     "copyright": "copyright",
     "shortDescription": "A beautiful music player made with Tauri and React",
     "createUpdaterArtifacts": true,
-    "externalBin": [
-      "binaries/ffmpeg",
-      "binaries/ffprobe"
-    ],
     "icon": [
       "icons/icon.png",
       "icons/32x32.png",
