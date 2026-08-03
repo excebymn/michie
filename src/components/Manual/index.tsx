@@ -40,6 +40,7 @@ export const ManualPanel: React.FC = () => {
     >
       <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
         <h2
+        className="michie-text-secondary"
           style={{
             margin: "0 0 16px 0",
             fontSize: "2rem",
@@ -51,6 +52,7 @@ export const ManualPanel: React.FC = () => {
 
         {section.paragraphs.map((paragraph, i) => (
           <p
+          className="michie-text-secondary"
             key={i}
             style={{
               margin: "0 0 16px 0",
@@ -142,7 +144,7 @@ export const ManualPanel: React.FC = () => {
         </div>
 
         <button
-          className="michie-box michie-box-secondary michie-text-primary"
+          className="michie-box michie-box--secondary michie-text-primary"
           onClick={next}
           disabled={isLast}
           style={{

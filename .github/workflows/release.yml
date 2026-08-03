@@ -51,7 +51,7 @@ jobs:
             Bugs and unfinished features are expected.
 
             Please report issues on GitHub if you find one.
-          prerelease: true
+          prerelease: false
           releaseDraft: false
           # BARU: diubah dari false -> true. Ini yang bikin tauri-action generate
           # latest.json (manifest yang dibaca tauri-plugin-updater di app) dan
